@@ -257,3 +257,19 @@ def test_soldout_retired_after_days(monkeypatch, tmp_path):
     routes["https://dico.vn/products.json?limit=250&page=1"] = Resp(200, {"products": items})
     products, _, _ = crawler.run()
     assert len(products) == 2 and not json.loads(f.read_text())["retired"]
+
+
+def test_first_seen_marks_new_products(monkeypatch, tmp_path):
+    mk = lambda h, t: {"handle": h, "title": t, "product_type": "", "tags": [], "images": [{"src": "//x/a.jpg"}],
+                       "variants": [{"title": "M", "price": "300000", "available": True}]}
+    items = [mk("tee-a", "DICO TEE A")]
+    setup(monkeypatch, tmp_path, [{"id": "dico", "name": "DICO", "domain": "dico.vn", "platform": "shopify"}])
+    routes = {"https://dico.vn/products.json?limit=250&page=2": Resp(200, {"products": []})}
+    routes["https://dico.vn/products.json?limit=250&page=1"] = Resp(200, {"products": items})
+    monkeypatch.setattr(crawler, "get", lambda u: routes.get(u, Resp(404, "")))
+    products, _, _ = crawler.run()
+    assert products[0]["first_seen"] == crawler.OLD_DATE          # lần đầu theo dõi: không tính là hàng mới
+    routes["https://dico.vn/products.json?limit=250&page=1"] = Resp(200, {"products": items + [mk("tee-b", "DICO TEE B")]})
+    products, _, _ = crawler.run()
+    fs = {p["title"]: p["first_seen"] for p in products}
+    assert fs["DICO TEE A"] == crawler.OLD_DATE and fs["DICO TEE B"] > "2026-11"

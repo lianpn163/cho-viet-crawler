@@ -4,10 +4,12 @@
  *  - Khách bấm "Notify me": lưu vào sheet "Notify".
  *  - Admin trên laptop bấm "Lấy đơn mới" để kéo đơn về bảng kanban.
  *
- * CÀI ĐẶT: xem README.md, mục "Nhận đơn qua Google". Chỉ cần sửa 2 dòng dưới đây.
+ * CÀI ĐẶT: xem README.md, mục "Nhận đơn qua Google". Chỉ cần sửa 3 dòng dưới đây.
+ * Báo cáo hằng ngày: chạy hàm setupDaily MỘT lần (8h sáng giờ Brisbane mỗi ngày sẽ có email).
  */
 const OWNER_EMAIL = 'ban@gmail.com';            // ← email nhận thông báo đơn mới
 const SECRET = 'doi-thanh-mot-chuoi-bi-mat';    // ← chuỗi bí mật, dán y hệt vào admin (Cài đặt → Online)
+const SITE_URL = 'https://lianpn163.github.io/cho-viet-crawler';   // ← link web (dùng cho báo cáo hằng ngày)
 
 const SITE_NAME = 'VieBuy';
 
@@ -155,4 +157,48 @@ function doGet(e) {
 // Chạy hàm này 1 lần trong trình soạn script để cấp quyền gửi email + thử email
 function testEmail() {
   MailApp.sendEmail(OWNER_EMAIL, SITE_NAME + ': thử thông báo', 'Nếu bạn nhận được email này là đã cài xong.');
+}
+
+// ===== Báo cáo hằng ngày: số sản phẩm đồng bộ, hàng mới, hàng vừa hết, đổi giá =====
+function dailyDigest() {
+  const get = f => {
+    const r = UrlFetchApp.fetch(SITE_URL + '/data/' + f + '.json?t=' + Date.now(), { muteHttpExceptions: true });
+    return r.getResponseCode() === 200 ? JSON.parse(r.getContentText()) : null;
+  };
+  const st = get('status'), pr = get('products');
+  if (!st || !pr) {
+    MailApp.sendEmail(OWNER_EMAIL, SITE_NAME + ': không đọc được dữ liệu web', 'Không mở được ' + SITE_URL + '/data/. Kiểm tra tab Actions trên GitHub.');
+    return;
+  }
+  const since = Date.now() - 864e5, recent = iso => iso && Date.parse(iso) > since;
+  const prods = pr.products || [];
+  const rows = (st.brands || []).map(b => {
+    const mine = prods.filter(p => p.brand === b.id);
+    const ago = b.last_ok ? Math.round((Date.now() - Date.parse(b.last_ok)) / 36e5) : null;
+    return { name: b.name, ok: b.ok, err: b.error || '', ago, total: mine.length, instock: mine.filter(p => p.in_stock).length,
+      fresh: mine.filter(p => recent(p.first_seen)), out: mine.filter(p => !p.in_stock && recent(p.soldout_since)).length,
+      price: mine.filter(p => recent(p.price_changed_at)).length };
+  });
+  const sum = k => rows.reduce((a, r) => a + (Array.isArray(r[k]) ? r[k].length : r[k]), 0);
+  const td = 'padding:7px 10px;border-bottom:1px solid #eee;text-align:right';
+  const table = `<table style="border-collapse:collapse;font-size:14px;width:100%;max-width:620px">
+    <tr style="color:#787774;font-size:12px;text-transform:uppercase"><td style="${td};text-align:left">Brand</td><td style="${td}">Trên web</td><td style="${td}">Còn hàng</td><td style="${td}">Mới</td><td style="${td}">Vừa hết</td><td style="${td}">Đổi giá</td></tr>
+    ${rows.map(r => `<tr><td style="${td};text-align:left"><b>${esc_(r.name)}</b>${r.ok ? '' : ' <span style="color:#e03e3e">⚠ lỗi</span>'}<br><span style="color:#999;font-size:12px">${r.ago == null ? 'chưa đồng bộ' : 'đồng bộ ' + r.ago + ' giờ trước'}</span></td>
+      <td style="${td}">${r.total}</td><td style="${td}">${r.instock}</td><td style="${td};color:#448361"><b>${r.fresh.length ? '+' + r.fresh.length : 0}</b></td><td style="${td}">${r.out}</td><td style="${td}">${r.price}</td></tr>`).join('')}
+    <tr><td style="${td};text-align:left"><b>Tổng</b></td><td style="${td}"><b>${sum('total')}</b></td><td style="${td}"><b>${sum('instock')}</b></td><td style="${td}"><b>${sum('fresh')}</b></td><td style="${td}"><b>${sum('out')}</b></td><td style="${td}"><b>${sum('price')}</b></td></tr></table>`;
+  const fresh = rows.flatMap(r => r.fresh.map(p => `<li><b>${esc_(r.name)}</b> – <a href="${esc_(p.url)}">${esc_(p.title)}</a> · ${Number(p.price).toLocaleString('vi-VN')}₫</li>`)).slice(0, 30);
+  const errs = rows.filter(r => !r.ok).map(r => `<li><b>${esc_(r.name)}</b>: ${esc_(r.err)}</li>`);
+  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;color:#37352f;max-width:620px">
+    <h2 style="margin:0 0 4px">Báo cáo đồng bộ 24 giờ qua</h2><p style="color:#787774;margin:0 0 14px">${new Date().toLocaleDateString('vi-VN')} · <a href="${SITE_URL}">mở web</a></p>
+    ${table}
+    ${errs.length ? `<h3 style="color:#e03e3e">Brand đang lỗi đồng bộ</h3><ul>${errs.join('')}</ul>` : ''}
+    ${fresh.length ? `<h3>Hàng mới lên web</h3><ul>${fresh.join('')}</ul>` : '<p>Không có sản phẩm mới trong 24 giờ qua.</p>'}</div>`;
+  MailApp.sendEmail({ to: OWNER_EMAIL, subject: `${SITE_NAME}: ${sum('total')} sản phẩm trên web · ${sum('fresh')} mới${errs.length ? ' · ' + errs.length + ' brand lỗi' : ''}`, htmlBody: html, name: SITE_NAME });
+}
+
+// Chạy MỘT lần để bật báo cáo 8h sáng mỗi ngày (giờ Brisbane). Chạy lại cũng không bị trùng.
+function setupDaily() {
+  ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'dailyDigest').forEach(t => ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger('dailyDigest').timeBased().everyDays(1).atHour(8).inTimezone('Australia/Brisbane').create();
+  dailyDigest();   // gửi luôn một bản để xem thử
 }

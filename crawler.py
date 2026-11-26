@@ -390,6 +390,7 @@ def public_price_file(domain, html):
     return {}, False, ""
 
 
+OLD_DATE = "2026-01-01T00:00:00+00:00"   # sản phẩm có từ trước khi bắt đầu theo dõi "hàng mới"
 WARN = []   # cảnh báo cho admin, ghi ra private/warnings.json
 
 
@@ -579,7 +580,14 @@ def run(only=None):
                 ov = overrides.get(p["id"])
                 if ov and ov.get("category"):
                     p["category"], p["category_locked"] = LEGACY.get(ov["category"], ov["category"]), True
-                check_product(p, prev_by_id.get(p["id"]), review)
+                prev = prev_by_id.get(p["id"])
+                check_product(p, prev, review)
+                # ngày lần đầu thấy sản phẩm (để xếp hàng mới lên đầu + báo cáo hằng ngày)
+                if prev:
+                    p["first_seen"] = prev.get("first_seen") or OLD_DATE
+                    p["price_changed_at"] = now_iso() if prev.get("price") and prev["price"] != p["price"] else prev.get("price_changed_at", "")
+                else:
+                    p["first_seen"] = now_iso() if old and p["id"] not in retired else OLD_DATE
             total_read = len(items)
             items = [p for p in items if p["category"] != SKIP]   # bỏ đồ bơi, ốp điện thoại, giày dép
             # chọn hàng lên sàn: ưu tiên còn hàng, giữ thứ tự bán chạy của brand (nếu web brand hỗ trợ)

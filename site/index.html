@@ -307,7 +307,9 @@ function renderShop(keep){
  else if(so==='asc')list.sort((a,b)=>a.price-b.price);
  else if(so==='desc')list.sort((a,b)=>b.price-a.price);
  else if(q)list=list.map((p,i)=>[p,score(p,q),i]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]).map(x=>x[0]);
- else{const pin=p=>D.ov[p.id]?.pin||0,pinned=list.filter(pin).sort((a,b)=>pin(a)-pin(b));list=[...pinned,...interleave(list.filter(p=>!pin(p)).sort((a,b)=>(b.in_stock-a.in_stock)))]}
+ else{const pin=p=>D.ov[p.id]?.pin||0,pinned=list.filter(pin).sort((a,b)=>pin(a)-pin(b)),isNew=p=>p.first_seen&&Date.now()-new Date(p.first_seen)<14*864e5,rest=list.filter(p=>!pin(p));
+  // ghim → hàng mới về (14 ngày, mới nhất trước) → còn lại trộn đều các brand
+  list=[...pinned,...rest.filter(isNew).sort((a,b)=>b.first_seen.localeCompare(a.first_seen)),...interleave(rest.filter(p=>!isNew(p)).sort((a,b)=>(b.in_stock-a.in_stock)))]}
  list=[...list.filter(p=>p.in_stock),...list.filter(p=>!p.in_stock)];   // hết hàng luôn xếp cuối, mọi kiểu sắp xếp
  $('pageTitle').textContent=catF==='sale'?'Sale':catF?(catF==='Áo thun & polo'&&slvF?(slvF==='long'?'Long sleeve tees':'Short sleeve tees'):catEN(catF)):brandF?st(brandF).name:'All items';
  $('count').textContent=`${list.length} item${list.length===1?'':'s'}`;
