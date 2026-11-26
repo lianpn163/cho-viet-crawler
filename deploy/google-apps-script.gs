@@ -38,10 +38,48 @@ function doPost(e) {
     if (d.kind === 'notify') return notify_(d);
     if (d.kind === 'order') return order_(d);
     if (d.kind === 'mail') return mail_(d);
+    if (d.kind === 'update') return update_(d);
     return json_({ error: 'Unknown request' });
   } finally {
     lock.releaseLock();
   }
+}
+
+const ORDER_HEADER = ['Mã đơn', 'Thời gian', 'Tên', 'Email', 'SĐT', 'Địa chỉ', 'Ghi chú', 'Món', 'Tổng (A$)', 'Cọc (A$)', 'Khách cũ?', 'Dữ liệu (đừng sửa)'];
+
+function items_(arr) {
+  return (Array.isArray(arr) ? arr.slice(0, 50) : []).map(i => ({ pid: clean_(i.pid, 200), title: clean_(i.title, 200), title_raw: clean_(i.title_raw, 200),
+    variant: clean_(i.variant, 80), variant_raw: clean_(i.variant_raw, 80), q: Math.max(1, Math.min(20, parseInt(i.q, 10) || 1)),
+    price_vnd: Number(i.price_vnd) || 0, url: clean_(i.url, 300), brand: clean_(i.brand, 80), price_check: !!i.price_check }));
+}
+const itemsText_ = items => items.map(i => `${i.q}× ${i.brand} – ${i.title} (${i.variant})`).join('\n');
+
+// mã bảo vệ link "Update your bag" (admin tính giống hệt từ SECRET)
+function tok_(id) {
+  const b = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, SECRET + ':' + id, Utilities.Charset.UTF_8);
+  return b.map(x => ((x + 256) % 256).toString(16).padStart(2, '0')).join('').slice(0, 12);
+}
+
+// Khách bấm "Update your bag" trong email rồi gửi lại: cập nhật món của CHÍNH đơn đó (giữ mã đơn, không hỏi lại thông tin)
+function update_(d) {
+  const id = clean_(d.ref, 20).replace(/[^A-Za-z0-9-]/g, '');
+  if (!id || clean_(d.t, 20) !== tok_(id)) return json_({ error: 'This link has expired. Please reply to our email and we will help.' });
+  const items = items_(d.items);
+  if (!items.length) return json_({ error: 'Your bag is empty' });
+  const sh = sheet_('Orders', ORDER_HEADER), last = sh.getLastRow();
+  const ids = last > 1 ? sh.getRange(2, 1, last - 1, 1).getValues().flat().map(String) : [];
+  const r = ids.indexOf(id);
+  if (r < 0) return json_({ error: 'We could not find this order. Please reply to our email and we will help.' });
+  const row = r + 2, col = sh.getLastColumn();
+  const o = JSON.parse(sh.getRange(row, col).getValue());
+  o.items = items; o.totals = d.totals || {}; o.updated_at = new Date().toISOString().slice(0, 19); o.update_count = (o.update_count || 0) + 1;
+  const t = o.totals;
+  sh.getRange(row, 8, 1, 3).setValues([[itemsText_(items), t.total || '', t.deposit || '']]);
+  sh.getRange(row, col).setValue(JSON.stringify(o));
+  const rows = items.map(i => `<li><b>${esc_(i.brand)}</b> – <a href="${esc_(i.url)}">${esc_(i.title_raw || i.title)}</a> · ${esc_(i.variant)} · SL ${i.q}</li>`).join('');
+  MailApp.sendEmail({ to: OWNER_EMAIL, subject: `${SITE_NAME}: khách cập nhật giỏ ${id} – ${o.name} – A$${t.total || '?'}`, name: SITE_NAME, replyTo: o.email,
+    htmlBody: `<div style="font-family:Arial,sans-serif;font-size:15px"><h2 style="margin:0 0 6px">Khách cập nhật giỏ ${id}</h2><p>${esc_(o.name)} · ${esc_(o.email)}</p><ul>${rows}</ul><p>Tổng mới: <b>A$${t.total || '?'}</b></p><p style="color:#777;font-size:13px">Về laptop bấm "Lấy đơn mới", đơn sẽ có tag "Bag updated" để bạn tick lại availability.</p></div>` });
+  return json_({ id });
 }
 
 function order_(d) {
@@ -50,20 +88,19 @@ function order_(d) {
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || !items.length || !clean_(d.name, 120).trim() || !clean_(d.address, 300).trim())
     return json_({ error: 'Please fill in your name, email and address' });
 
-  const sh = sheet_('Orders', ['Mã đơn', 'Thời gian', 'Tên', 'Email', 'SĐT', 'Địa chỉ', 'Ghi chú', 'Món', 'Tổng (A$)', 'Cọc (A$)', 'Khách cũ?', 'Dữ liệu (đừng sửa)']);
+  const sh = sheet_('Orders', ORDER_HEADER);
   const emails = sh.getRange(1, 4, Math.max(sh.getLastRow(), 1), 1).getValues().flat().map(String);
   const repeat = emails.indexOf(email) > 0;
   const id = 'VB-' + Utilities.getUuid().replace(/-/g, '').slice(0, 6).toUpperCase();
   const o = {
     id, created: new Date().toISOString().slice(0, 19), name: clean_(d.name, 120), email, phone: clean_(d.phone, 30),
     address: clean_(d.address, 300), note: clean_(d.note, 500),
-    items: items.map(i => ({ pid: clean_(i.pid, 200), title: clean_(i.title, 200), title_raw: clean_(i.title_raw, 200), variant: clean_(i.variant, 80), variant_raw: clean_(i.variant_raw, 80),
-      q: Math.max(1, Math.min(20, parseInt(i.q, 10) || 1)), price_vnd: Number(i.price_vnd) || 0, url: clean_(i.url, 300), brand: clean_(i.brand, 80), price_check: !!i.price_check })),
+    items: items_(items),
     ref: clean_(d.ref, 20).replace(/[^A-Za-z0-9-]/g, ''), totals: d.totals || {}, rate: d.rate, deposit_pct: d.deposit_pct, first_claim: !!d.first_claim, repeat_customer: repeat, status: 'new'
   };
   const t = o.totals;
   sh.appendRow([id, o.created, o.name, email, o.phone, o.address, o.note,
-    o.items.map(i => `${i.q}× ${i.brand} – ${i.title} (${i.variant})`).join('\n'), t.total || '', t.deposit || '', repeat ? 'Có' : '', JSON.stringify(o)]);
+    itemsText_(o.items), t.total || '', t.deposit || '', repeat ? 'Có' : '', JSON.stringify(o)]);
 
   // Email báo bạn: có link từng món để bấm đặt hàng ngay trên điện thoại
   const rows = o.items.map(i => `<tr><td style="padding:6px 0;border-bottom:1px solid #eee"><b>${esc_(i.brand)}</b> – <a href="${esc_(i.url)}">${esc_(i.title_raw || i.title)}</a><br>

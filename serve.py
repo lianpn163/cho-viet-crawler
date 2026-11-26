@@ -34,6 +34,7 @@ PRIVATE = ROOT / "private"               # không bao giờ được phục vụ
 CONFIG = PRIVATE / "admin_config.json"
 ORDERS = PRIVATE / "orders.json"
 NOTIFY = PRIVATE / "notify.json"
+DELETED = PRIVATE / "deleted_orders.json"   # đơn đã xoá: không kéo lại từ Google
 ADMIN_PAGE = ROOT / "admin" / "index.html"   # trang admin nằm NGOÀI thư mục site: không bao giờ bị đưa lên web
 MEDIA = ADMIN / "media"
 SAVABLE = {"overrides.json", "clips.json", "brands_admin.json", "settings.json", "articles.json", "keywords.json"}
@@ -167,6 +168,21 @@ def run_sync(max_products, ids=()):
         SYNC.update(running=False, output=out, finished_at=dt.datetime.now().strftime("%H:%M:%S"))
 
 
+def bag_token(oid):
+    """Mã bảo vệ link "Update your bag" (giống hệt cách Google Apps Script tính)."""
+    secret = (load(PRIVATE / "remote.json", {}).get("secret") or "").strip()
+    return hashlib.sha256(f"{secret}:{oid}".encode()).hexdigest()[:12] if secret else ""
+
+
+def apply_bag_update(o, items, totals):
+    """Khách đổi món: thay món của đơn, xoá phần đã tick để bạn kiểm tra lại từ đầu."""
+    if o.get("confirm"):
+        o["prev_confirm"] = o.pop("confirm")
+    o["items"], o["totals"] = items, totals or {}
+    o["updated_at"] = dt.datetime.now().isoformat(timespec="seconds")
+    o["update_count"] = o.get("update_count", 0) + 1
+
+
 def pull_online():
     """Kéo đơn hàng + đăng ký báo hàng từ Google, và dữ liệu sản phẩm mới nhất từ web online về máy."""
     settings = load(SITE / "data" / "admin" / "settings.json", {})
@@ -181,11 +197,23 @@ def pull_online():
                 out["msgs"].append("Google từ chối: kiểm tra lại mã bí mật")
             else:
                 orders = load(ORDERS, [])
-                have = {o.get("id") for o in orders}
-                new = [o for o in j.get("orders", []) if isinstance(o, dict) and o.get("id") and o["id"] not in have]
-                if new:
+                gone = set(load(DELETED, []))
+                by_id = {o.get("id"): o for o in orders}
+                remote = [o for o in j.get("orders", []) if isinstance(o, dict) and o.get("id") and o["id"] not in gone]
+                new = [o for o in remote if o["id"] not in by_id]
+                for o in new:
+                    o["remote_updated_at"] = o.get("updated_at")
+                upd = 0
+                for ro in remote:   # khách đã cập nhật giỏ trên web
+                    lo = by_id.get(ro["id"])
+                    if lo and ro.get("updated_at") and ro.get("updated_at") != lo.get("remote_updated_at"):
+                        apply_bag_update(lo, ro.get("items") or lo["items"], ro.get("totals"))
+                        lo["remote_updated_at"] = ro["updated_at"]
+                        upd += 1
+                if new or upd:
                     orders = sorted(new, key=lambda o: o.get("created", ""), reverse=True) + orders
                     save(ORDERS, orders)
+                out["updated"] = upd
                 notes = load(NOTIFY, [])
                 haven = {n.get("id") for n in notes}
                 newn = [n for n in j.get("notify", []) if isinstance(n, dict) and n.get("id") and n["id"] not in haven]
@@ -314,6 +342,19 @@ class Handler(SimpleHTTPRequestHandler):
             return self.reply(400, {"error": "Dữ liệu không hợp lệ"})
         if path == "/api/order":
             return self.order(data)
+        if path == "/api/update":   # (chạy thử trên máy) khách gửi lại giỏ từ link trong email
+            oid = re.sub(r"[^A-Za-z0-9-]", "", str(data.get("ref", "")))[:20]
+            tok = bag_token(oid)
+            if tok and str(data.get("t", "")) != tok:
+                return self.reply(400, {"error": "This link has expired. Please reply to our email and we will help."})
+            orders = load(ORDERS, [])
+            o = next((x for x in orders if x.get("id") == oid), None)
+            items = (data.get("items") or [])[:50]
+            if not o or not items:
+                return self.reply(400, {"error": "We could not find this order. Please reply to our email and we will help."})
+            apply_bag_update(o, items, data.get("totals"))
+            save(ORDERS, orders)
+            return self.reply(200, {"id": oid})
         if path == "/api/notify":
             return self.notify(data)
         if not self.is_admin():
@@ -414,6 +455,16 @@ class Handler(SimpleHTTPRequestHandler):
             if j.get("error"):
                 return self.reply(400, {"error": "Google: " + str(j["error"])})
             return self.reply(200, {"ok": True})
+        if path == "/api/order-delete":
+            oid = str(data.get("id", ""))
+            orders = load(ORDERS, [])
+            if not any(o.get("id") == oid for o in orders):
+                return self.reply(404, {"error": "Không tìm thấy đơn"})
+            save(ORDERS, [o for o in orders if o.get("id") != oid])
+            gone = load(DELETED, [])
+            if oid not in gone:
+                save(DELETED, (gone + [oid])[-5000:])
+            return self.reply(200, {"ok": True})
         if path == "/api/pull":
             return self.reply(200, pull_online())
         if path == "/api/sync":
@@ -454,7 +505,7 @@ class Handler(SimpleHTTPRequestHandler):
                           "name": d["name"][:120], "email": email, "phone": str(d.get("phone", ""))[:30],
                           "address": d["address"][:300], "note": str(d.get("note", ""))[:500], "items": items[:50],
                           "totals": d.get("totals", {}), "rate": d.get("rate"), "deposit_pct": d.get("deposit_pct"),
-                          "ref": re.sub(r"[^A-Za-z0-9-]", "", str(d.get("ref", "")))[:20],
+                          "source": "manual" if d.get("source") == "manual" else "web",
                           "first_claim": bool(d.get("first_claim")), "repeat_customer": repeat, "status": "new"})
         save(ORDERS, orders)
         return self.reply(200, {"id": code})

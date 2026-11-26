@@ -251,8 +251,8 @@ const GARMENT=/\b(t-?shirt|tee|shirt|jacket|pants?|shorts|hoodie|polo|sweater|sw
 const T=p=>{if(D.ov[p.id]?.title)return D.ov[p.id].title;const t=p.title,vn=hasVN(t),r=t.replace(VN_PREFIX,'');return en(vn&&GARMENT.test(r)?r:t,vn)};
 const vnd=v=>(v||0).toLocaleString('en-AU')+' ₫';
 const HT=['vietnamfashion','madeinvietnam','vietnamesebrand','localbrandvietnam','saigonstreetwear'];
-let brandF='',colF='',sel={},cart=[],jTag='',cur='AUD',firstClaim=true,orderRef='';
-try{orderRef=sessionStorage.getItem('vb_ref')||''}catch(e){}
+let brandF='',colF='',sel={},cart=[],jTag='',cur='AUD',firstClaim=true,orderRef='',orderTok='';
+try{orderRef=sessionStorage.getItem('vb_ref')||'';orderTok=sessionStorage.getItem('vb_tok')||''}catch(e){}
 try{cur=localStorage.getItem('cv_cur')||'AUD'}catch(e){}
 try{cart=JSON.parse(localStorage.getItem('cv_cart')||'[]')}catch(e){}
 const saveCart=()=>{try{localStorage.setItem('cv_cart',JSON.stringify(cart))}catch(e){}};
@@ -401,7 +401,7 @@ function renderCart(){
  const body=$('cartBody'),foot=$('cartFoot');
  if(!cart.length){body.innerHTML='<p class="empty">Your bag is empty.</p>';foot.innerHTML='';return}
  const g={};cart.forEach((i,ix)=>{const b=byId(i.pid)?.brand||'?';(g[b]=g[b]||[]).push([i,ix])});
- body.innerHTML=(orderRef?`<p class="note" style="margin:0 0 12px;padding:10px 12px;border:1px solid var(--line)">Updating order <b>${esc(orderRef)}</b>. Swap any sold-out pieces for something you love, then send your request again.</p>`:'')+Object.entries(g).map(([bid,its])=>`<p class="grp">${esc(st(bid).name)}</p>`+its.map(([i,ix])=>{const p=byId(i.pid);
+ body.innerHTML=(orderRef?`<p class="note" style="margin:0 0 12px;padding:10px 12px;border:1px solid var(--line)">Updating order <b>${esc(orderRef)}</b>. Swap any sold-out pieces for something you love, then send your updated bag. No need to fill in your details again.</p>`:'')+Object.entries(g).map(([bid,its])=>`<p class="grp">${esc(st(bid).name)}</p>`+its.map(([i,ix])=>{const p=byId(i.pid);
   return `<div class="item">${p?.images[0]?`<img src="${esc(p.images[0])}" alt="" referrerpolicy="no-referrer">`:'<img alt="">'}<div><b style="font-size:14px">${esc(p?T(p):'Item removed')}</b><small>${esc(en(i.name))} · ${fP(i.price)}</small>${issues(i).map(m=>`<span class="flag">${esc(m)}</span>`).join('')}</div>
   <div class="qty"><button data-dq="${ix}" aria-label="Decrease">−</button><span>${i.q}</span><button data-iq="${ix}" aria-label="Increase">+</button></div></div>`}).join('')).join('');
  const t=totals(),block=cart.some(blocking),pch=cart.some(i=>issues(i).some(m=>m.startsWith('Price changed')));
@@ -412,13 +412,14 @@ function renderCart(){
  <tr><td>Service fee ${S.fee}%</td><td>${A(t.fee)}</td></tr>${S.gst?`<tr><td>GST 10%</td><td>${A(t.gst)}</td></tr>`:''}<tr class="tot"><td>Total, delivered</td><td>${A(t.total)}</td></tr></table>
  ${S.free_first?`<label class="ck" style="margin-top:8px"><input type="checkbox" id="firstChk" ${firstClaim?'checked':''}><span>This is my first order (free shipping, checked against your email)</span></label>`:''}
  <div class="dep">${[S.dep1,S.dep2,S.dep3].filter(Boolean).map((x,k)=>`<span style="display:block;${k?'font-size:13px;margin-top:4px;':''}${k===2?'color:var(--mute)':''}">${esc(x).replace(/\{pct\}/g,S.deposit).replace(/\{deposit\}/g,`<b>${A(t.deposit)}</b>`).replace(/\{balance\}/g,`<b>${A(t.balance)}</b>`)}</span>`).join('')}</div>
- <button class="big" id="checkout" ${block?'disabled':''}>${block?'Remove or reduce the flagged items':pch?'Accept new prices & continue':'Request this order'}</button>`;
+ <button class="big" id="checkout" ${block?'disabled':''}>${block?'Remove or reduce the flagged items':pch?'Accept new prices & continue':orderRef?'Send updated bag':'Request this order'}</button>`;
 }
 async function checkout(){
  if(cart.some(i=>issues(i).some(m=>m.startsWith('Price changed')))&&!cart.some(blocking)){cart.forEach(i=>{const v=vOf(i);if(v)i.price=v.price||byId(i.pid).price});saveCart();renderCart();return toast('Updated to the latest prices')}
  $('checkout').disabled=true;$('checkout').textContent='Checking the latest stock & prices…';
  await CV.load();renderCart();
  if(cart.some(i=>issues(i).length))return toast('Something changed since you added it. See the items in red');
+ if(orderRef)return sendBagUpdate();
  const t=totals();$('cartTitle').textContent='Request your order';
  $('cartBody').innerHTML=`<p class="note" style="margin:0 0 10px">Stock and prices checked at ${new Date().toLocaleTimeString('en-AU',{hour:'numeric',minute:'2-digit'})}. Estimated total <b style="color:var(--ink)">${A(t.total)}</b>.</p>
  <form class="f" id="orderForm"><label>Full name<input required name="name" autocomplete="name"></label>
@@ -441,6 +442,14 @@ async function sendOrder(f){
  <ol class="nexts"><li><span>Within 24 hours we email <b>${esc(f.email.value)}</b> to confirm stock, the final price and your delivery date.</span></li><li><span>You pay a ${D.set.deposit}% deposit by bank transfer. We order from the brand straight away.</span></li><li><span>Your items arrive at our hub in Vietnam, get checked, and we send you real photos.</span></li><li><span>You pay the balance, your parcel flies to Australia and comes to your door.</span></li></ol>
  <p class="note">Can’t see our email? Check your Spam or Promotions folder.</p><button class="big" data-close>Keep browsing</button>`;
  cart=[];saveCart();$('cc').textContent=0;orderRef='';try{sessionStorage.removeItem('vb_ref')}catch(e){}
+}
+// Khách sửa giỏ từ link trong email: cập nhật đúng đơn cũ, không hỏi lại thông tin
+async function sendBagUpdate(){
+ const t=totals(),items=cart.map(i=>{const p=byId(i.pid);return {pid:i.pid,title:T(p),title_raw:p.title,variant:en(i.name),variant_raw:i.name,q:i.q,price_vnd:i.price,url:p.url,brand:st(p.brand).name,price_check:!!p.price_check}});
+ let res=null,err='';try{res=await CV.send('update',{ref:orderRef,t:orderTok,items,totals:Object.fromEntries(Object.entries(t).filter(([k,v])=>typeof v==='number').map(([k,v])=>[k,+v.toFixed(2)]))})}catch(e){err=e.message}
+ if(!res){renderCart();return toast(err&&err!=='send failed'?err:'We couldn’t send your update, please try again')}
+ $('cartBody').innerHTML=`<h3 style="font-size:24px;margin:0 0 4px">Order ${esc(res.id)} updated</h3><p>Thank you! I’ll check availability with the brands and email you the revised order summary and payment details shortly.</p><p class="note">Can’t see our email? Check your Spam or Promotions folder.</p><button class="big" data-close>Keep browsing</button>`;
+ $('cartFoot').innerHTML='';cart=[];saveCart();$('cc').textContent=0;orderRef='';orderTok='';try{sessionStorage.removeItem('vb_ref');sessionStorage.removeItem('vb_tok')}catch(e){}
 }
 function openD(id){$('veil').classList.add('on');$(id).classList.add('on')}
 function closeD(){$('veil').classList.remove('on');document.querySelectorAll('.drawer').forEach(d=>d.classList.remove('on'));$('cartTitle').textContent='Your bag'}
@@ -533,7 +542,7 @@ function loadBagFromLink(){
   const vi=p.variants.findIndex(v=>v.name===vn||en(v.name)===vn),v=p.variants[vi];
   if(vi<0||!v.available){miss++;continue}
   cart.push({pid,vi,q:Math.max(1,Math.min(20,parseInt(q)||1)),price:v.price||p.price,name:v.name})}
- orderRef=String(u.get('ref')||'').replace(/[^A-Z0-9-]/gi,'').slice(0,20);try{sessionStorage.setItem('vb_ref',orderRef)}catch(e){}
+ orderRef=String(u.get('ref')||'').replace(/[^A-Z0-9-]/gi,'').slice(0,20);orderTok=String(u.get('t')||'').replace(/[^a-f0-9]/g,'').slice(0,20);try{sessionStorage.setItem('vb_ref',orderRef);sessionStorage.setItem('vb_tok',orderTok)}catch(e){}
  saveCart();history.replaceState(null,'',location.pathname+location.hash);
  $('cc').textContent=cart.reduce((a,i)=>a+i.q,0);renderCart();openD('cart');
  if(miss)toast(miss===1?'One piece has just sold out, so it’s not in your bag':`${miss} pieces have just sold out, so they’re not in your bag`);
