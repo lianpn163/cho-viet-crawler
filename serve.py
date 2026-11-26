@@ -179,6 +179,7 @@ def apply_bag_update(o, items, totals):
     if o.get("confirm"):
         o["prev_confirm"] = o.pop("confirm")
     o["items"], o["totals"] = items, totals or {}
+    o.pop("avail", None)   # món mới: tick lại từ đầu
     o["updated_at"] = dt.datetime.now().isoformat(timespec="seconds")
     o["update_count"] = o.get("update_count", 0) + 1
 
@@ -404,6 +405,9 @@ class Handler(SimpleHTTPRequestHandler):
                 for it, v in zip(o["items"], ff):
                     if v in ok:
                         it["ff"] = v
+            av = patch.get("avail")
+            if isinstance(av, list) and len(av) == len(o.get("items", [])):
+                o["avail"] = [None if v is None else bool(v) for v in av]
             if isinstance(patch.get("confirm"), dict):
                 o["confirm"] = patch["confirm"]
             if isinstance(patch.get("cost"), dict):

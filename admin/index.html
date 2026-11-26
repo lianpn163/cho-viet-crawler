@@ -87,10 +87,11 @@ pre.out{background:var(--soft);padding:10px;border-radius:8px;font-size:12px;whi
 .x{width:40px;height:40px;border:0;border-radius:10px;background:var(--soft);font-size:22px;color:var(--ink)}
 .dt{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);margin:20px 0 8px}
 table.mini{border-collapse:collapse;font-size:14px}table.mini td{padding:3px 16px 3px 0}
-.ffrow{display:grid;grid-template-columns:1fr 190px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.av{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;height:34px}.av button{border:0;background:#fff;padding:0 10px;font-size:13px;color:var(--mute)}.av button+button{border-left:1px solid var(--line)}.av button.on.ok{background:var(--gr-bg);color:var(--gr-t);font-weight:600}.av button.on.no{background:var(--r-bg);color:var(--r-t);font-weight:600}
+.ffrow{display:grid;grid-template-columns:1fr auto 170px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
 .ffrow select{min-height:36px;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:0 6px;font-size:13px}
 .ff.at_hub,.ff.shipped_au{border-color:var(--ok);color:var(--ok)}.ff.unavailable{color:var(--bad)}.ff.ordered,.ff.brand_shipped{border-color:var(--warn);color:var(--warn)}
-@media(max-width:600px){.ffrow{grid-template-columns:1fr}.kb{grid-template-columns:repeat(3,minmax(250px,85vw))}}
+@media(max-width:600px){.ffrow{grid-template-columns:1fr 1fr}.ffrow>div:first-child{grid-column:1/-1}.kb{grid-template-columns:repeat(3,minmax(250px,85vw))}}
 .bulk{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-right:8px}
 .costbox{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px}
 .costbox table.mini td:last-child{text-align:right}
@@ -378,7 +379,7 @@ function cardHTML(o){
  if(o.items.some(i=>i.price_check))tags.push(['Xác nhận giá','r']);
  if(due)tags.push(['Quá hạn cọc','r']);
  if(o.admin_note)tags.push(['Có ghi chú','g']);
- if(o.confirm?.mode==='confirm')tags.unshift(['In stock','gr']);else if(o.confirm?.mode==='update')tags.unshift(['Stockout','r']);else if(o.updated_at)tags.unshift(['Bag updated','p']);
+ if(o.confirm?.mode==='confirm')tags.unshift(['In stock','gr']);else if(o.confirm?.mode==='update')tags.unshift(['Stockout','r']);else if(o.avail?.some(v=>v===false))tags.unshift(['Stockout','r']);else if(o.avail&&o.avail.length&&o.avail.every(v=>v===true))tags.unshift(['In stock','gr']);else if(o.updated_at)tags.unshift(['Bag updated','p']);
  if(o.source==='manual')tags.push(['Đơn tự tạo','g']);
  {const r=costCalc(o,+(o.cost?.kg||estKg(o)),o.cost?.route||'air');if(!r.invalid)tags.push([(r.profit>=0?'Lãi A$':'Lỗ A$')+Math.abs(r.profit).toFixed(0),r.profit>=0?'gr':'r'])}
  return `<button class="jc${openId===o.id?' sel':''}" data-openo="${esc(o.id)}" draggable="true" data-drag="${esc(o.id)}" style="--cardc:${col.card};--dot:${col.c}">
@@ -419,12 +420,13 @@ function renderDetail(){
  ${costPanel(o)}
  <h3 class="dt">Tiến độ từng món</h3>
  ${o.items.map((i,k)=>`<div class="ffrow"><div><b style="font-size:14px">${esc(i.title)}</b><div class="note" style="margin:0">${esc(i.brand)} · ${esc(i.variant)} × ${i.q} · ${vnd(o.confirm?.items?.[k]?.price??i.price_vnd)}${i.price_check?' · <span class="err">⚠ xác nhận giá</span>':''} · <a href="${esc(i.url)}" target="_blank" rel="noopener">web brand ↗</a></div></div>
+ <div class="av" role="group" aria-label="Còn hàng?"><button class="${o.avail?.[k]===true?'on ok':''}" data-avail="${k}:1">Còn hàng</button><button class="${o.avail?.[k]===false?'on no':''}" data-avail="${k}:0">Hết hàng</button></div>
  <select data-iff="${k}" class="ff ${esc(i.ff||'pending')}">${FF.map(([v,l])=>`<option value="${v}"${(i.ff||'pending')===v?' selected':''}>${l}</option>`).join('')}</select></div>`).join('')}
  <h3 class="dt">Ghi chú nội bộ</h3>
  <textarea data-onote="${esc(o.id)}" placeholder="VD: đã nhắn brand lúc 10h, size M còn 1 cái…" style="width:100%;min-height:90px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--card);font-size:15px">${esc(o.admin_note||'')}</textarea>
  <p class="note" style="margin:4px 0 0">Tự lưu khi bạn bấm ra ngoài ô.</p>
  <h3 class="dt">Email cho khách</h3>
- ${composing?.id===o.id?composer(o):ci>0?`<p class="note" style="margin:0">Email xác nhận đã xong ở bước trước. Email "đã nhận cọc" và "ảnh hàng thật + thanh toán phần còn lại" sẽ được thêm ở bản sau.</p>`:`<button class="btn" data-compose="${esc(o.id)}">${o.confirm?'Soạn lại email xác nhận':'Soạn email xác nhận & yêu cầu cọc'}</button>${o.confirm?.sent_at?`<p class="note">Đã soạn email xác nhận ${esc(new Date(o.confirm.sent_at).toLocaleString('vi-VN'))}</p>`:''}`}
+ ${composing?.id===o.id?composer(o):ci>0?`<p class="note" style="margin:0">Email xác nhận đã xong ở bước trước. Email "đã nhận cọc" và "ảnh hàng thật + thanh toán phần còn lại" sẽ được thêm ở bản sau.</p>`:`${(()=>{const av=o.avail||[],chk=av.filter(v=>v!=null).length,out=av.filter(v=>v===false).length;return chk<o.items.length?`<p class="note" style="margin:0 0 8px">Đã kiểm tra ${chk}/${o.items.length} món. Món chưa đánh dấu sẽ tính là còn hàng.</p>`:`<p style="margin:0 0 8px;font-size:14px">${out?`<b style="color:var(--bad)">${out} món hết hàng</b> → email mời khách chọn lại`:'<b style="color:var(--ok)">Đủ hàng</b> → email xác nhận & yêu cầu cọc'}</p>`})()}<button class="btn" data-compose="${esc(o.id)}">${o.confirm?'Soạn lại email cho khách':'Soạn email cho khách'}</button>${o.confirm?.sent_at?`<p class="note">Đã soạn email xác nhận ${esc(new Date(o.confirm.sent_at).toLocaleString('vi-VN'))}</p>`:''}`}
  ${o.updated_at?`<p class="note" style="margin:8px 0 0">Khách đã đổi món lúc ${esc(new Date(o.updated_at).toLocaleString('vi-VN'))}. Tick lại availability rồi gửi email mới.</p>`:''}
  ${(o.history||[]).length?`<h3 class="dt">Lịch sử</h3><ul class="note" style="padding-left:18px;margin:0">${o.history.slice().reverse().map(h=>`<li>${esc(new Date(h.at).toLocaleString('vi-VN'))} · ${esc(stName(h.status))}</li>`).join('')}</ul>`:''}
  <div style="margin-top:26px;padding-top:12px;border-top:1px solid var(--line)"><button class="btn alt sm" data-odel="${esc(o.id)}" style="color:#e5484d">Xoá đơn này</button></div>
@@ -517,7 +519,7 @@ function costPanel(o){
 function startCompose(o){
  bagTok(o.id).then(t=>{if(composing&&composing.id===o.id)composing.tok=t});
  const c=o.confirm;
- composing={id:o.id,items:o.items.map((i,k)=>({ok:c?.items?.[k]?.ok??true,price:c?.items?.[k]?.price??i.price_vnd})),eta:(c?.eta&&!/^\d{4}-/.test(c.eta))?c.eta:(D.set.eta_email||D.set.eta||'10–12 days'),deadline:c?.deadline||plusDays(2),edited:null};
+ composing={id:o.id,items:o.items.map((i,k)=>({ok:o.avail?.[k]??c?.items?.[k]?.ok??true,price:c?.items?.[k]?.price??i.price_vnd})),eta:(c?.eta&&!/^\d{4}-/.test(c.eta))?c.eta:(D.set.eta_email||D.set.eta||'10–12 days'),deadline:c?.deadline||plusDays(2),edited:null};
 }
 function calc(o){
  const rate=o.rate||D.set.rate;let goods=0,kg=0;
@@ -634,6 +636,8 @@ document.addEventListener('click',async e=>{
   const r=await fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Khách mẫu (DEMO)',email:'demo@example.com',phone:'',address:'1 Demo St, Brisbane QLD 4000',note:'Đơn mẫu để thử, đổi trạng thái sang Huỷ khi xong',items:pick,first_claim:true,totals:Object.fromEntries(Object.entries(T).filter(([,v])=>typeof v==='number').map(([k,v])=>[k,+v.toFixed(2)])),rate:D.set.rate,deposit_pct:D.set.deposit})});
   if(r.ok){const j=await r.json();await loadOrders();openId=j.id;redraw();toast('Đã tạo đơn mẫu '+j.id)}else toast('Không tạo được')}
  else if(d.pull!==undefined){await pullOnline(false)}
+ else if(d.avail){const[k,v]=d.avail.split(':');const o=orders.find(x=>x.id===openId);if(!o)return;const av=o.items.map((_,i)=>o.avail?.[i]??null);av[+k]=av[+k]===(v==='1')?null:v==='1';
+  const r=await api('/api/order-update',{id:o.id,patch:{avail:av}});if(r.ok){o.avail=av;if(composing?.id===o.id&&av[+k]!=null)composing.items[+k].ok=av[+k];redraw()}else toast(r.j.error||'Không lưu được')}
  else if(d.newo!==undefined){newOrd=blankOrd();openId='__new__';composing=null;redraw()}
  else if(d.nfadd){const p=D.byId[d.nfadd],sel=document.querySelector(`[data-nfv="${CSS.escape(d.nfadd)}"]`),v=p?.variants[+(sel?.value||0)];if(!p||!v)return;
   const ex=newOrd.items.find(i=>i.pid===p.id&&i.variant_raw===v.name);if(ex)ex.q++;else newOrd.items.push({pid:p.id,title:ovOf(p).title||p.title,title_raw:p.title,variant:v.name,variant_raw:v.name,q:1,price_vnd:v.price||p.price,url:p.url,brand:st(p.brand).name,price_check:!!p.price_check});renderDetail()}
@@ -699,7 +703,7 @@ document.addEventListener('change',async e=>{const t=e.target,d=t.dataset;
  else if(d.ckg!==undefined||d.croute!==undefined){const o=orders.find(x=>x.id===openId),c={...(o.cost||{})};if(d.ckg!==undefined)c.kg=Math.max(.05,+t.value||estKg(o));else c.route=t.value;const r=await api('/api/order-update',{id:o.id,patch:{cost:c}});if(r.ok){Object.assign(o,r.j.order);redraw()}}
  else if(d.iff!==undefined){const o=orders.find(x=>x.id===openId),ff=o.items.map((i,k)=>k===+d.iff?t.value:(i.ff||'pending'));const r=await api('/api/order-update',{id:o.id,patch:{items_ff:ff}});if(r.ok){Object.assign(o,r.j.order);redraw()}}
  else if(d.onote){const o=orders.find(x=>x.id===d.onote);const r=await api('/api/order-update',{id:o.id,patch:{admin_note:t.value}});if(r.ok){o.admin_note=t.value;renderBoard();toast('Đã lưu ghi chú')}}
- else if(d.cok!==undefined&&composing){composing.items[+d.cok].ok=t.checked;redraw()}
+ else if(d.cok!==undefined&&composing){composing.items[+d.cok].ok=t.checked;const o=orders.find(x=>x.id===composing.id);if(o){const av=o.items.map((_,k)=>composing.items[k].ok);api('/api/order-update',{id:o.id,patch:{avail:av}}).then(r=>{if(r.ok)o.avail=av})}redraw()}
  else if(d.cprice!==undefined&&composing){composing.items[+d.cprice].price=Math.max(0,Math.round(+t.value||0));redraw()}
  else if(d.ceta!==undefined&&composing){composing.eta=t.value;const s2={...D.set,eta_email:t.value};saveFile('settings.json',s2).then(ok=>{if(ok)D.set=s2});redraw()}
  else if(d.cdead!==undefined&&composing){composing.deadline=t.value;redraw()}
