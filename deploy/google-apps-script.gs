@@ -37,6 +37,7 @@ function doPost(e) {
   try {
     if (d.kind === 'notify') return notify_(d);
     if (d.kind === 'order') return order_(d);
+    if (d.kind === 'mail') return mail_(d);
     return json_({ error: 'Unknown request' });
   } finally {
     lock.releaseLock();
@@ -77,6 +78,16 @@ function order_(d) {
     <p style="color:#777;font-size:13px">Về laptop: mở admin → Đơn hàng → "Lấy đơn mới" để cập nhật tiến độ.</p></div>`;
   MailApp.sendEmail({ to: OWNER_EMAIL, subject: `${SITE_NAME}: ${o.ref ? `cập nhật giỏ ${id} (đơn cũ ${o.ref})` : `đơn mới ${id}`} – ${o.name} – A$${t.total || '?'}`, htmlBody: html, replyTo: email, name: SITE_NAME });
   return json_({ id });
+}
+
+// Admin trên laptop gửi email xác nhận cho khách (từ Gmail của bạn). Cần đúng SECRET.
+function mail_(d) {
+  if (d.key !== SECRET) return json_({ error: 'forbidden' });
+  const to = clean_(d.to, 120).trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return json_({ error: 'Email khách không hợp lệ' });
+  MailApp.sendEmail({ to, subject: clean_(d.subject, 200), body: clean_(d.text, 20000), htmlBody: clean_(d.html, 80000),
+    name: SITE_NAME, replyTo: clean_(d.reply_to, 120) || OWNER_EMAIL });
+  return json_({ ok: true });
 }
 
 function notify_(d) {

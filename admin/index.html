@@ -113,7 +113,7 @@ const VER=[['web','Website chính thức: domain đúng tên brand, có HTTPS, c
 const TAGS=['Celeb mặc đồ Việt','Chất liệu','Câu chuyện brand','Xu hướng','Lịch sử & di sản','Hướng dẫn'];
 let page=(()=>{try{return sessionStorage.getItem('cv_page')||'orders'}catch(e){return 'orders'}})(),kwList=[],pendKw={},warns=[],warnAt='',pw='',tab='warn',selP=new Set(),pend={},catFilter='all',catQ='',brandQ='',limitP=60,syncTxt='',notes=[],editing=null,preview=false;
 try{pw=sessionStorage.getItem('cv_pw')||''}catch(e){}
-let tt;const toast=m=>{const e=$('toast');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2400)};
+let tt;const toast=(m,ms=2400)=>{const e=$('toast');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),ms)};
 async function api(path,body,method='POST'){
  try{const r=await fetch(path,{method,headers:{'Content-Type':'application/json','X-Admin-Password':pw},body:method==='GET'?undefined:JSON.stringify(body||{})});
   const j=await r.json().catch(()=>({}));if(r.status===401){pw='';try{sessionStorage.removeItem('cv_pw')}catch(e){}}return {ok:r.ok,status:r.status,j}}
@@ -496,39 +496,60 @@ function bagLink(o){
  const arr=o.items.map((i,k)=>composing.items[k].ok?[i.pid,i.variant_raw||i.variant,i.q]:null).filter(Boolean);
  return `${base}/?bag=${encodeURIComponent(JSON.stringify(arr))}&ref=${encodeURIComponent(o.id)}`;
 }
-function emailFooter(){
- const c=contact,ways=!!c.phone;
- return ['','—',`${D.set.site_name||'VieBuy'} is a small, personal service. If you have any questions, just reply to this email${ways?' or call/text me':''}. I'll get back to you within 2 hours.`,'',
-  'Warmly,',c.name||'[Tên của bạn]',D.set.site_name||'VieBuy',c.phone||'',c.email||''].filter((x,i,a)=>x!==''||a[i-1]!=='');
+function emailSign(){
+ const c=contact;
+ return ['Kind Regards,','**VieBuy Australia**','',
+  `For any questions or updates, simply reply to this email or reach me via email at ${c.email||'[email: điền trong Cài đặt]'} or phone/WhatsApp/Zalo at ${c.phone||'[SĐT: điền trong Cài đặt]'}.`];
 }
+const dayLong=s=>{if(!s)return '';const d=new Date(s+'T12:00:00');return d.toLocaleDateString('en-AU',{weekday:'long'})+', '+d.toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'})};
 function emailText(o){
  const t=calc(o),A=x=>'A$'+x.toFixed(2),S=D.set,name=S.site_name||'VieBuy',first=(o.name||'').trim().split(/\s+/)[0]||'there',rate=o.rate||S.rate;
  const ok=o.items.map((i,k)=>[i,k]).filter(([,k])=>composing.items[k].ok),gone=o.items.filter((i,k)=>!composing.items[k].ok);
- const line=([i,k])=>`• ${i.brand} – ${i.title} (${i.variant}) × ${i.q} — ${A(composing.items[k].price/rate*i.q)}`;
- const changed=ok.filter(([i,k])=>composing.items[k].price!==i.price_vnd);
- const L=[`Hi ${first},`,'',`Thank you for your order with ${name}! I've checked every piece with the brands.`,''];
- if(gone.length){   // (2) một vài món đã hết: mời khách chọn lại trên web
-  L.push('1. AVAILABILITY','');
-  if(ok.length)L.push('Still available:',...ok.map(([i,k])=>`✓ ${i.brand} – ${i.title} (${i.variant}) × ${i.q}`),'');
-  L.push('Sold out at the brand, sorry:',...gone.map(i=>`✗ ${i.brand} – ${i.title} (${i.variant})`),'',
-   '2. UPDATE YOUR BAG','',ok.length?'I’ve saved the available pieces in your bag. Open the link below to swap the sold-out pieces for something else (or just send it as is):':'Open the link below to choose something else:','',bagLink(o),'',
-   'Once you send your updated bag, I’ll confirm the final total and payment details straight away.',
-   ...(ok.length?['',`Happy to go ahead with just the available pieces? Simply reply “go ahead” and I’ll send the payment details.`]:[]),
-   ...emailFooter());
-  return {mode:'update',subject:`${name} order ${o.id}: a few pieces sold out, please update your bag`,body:L.join('\n'),t};
+ const L=[`Hi ${first},`,'',`Thank you for shopping with ${name}!`,''];
+ if(gone.length){   // một vài món đã hết: mời khách chọn lại trên web, chưa thu tiền
+  L.push(`I've checked your selected items directly with the brands. Unfortunately, ${gone.length===1?'one item':'some items'} from your order ${gone.length===1?'is':'are'} currently unavailable.`,'',
+   '**1. ITEM AVAILABILITY**','',`Unfortunately, the following ${gone.length===1?'item is':'items are'} sold out:`,'',...gone.map(i=>`✗ ${i.brand} – ${i.title} (${i.variant})`));
+  if(ok.length)L.push('','These items are still available and already saved in your bag:','',...ok.map(([i])=>`✓ ${i.brand} – ${i.title} (${i.variant}) × ${i.q}`));
+  L.push('','**2. UPDATE YOUR ORDER**','','You can revisit your shopping bag and select alternative items using the link below:','',BAG_TOKEN,'',
+   "Once you've updated and resubmitted your selection, I'll check availability and send you the revised order summary and payment details.",'',
+   'No payment is required at this stage.','',
+   "Thank you for your understanding! I'll be happy to help you find an alternative if needed.",'',...emailSign());
+  return {mode:'update',subject:`${name} order ${o.id}: ${gone.length===1?'an item is':'some items are'} sold out`,body:L.join('\n'),t};
  }
- // (1) đủ hàng: xác nhận + ETA + tiền cọc + thông tin chuyển khoản
- L.push('1. AVAILABILITY','','Great news: everything in your bag is available.',...ok.map(line));
+ const changed=ok.filter(([i,k])=>composing.items[k].price!==i.price_vnd);
+ L.push("I've checked your selected items directly with the brands, and I'm happy to confirm that **all items are available**.",'',
+  '**1. ITEM AVAILABILITY**','',...ok.map(([i,k])=>`✓ ${i.brand} – ${i.title} (${i.variant}) × ${i.q} — ${A(composing.items[k].price/rate*i.q)}`));
  if(changed.length)L.push('','Please note the brand has updated the price of:',...changed.map(([i,k])=>`• ${i.title}: now ${A(composing.items[k].price/rate)} each`));
- L.push('','2. DELIVERY',`Estimated delivery: ${composing.eta} after your deposit is received.`,'',
-  '3. PAYMENT',`Items: ${A(t.goods)}`,`Shipping: ${t.firstOff?'Free (first order)':A(t.ship)}`,`Service fee (${S.fee}%): ${A(t.fee)}`);
- if(S.gst)L.push(`GST: ${A(t.gst)}`);
- L.push(`Total: ${A(t.total)}`,'',`Deposit to pay now (${S.deposit}%): ${A(t.deposit)}`,`Please transfer by ${longDate(composing.deadline)}.`,'',payInfo||'[Thông tin chuyển khoản: điền trong Cài đặt]',`Reference: ${o.id}`,'',
-  'Your order is placed with the brands only once your deposit arrives, so the sooner you transfer, the sooner your pieces are on their way.',
-  `The remaining ${A(t.balance)} is due once your pieces reach our Vietnam hub. I'll send you photos of your actual items before they fly to Australia.`,'',
-  'That’s it! Once the deposit lands, I’ll email you to confirm your order is being processed.',...emailFooter());
+ L.push('','**2. ORDER SUMMARY**','','| Description | Amount |','|---|---:|',`| Items | ${A(t.goods)} |`,`| Shipping | ${t.firstOff?'Free (first order)':A(t.ship)} |`,`| Service fee (${S.fee}%) | ${A(t.fee)} |`);
+ if(S.gst)L.push(`| GST | ${A(t.gst)} |`);
+ L.push(`| **Order total** | **${A(t.total)}** |`,'',
+  `**3. PAYMENT – ${S.deposit}% DEPOSIT**`,'',`To proceed with your order, a ${S.deposit}% deposit of **${A(t.deposit)}** is required.`,'',
+  '**Bank details:**','',...(payInfo||'[Thông tin chuyển khoản: điền trong Cài đặt]').split('\n'),`Reference: ${o.id}`,'',
+  `**Payment deadline:** ${dayLong(composing.deadline)}.`,'',
+  "Once your deposit is received, I'll place the order with the brands and send you a confirmation that processing has commenced.",'',
+  `The remaining balance of **${A(t.balance)}** will be due once your items arrive at our Vietnam hub. Before dispatching to Australia, I'll also share photos of your actual items for your confirmation.`,'',
+  `**Estimated delivery:** ${composing.eta} from receipt of your deposit.`,'',
+  `Thank you for choosing ${name}. I look forward to getting your pieces to you!`,'',...emailSign());
  return {mode:'confirm',subject:`${name} order ${o.id} confirmed: deposit details inside`,body:L.join('\n'),t};
 }
+const BAG_TOKEN='{{UPDATE_BAG_BUTTON}}';
+const mdB=x=>esc(x).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+function emailHtml(text,o){
+ const url=bagLink(o),blue='#00007F',lines=text.split('\n'),out=[];
+ for(let n=0;n<lines.length;n++){const l=lines[n],tl=l.trim();
+  if(tl.startsWith('|')){   // bảng tổng tiền
+   const rows=[];while(n<lines.length&&lines[n].trim().startsWith('|')){const c=lines[n].trim().replace(/^\||\|$/g,'').split('|').map(x=>x.trim());if(!c.every(x=>/^:?-+:?$/.test(x)))rows.push(c);n++}n--;
+   out.push(`<table style="border-collapse:collapse;width:100%;max-width:420px;margin:4px 0">${rows.map((c,ri)=>`<tr>${c.map((x,ci)=>`<td style="padding:7px 0;border-bottom:1px solid #e5e5ee;${ci?'text-align:right;':''}${ri===0?'color:#6b6b80;font-size:12px;letter-spacing:.06em;text-transform:uppercase;':''}">${mdB(x)}</td>`).join('')}</tr>`).join('')}</table>`);continue}
+  if(tl===BAG_TOKEN){out.push(/^https?:/.test(url)?`<p style="margin:16px 0"><a href="${esc(url)}" style="display:inline-block;background:${blue};color:#fff;padding:13px 24px;text-decoration:none;font-weight:bold;letter-spacing:.08em;font-size:13px">UPDATE YOUR BAG →</a></p>`:`<p>${esc(url)}</p>`);continue}
+  if(!tl){out.push('<div style="height:10px"></div>');continue}
+  if(/^\*\*\d\.\s.+\*\*$/.test(tl)){out.push(`<p style="margin:14px 0 4px;color:${blue};font-weight:bold;letter-spacing:.08em;font-size:13px">${esc(tl.slice(2,-2))}</p>`);continue}
+  out.push(`<p style="margin:2px 0">${mdB(l)}</p>`)}
+ return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#1a1a2e;max-width:560px">${out.join('')}</div>`;
+}
+const emailPlain=(text,o)=>text.split('\n').filter(l=>!/^\|\s*(Description|:?-+)/.test(l.trim())).map(l=>{const tl=l.trim();
+ if(tl===BAG_TOKEN)return bagLink(o);
+ if(tl.startsWith('|')){const c=tl.replace(/^\||\|$/g,'').split('|').map(x=>x.trim());return c.join(': ')}
+ return l}).join('\n').replace(/\*\*(.+?)\*\*/g,'$1');
 function composer(o){
  const e=emailText(o),body=composing.edited??e.body,inp='min-height:40px;border:1px solid var(--line);border-radius:8px;padding:0 8px;background:var(--card)';
  return `<div style="border-top:1px solid var(--line);margin-top:10px;padding-top:12px">
@@ -542,8 +563,9 @@ function composer(o){
  <p style="margin:10px 0 4px;font-size:14px">Tổng mới: <b>A$${e.t.total.toFixed(2)}</b> · cọc <b>A$${e.t.deposit.toFixed(2)}</b> · còn lại A$${e.t.balance.toFixed(2)}</p>
  <div class="f" style="margin-top:8px"><label>Tiêu đề<input id="cSubj" value="${esc(e.subject)}"></label>
  <label>Nội dung${composing.edited!=null?' <span class="note">(đã sửa tay: đổi số ở trên sẽ không cập nhật vào đây)</span> <button type="button" class="btn sm alt" data-creset>Soạn lại tự động</button>':''}<textarea id="cBody" style="min-height:340px;font-size:14px;line-height:1.5">${esc(body)}</textarea></label></div>
- <div class="mrow" style="margin-top:10px"><button class="btn" data-csend="${esc(o.id)}">${e.mode==='update'?'Mở trong Mail':'Mở trong Mail & đánh dấu Chờ cọc'}</button><button class="btn alt" data-ccopy>Copy nội dung</button><button class="btn alt" data-ccancel>Đóng</button></div>
- <p class="note">Nút đầu mở ứng dụng mail mặc định với email soạn sẵn gửi tới ${esc(o.email)}. Xem lại rồi bấm gửi trong ứng dụng mail.</p></div>`;
+ <div class="mrow" style="margin-top:10px"><button class="btn" data-cmail="${esc(o.id)}">Gửi email cho khách</button><button class="btn alt" data-cprev>Xem trước</button><button class="btn alt" data-ccopy>Copy nội dung</button><button class="btn alt" data-ccancel>Đóng</button></div>
+ <div id="cPrev"></div>
+ <p class="note">Gửi thẳng tới ${esc(o.email)} từ Gmail của bạn (qua Google), khách trả lời sẽ về Gmail. Dòng {{UPDATE_BAG_BUTTON}} sẽ thành nút bấm "Update your bag" trong email.</p></div>`;
 }
 const keepScroll=fn=>setTimeout(()=>{const y=scrollY;fn();scrollTo(0,y)},0);
 
@@ -584,6 +606,14 @@ document.addEventListener('click',async e=>{
  else if(d.ccancel!==undefined){composing=null;redraw()}
  else if(d.creset!==undefined){composing.edited=null;redraw()}
  else if(d.ccopy!==undefined){try{await navigator.clipboard.writeText($('cSubj').value+'\n\n'+$('cBody').value);toast('Đã copy')}catch(x){toast('Không copy được, hãy bôi đen rồi Cmd+C')}}
+ else if(d.cprev!==undefined){const o=orders.find(x=>x.id===composing?.id);if(o)$('cPrev').innerHTML=`<div style="margin-top:12px;padding:18px;background:#fff;border-radius:8px">${emailHtml($('cBody').value,o)}</div>`}
+ else if(d.cmail){const o=orders.find(x=>x.id===d.cmail);if(!o)return;
+  if(t.dataset.sure!=='1'){t.dataset.sure='1';t.textContent='Bấm lần nữa để gửi tới '+o.email;return}
+  const e=emailText(o),body=$('cBody').value,subj=$('cSubj').value;t.disabled=true;t.textContent='Đang gửi…';
+  const m=await api('/api/send-email',{to:o.email,subject:subj,html:emailHtml(body,o),text:emailPlain(body,o),reply_to:contact.email||''});
+  if(!m.ok){t.disabled=false;t.dataset.sure='';t.textContent='Gửi email cho khách';return toast(m.j.error||'Không gửi được',9000)}
+  const r=await api('/api/order-update',{id:o.id,patch:{...(e.mode==='update'?{}:{status:'awaiting_deposit'}),confirm:{mode:e.mode,items:composing.items,eta:composing.eta,deadline:composing.deadline,totals:Object.fromEntries(Object.entries(e.t).map(([k,v])=>[k,+(+v).toFixed(2)])),sent_at:new Date().toISOString()}}});
+  if(r.ok){Object.assign(o,r.j.order);composing=null;redraw()}toast('Đã gửi email tới '+o.email+(e.mode==='update'?'':' · chuyển sang Chờ cọc'),5000)}
  else if(d.csend){const o=orders.find(x=>x.id===d.csend),e=emailText(o),body=$('cBody').value,subj=$('cSubj').value;
   location.href=`mailto:${encodeURIComponent(o.email)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
   const r=await api('/api/order-update',{id:o.id,patch:{...(e.mode==='update'?{}:{status:'awaiting_deposit'}),confirm:{mode:e.mode,items:composing.items,eta:composing.eta,deadline:composing.deadline,totals:Object.fromEntries(Object.entries(e.t).map(([k,v])=>[k,+(+v).toFixed(2)])),sent_at:new Date().toISOString()}}});
@@ -673,7 +703,8 @@ async function loadRemote(){const q=await api('/api/private?file=remote.json',nu
 async function pullOnline(quiet){if(!quiet)toast('Đang lấy đơn…');
  const r=await api('/api/pull',{});if(!r.ok)return toast(r.j.error||'Không lấy được');const j=r.j;await loadOrders();if(j.data){await CV.load('/');await loadWarns()}
  const m=[j.orders?j.orders+' đơn mới':'',j.notify?j.notify+' đăng ký báo hàng':'',j.data?'dữ liệu sản phẩm mới':''].filter(Boolean).join(', ');
- if(m||!quiet)toast(m?'Đã lấy: '+m:(j.msgs[0]||'Không có gì mới'));if(j.msgs.length&&m)console.warn(j.msgs);render()}
+ const msg=[m?'Đã lấy: '+m:'',...j.msgs].filter(Boolean).join(' · ')||'Không có đơn mới';
+ if(m||j.msgs.length||!quiet)toast(msg,j.msgs.length?9000:undefined);render()}
 async function loadPay(){const q=await api('/api/private?file=payment.json',null,'GET');payInfo=q.ok?(q.j.text||''):'';contact=q.ok?{name:q.j.sign_name||'',phone:q.j.phone||'',email:q.j.email||''}:{}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&openId){openId=null;composing=null;redraw()}});
 document.addEventListener('dragstart',e=>{const c=e.target.closest?.('[data-drag]');if(!c)return;e.dataTransfer.setData('text/plain',c.dataset.drag);e.dataTransfer.effectAllowed='move'});

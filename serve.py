@@ -395,6 +395,25 @@ class Handler(SimpleHTTPRequestHandler):
                 return self.reply(200, resolve_tiktok(str(data.get("url", "")).strip()))
             except ValueError as e:
                 return self.reply(400, {"error": str(e)})
+        if path == "/api/send-email":
+            settings = load(SITE / "data" / "admin" / "settings.json", {})
+            ep = (settings.get("order_endpoint") or "").strip()
+            secret = (load(PRIVATE / "remote.json", {}).get("secret") or "").strip()
+            if not ep or not secret:
+                return self.reply(400, {"error": "Chưa nối Google (Cài đặt → Online: link Apps Script + mã bí mật)"})
+            payload = {"kind": "mail", "key": secret, **{k: str(data.get(k, "")) for k in ("to", "subject", "html", "text", "reply_to")}}
+            try:
+                r = requests.post(ep, data=json.dumps(payload), headers={"Content-Type": "text/plain"}, timeout=45)
+                j = r.json()
+            except Exception as e:  # noqa: BLE001
+                return self.reply(502, {"error": f"Không gửi được qua Google: {e}"})
+            if j.get("error") == "forbidden":
+                return self.reply(400, {"error": "Google từ chối: mã bí mật trong admin khác dòng SECRET trong Apps Script"})
+            if j.get("error") == "Unknown request":
+                return self.reply(400, {"error": "Apps Script đang là bản cũ: dán code mới rồi Deploy → New version"})
+            if j.get("error"):
+                return self.reply(400, {"error": "Google: " + str(j["error"])})
+            return self.reply(200, {"ok": True})
         if path == "/api/pull":
             return self.reply(200, pull_online())
         if path == "/api/sync":
