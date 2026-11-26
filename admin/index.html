@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<base href="/">
+<title>Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#191919;--ink:#e3e2e0;--mute:#9b9a97;--line:#2f2f2f;--card:#252525;--acc:#2383e2;--red:#e16259;--yel:#dfab01;--ok:#4dab9a;--warn:#d9730d;--bad:#e16259;--soft:#2c2c2c;
+ --g-bg:#373737;--g-c:#2a2a2a;--b-bg:#28456c;--b-c:#1d2a3a;--gr-bg:#2b593f;--gr-c:#1e2c24;--o-bg:#5c3b23;--o-c:#2e241c;--r-bg:#6e3630;--y-bg:#564328;--p-bg:#492f64}
+body{font-family:ui-sans-serif,-apple-system,'Segoe UI',Helvetica,'Be Vietnam Pro',sans-serif !important}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Be Vietnam Pro",system-ui,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:var(--acc)}
+:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
+header{background:#191919;color:var(--ink);border-bottom:1px solid var(--line);padding:14px max(4vw,16px);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header b{font-size:18px}header small{opacity:.7}header a{color:#fff}
+.wrap{max-width:1100px;margin:0 auto;padding:18px max(4vw,16px) 60px}
+h2{font-size:22px;margin:0 0 10px}h3{font-size:17px;margin:0}
+.lead{color:var(--mute);margin:0 0 14px;max-width:75ch}
+.atabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:16px;padding-bottom:4px}
+.atabs button{flex:none;min-height:36px;border:1px solid transparent;background:transparent;border-radius:99px;padding:0 14px;font-weight:600}
+.atabs button.on{background:#2c2c2c;color:var(--ink);border-color:#3a3a3a}
+.atabs button{color:var(--mute)}.atabs button:hover{background:#252525}
+.atabs .n{background:var(--red);color:#fff;border-radius:99px;padding:0 7px;font-size:12px;margin-left:4px}
+.panel{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--card);margin-bottom:14px}
+.f{display:grid;gap:10px}.f label{display:grid;gap:4px;font-size:14px;font-weight:600}
+.f input,.f select,.f textarea,.filters input,.filters select{min-height:42px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:var(--card);font-size:16px;width:100%}
+.f textarea{padding:10px 12px;min-height:80px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.filters>*{flex:1 1 200px}
+.btn{min-height:42px;border:0;border-radius:10px;background:var(--acc);color:#fff;font-weight:600;padding:0 14px}
+.btn:disabled{opacity:.45;cursor:not-allowed}.btn.alt{background:var(--soft);color:var(--ink);border:1px solid var(--line)}.btn.red{background:var(--red)}
+.btn.sm{min-height:34px;padding:0 10px;font-size:13px}
+.mrow{display:flex;gap:8px;flex-wrap:wrap}
+.note{font-size:13px;color:var(--mute);margin:6px 0 0}
+.crow{display:grid;grid-template-columns:52px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);align-items:center}
+.crow img{width:52px;height:64px;object-fit:cover;border-radius:6px;background:var(--soft)}
+.crow select{min-height:38px;border:1px solid var(--line);border-radius:8px;background:var(--card);margin-top:4px;width:100%;max-width:260px}
+.crow.ch select{border:2px solid var(--yel)}
+.chk{display:grid;gap:8px;margin:10px 0}.chk label{display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:500}
+.chk input{width:20px;height:20px;flex:none;margin-top:2px}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:99px;background:var(--soft)}
+.tag.live,.tag.back{color:var(--ok)}.tag.review,.tag.wait{color:var(--warn)}.tag.hidden,.tag.done{color:var(--mute)}
+.tag.back{background:color-mix(in srgb,var(--ok) 18%,transparent)}
+.in{color:var(--ok)}.err{color:var(--bad)}.warn{color:var(--warn)}
+.sticky{position:sticky;bottom:0;background:var(--bg);padding:10px 0;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap;z-index:5}
+pre.out{background:var(--soft);padding:10px;border-radius:8px;font-size:12px;white-space:pre-wrap;max-height:240px;overflow:auto}
+.empty{color:var(--mute);text-align:center;padding:32px 12px;border:1px dashed var(--line);border-radius:14px}
+.tb{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}.tb button{min-height:34px;border:1px solid var(--line);background:var(--soft);border-radius:8px;padding:0 10px;font-size:13px;font-weight:600}
+#body{min-height:360px;font-size:16px;line-height:1.6}
+.coverp{width:120px;aspect-ratio:4/5;object-fit:cover;border-radius:6px;background:var(--soft);display:block}
+.prose{max-width:680px;font-size:17px;line-height:1.75;background:#fff;color:#16181d;padding:24px;border-radius:12px}
+.prose h3{font-size:26px;margin:28px 0 8px}.prose h4{font-size:19px}
+.prose blockquote{font-family:"Playfair Display",serif;font-style:italic;font-size:26px;line-height:1.3;margin:28px 0}
+.prose figure{margin:24px 0}.prose img{width:100%;border-radius:4px}.prose figcaption{font-size:13px;color:#666}
+.pages{display:flex;gap:6px;flex-wrap:wrap}
+.pages button{min-height:36px;border:0;background:transparent;color:var(--mute);border-radius:99px;padding:0 14px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.pages button.on{background:#2c2c2c;color:var(--ink)}.pages button:hover{background:#2a2a2a}
+.pages .n,.atabs .n{background:var(--red);color:#fff;border-radius:99px;padding:0 7px;font-size:12px;margin-left:6px}
+.kb{display:grid;grid-template-columns:repeat(3,minmax(270px,1fr));gap:16px;overflow-x:auto;padding-bottom:6px}
+.kcol{background:var(--cc);border-radius:12px;padding:12px;min-height:200px}
+.kcol.over{outline:2px dashed var(--pc);outline-offset:-4px}
+.kcol .kh{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.pill{display:inline-flex;align-items:center;gap:7px;background:var(--pc);color:#fff;border-radius:99px;padding:3px 12px 3px 10px;font-weight:600;font-size:14px}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--dot)}
+.kcol .kh .cnt{color:var(--dot);font-weight:600}
+.kcol .desc{color:var(--mute);font-size:12px;margin:0 0 10px}
+.kempty{text-align:center;padding:20px 0;color:var(--mute)}
+.jc{display:grid;gap:7px;width:100%;text-align:left;background:var(--cardc);border:1px solid #ffffff14;border-radius:10px;padding:12px 14px;margin-bottom:10px;cursor:pointer;color:var(--ink);transition:background .12s}
+.jc:hover{background:#ffffff0d}.jc.sel{border-color:var(--acc)}
+.jh{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.jn{font-weight:600;font-size:16px}.jid{font-size:12px;color:var(--mute)}
+.jic{display:flex;gap:6px;flex-wrap:wrap}
+.tg{font-style:normal;font-size:12px;font-weight:500;border-radius:4px;padding:1px 7px;color:#fff}
+.tg.g{background:var(--g-bg)}.tg.b{background:var(--b-bg)}.tg.gr{background:var(--gr-bg)}.tg.o{background:var(--o-bg)}.tg.r{background:var(--r-bg)}.tg.y{background:var(--y-bg)}.tg.p{background:var(--p-bg)}
+.jt{font-size:13px;color:var(--mute)}
+.jp{height:4px;background:#ffffff14;border-radius:99px;overflow:hidden}.jp span{display:block;height:100%;background:var(--dot)}
+.addo{display:flex;align-items:center;gap:8px;width:100%;min-height:42px;border:1px solid #ffffff14;background:transparent;color:var(--dot);border-radius:10px;padding:0 14px;font-size:14px}
+.oveil{position:fixed;inset:0;background:#0006;display:none;z-index:30}.oveil.on{display:block}
+.odr{position:fixed;top:0;right:0;height:100%;width:min(600px,100%);background:var(--bg);z-index:31;transform:translateX(100%);transition:transform .2s;display:flex;flex-direction:column}
+.odr.on{transform:none}#odrBody{display:flex;flex-direction:column;height:100%}
+.dhd{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--card)}
+.dsc{padding:14px 18px 40px;overflow-y:auto;flex:1}
+.x{width:40px;height:40px;border:0;border-radius:10px;background:var(--soft);font-size:22px;color:var(--ink)}
+.dt{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);margin:20px 0 8px}
+table.mini{border-collapse:collapse;font-size:14px}table.mini td{padding:3px 16px 3px 0}
+.ffrow{display:grid;grid-template-columns:1fr 190px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.ffrow select{min-height:36px;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:0 6px;font-size:13px}
+.ff.at_hub,.ff.shipped_au{border-color:var(--ok);color:var(--ok)}.ff.unavailable{color:var(--bad)}.ff.ordered,.ff.brand_shipped{border-color:var(--warn);color:var(--warn)}
+@media(max-width:600px){.ffrow{grid-template-columns:1fr}.kb{grid-template-columns:repeat(3,minmax(250px,85vw))}}
+.bulk{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-right:8px}
+.costbox{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px}
+.costbox table.mini td:last-child{text-align:right}
+.toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,90px);background:#16181d;color:#fff;padding:10px 16px;border-radius:10px;z-index:50;transition:transform .2s;font-size:15px;max-width:90vw}
+.toast.on{transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<header><div><b>Admin</b> <small>chỉ chạy trên máy của bạn</small></div><nav class="pages" id="pages"></nav><div class="mrow"><a href="/" target="_blank" rel="noopener">Mở website khách ↗</a></div></header>
+<div class="wrap" id="box"></div>
+<div class="oveil" id="oveil" data-closeo></div>
+<aside class="odr" id="odr" aria-label="Chi tiết đơn"><div id="odrBody"></div></aside>
+<div class="toast" id="toast" role="status"></div>
+<script src="common.js"></script>
+<script>
+{
+const {SKIP,esc,CATS,D,vnd,ago,st,rec,catOf,slug,md}=CV;
+const $=id=>document.getElementById(id);
+const VER=[['web','Website chính thức: domain đúng tên brand, có HTTPS, có trang liên hệ'],['ig','Instagram chính chủ: bio có link về đúng website'],['biz','Thông tin doanh nghiệp: tên công ty, mã số thuế hoặc địa chỉ trên website'],['contact','Đã liên hệ, brand đồng ý cho dùng ảnh (không bắt buộc để duyệt)']];
+const TAGS=['Celeb mặc đồ Việt','Chất liệu','Câu chuyện brand','Xu hướng','Lịch sử & di sản','Hướng dẫn'];
+let page=(()=>{try{return sessionStorage.getItem('cv_page')||'orders'}catch(e){return 'orders'}})(),kwList=[],pendKw={},warns=[],warnAt='',pw='',tab='warn',selP=new Set(),pend={},catFilter='all',catQ='',brandQ='',limitP=60,syncTxt='',notes=[],editing=null,preview=false;
+try{pw=sessionStorage.getItem('cv_pw')||''}catch(e){}
+let tt;const toast=m=>{const e=$('toast');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2400)};
+async function api(path,body,method='POST'){
+ try{const r=await fetch(path,{method,headers:{'Content-Type':'application/json','X-Admin-Password':pw},body:method==='GET'?undefined:JSON.stringify(body||{})});
+  const j=await r.json().catch(()=>({}));if(r.status===401){pw='';try{sessionStorage.removeItem('cv_pw')}catch(e){}}return {ok:r.ok,status:r.status,j}}
+ catch(e){return {ok:false,status:0,j:{error:'Không kết nối được máy chủ. Hãy chạy: python3 serve.py'}}}}
+const saveFile=async(file,data)=>{const r=await api('/api/save',{file,data});toast(r.ok?'Đã lưu':(r.j.error||'Lưu không được'));if(r.status===401)render();return r.ok};
+function isBack(n){const p=D.byId[n.pid];if(!p)return false;if(!n.variant)return p.in_stock;const v=p.variants.find(x=>x.name===n.variant);return !!v&&v.available}
+
+function render(){
+ if(!pw){$('pages').innerHTML='';$('box').innerHTML=`<div class="panel" style="max-width:420px;margin:40px auto"><h2>Đăng nhập</h2><form class="f" id="loginForm"><label>Mật khẩu admin<input type="password" name="pw" required autocomplete="current-password" autofocus></label><button class="btn">Vào</button><p class="note" id="loginMsg"></p></form></div>`;return}
+ const left=D.products.filter(p=>catOf(p)==='Khác'&&!D.ov[p.id]?.category).length,back=notes.filter(n=>!n.done&&isBack(n)).length,rv=D.status.filter(b=>rec(b.id).status==='review').length;
+ const hi=warns.filter(w=>w.level!=='low').length;
+ const newO=orders.filter(o=>(o.status||'new')==='new').length;
+ $('pages').innerHTML=`<button class="${page==='orders'?'on':''}" data-page="orders">Quản lý đơn hàng${newO?`<span class="n">${newO}</span>`:''}</button><button class="${page==='shop'?'on':''}" data-page="shop">Quản lý sàn${hi?`<span class="n">${hi}</span>`:''}</button><button data-logout>Thoát</button>`;
+ if(page==='orders')return pageOrders();
+ const T=[['warn','Cảnh báo',hi],['cat','Sản phẩm',left],['cats','Danh mục'],['content','Nội dung web'],['brand','Brand',rv],['notify','Chờ hàng',back],['journal','Journal'],['clip','Moodboard'],['set','Cài đặt & đồng bộ']];
+ if(tab==='order')tab='warn';
+ $('box').innerHTML=`<div class="atabs">${T.map(([k,l,n])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${l}${n?`<span class="n">${n}</span>`:''}</button>`).join('')}</div><div id="aBody"></div>`;
+ ({cats:tCats,content:tContent,warn:tWarn,cat:tCat,brand:tBrand,notify:tNotify,journal:tJournal,clip:tClip,set:tSet})[tab]();
+}
+const ovOf=p=>D.ov[p.id]||{};
+const pins=()=>D.products.filter(p=>ovOf(p).pin).sort((a,b)=>ovOf(a).pin-ovOf(b).pin);
+async function saveOv(mut){const ov=JSON.parse(JSON.stringify(D.ov));mut(ov);for(const k in ov){const m=ov[k];if(!m.title)delete m.title;if(!m.hidden)delete m.hidden;if(!m.pin)delete m.pin;if(!Object.keys(m).length)delete ov[k]}if(await saveFile('overrides.json',ov)){D.ov=ov;return true}return false}
+const renum=ov=>{Object.entries(ov).filter(([,m])=>m.pin).sort((a,b)=>a[1].pin-b[1].pin).forEach(([,m],i)=>m.pin=i+1)};
+const setPend=(id,k,v)=>{const p=D.byId[id],o=ovOf(p),cur={category:o.category??catOf(p),title:o.title??'',hidden:!!o.hidden};pend[id]={...(pend[id]||{}),[k]:v};if(Object.entries(pend[id]).every(([kk,vv])=>cur[kk]===vv))delete pend[id]};
+/* --- danh mục --- */
+const catRows=()=>CATS.map(k=>({key:k,en:CV.catEN(k),hidden:CV.catHidden(k),custom:!CV.BASE_CATS.includes(k)}));
+async function saveCats(rows){const s={...D.set,cats:rows.map(({key,en,hidden})=>({key,en,hidden}))};if(await saveFile('settings.json',s)){D.set=s;CV.applyCats();render()}}
+function tCats(){
+ const rows=catRows(),cnt=k=>D.products.filter(p=>catOf(p)===k&&!ovOf(p).hidden).length;
+ $('aBody').innerHTML=`<div class="panel"><h3>Danh mục trên web</h3><p class="note">Đổi tên tiếng Anh khách thấy, sắp xếp thứ tự (thứ tự này dùng cho các tab trên web), hoặc ẩn cả danh mục. Danh mục bị ẩn thì mọi sản phẩm trong đó cũng ẩn. "Khác" luôn nằm cuối.</p>
+ ${rows.map((c,i)=>`<div class="crow" style="grid-template-columns:1fr auto;${c.hidden?'opacity:.55':''}"><div><div class="note" style="margin:0">${esc(c.key)}${c.custom?' · danh mục tự thêm':''} · ${cnt(c.key)} sản phẩm</div>
+  <div class="mrow" style="margin-top:6px;align-items:center"><input data-caten="${esc(c.key)}" value="${esc(c.en)}" style="flex:1 1 220px;min-height:38px;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:var(--card)" aria-label="Tên tiếng Anh">
+  <label style="display:flex;gap:6px;align-items:center;font-size:14px"><input type="checkbox" data-cathide="${esc(c.key)}" ${c.hidden?'checked':''} style="width:18px;height:18px"> Ẩn</label></div></div>
+  <div class="mrow">${c.key==='Khác'?'':`<button class="btn sm alt" data-cup="${i}" ${i?'':'disabled'} aria-label="Lên">↑</button><button class="btn sm alt" data-cdown="${i}" ${i<rows.length-2?'':'disabled'} aria-label="Xuống">↓</button>`}${c.custom?`<button class="btn sm alt" data-cdel="${esc(c.key)}" style="color:var(--bad)">Xoá</button>`:''}</div></div>`).join('')}</div>
+ <div class="panel"><h3>Thêm danh mục</h3><p class="note">Sau khi thêm, đưa sản phẩm vào bằng tab Sản phẩm (chọn nhiều món → Đổi danh mục) hoặc gán từ khoá.</p>
+ <form class="f" id="addCat" style="margin-top:8px"><div class="two"><label>Tên tiếng Việt (để bạn nhận biết)<input name="key" required placeholder="VD: Đồ đôi"></label><label>Tên tiếng Anh khách thấy<input name="en" required placeholder="VD: Matching sets"></label></div><button class="btn">Thêm danh mục</button></form></div>`;
+}
+/* --- nội dung web --- */
+let draftC=null;
+const inpS='width:100%;min-height:40px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--card);font-size:15px';
+function tContent(){
+ if(!draftC){const C=CV.content();draftC=JSON.parse(JSON.stringify({...C,bar:D.set.content?.bar?.length?C.bar:[]}))}
+ const c=draftC;
+ $('aBody').innerHTML=`<div class="panel"><h3>Nội dung chữ trên web khách</h3><p class="note">Viết tiếng Anh. Ô thay thế tự điền theo Cài đặt: <b>{eta}</b> thời gian giao · <b>{deposit}</b> % cọc · <b>{ship_flat}</b> giá ship đồng giá · <b>{fee}</b> % phí dịch vụ · <b>{shipping}</b> câu mô tả phí ship · <b>{first_free}</b> ", and your first order ships free" (nếu bật).</p></div>
+ <div class="panel"><h3>Thanh thông tin trên cùng</h3><p class="note">Mỗi dòng là một thông tin. Để trống = tự tạo theo Cài đặt (thời gian giao, ship đồng giá, free ship đơn đầu).</p>
+ <textarea data-cbar style="${inpS};min-height:90px">${esc(c.bar.join('\n'))}</textarea></div>
+ <div class="panel"><h3>Quy trình đặt hàng (cuối trang)</h3>
+ <label style="display:grid;gap:4px;font-size:14px;font-weight:600">Câu dẫn<input data-clead value="${esc(c.lead)}" style="${inpS}"></label>
+ ${c.steps.map(([t,d],i)=>`<div style="margin-top:12px"><b style="font-size:13px">Bước ${i+1}</b><input data-cstep="${i}:0" value="${esc(t)}" style="${inpS};margin-top:4px;font-weight:600"><textarea data-cstep="${i}:1" style="${inpS};margin-top:4px;min-height:60px">${esc(d)}</textarea></div>`).join('')}</div>
+ <div class="panel"><h3>Câu hỏi thường gặp (FAQ)</h3>
+ ${c.faq.map(([q,a],i)=>`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)"><div class="mrow" style="align-items:center"><input data-cfaq="${i}:0" value="${esc(q)}" style="${inpS};flex:1;font-weight:600" aria-label="Câu hỏi">
+ <button class="btn sm alt" data-fup="${i}" ${i?'':'disabled'} aria-label="Lên">↑</button><button class="btn sm alt" data-fdown="${i}" ${i<c.faq.length-1?'':'disabled'} aria-label="Xuống">↓</button><button class="btn sm alt" data-fdel="${i}" style="color:var(--bad)" aria-label="Xoá">✕</button></div>
+ <textarea data-cfaq="${i}:1" style="${inpS};margin-top:4px;min-height:70px" aria-label="Trả lời">${esc(a)}</textarea></div>`).join('')}
+ <button class="btn alt" data-fadd style="margin-top:12px">+ Thêm câu hỏi</button></div>
+ <div class="panel"><h3>Giới thiệu cuối trang</h3><textarea data-cabout style="${inpS};min-height:90px">${esc(c.about)}</textarea></div>
+ <div class="sticky"><button class="btn" data-csave>Lưu nội dung</button><button class="btn alt" data-creset2>Khôi phục chữ mặc định</button><a class="btn alt" href="/#shop" target="_blank" rel="noopener" style="display:inline-grid;place-items:center;text-decoration:none">Xem web ↗</a></div>`;
+}
+/* --- cảnh báo --- */
+async function loadWarns(){const r=await api('/api/warnings',null,'GET');if(r.ok){warns=r.j.items||[];warnAt=r.j.generated_at||'';kwList=r.j.keywords||[]}return r}
+function tWarn(){
+ const L={high:['Cần xử lý','err'],medium:['Kiểm tra','warn'],low:['Lưu ý','']};
+ const by={};warns.forEach(w=>(by[w.brand]=by[w.brand]||[]).push(w));
+ const ord={high:0,medium:1,low:2};
+ $('aBody').innerHTML=`<p class="lead">Những chỗ dữ liệu có thể không khớp với web brand, cập nhật sau mỗi lần đồng bộ (lần gần nhất ${ago(warnAt)}). Sản phẩm bị cảnh báo giá sẽ hiện "Final price confirmed by email" cho khách, và được đánh dấu ⚠ trong đơn hàng.</p>
+ ${Object.keys(by).length?Object.entries(by).map(([b,ws])=>{const items=ws.sort((x,y)=>ord[x.level]-ord[y.level]),brandLvl=items.filter(w=>!w.pid),prod=items.filter(w=>w.pid);
+  return `<div class="panel"><h3>${esc(st(b).name||b)} <span class="tag ${items.some(w=>w.level==='high')?'review':''}">${items.length} cảnh báo</span></h3>
+  ${brandLvl.map(w=>`<p style="margin:8px 0 0;font-size:14px"><b class="${L[w.level][1]}">${L[w.level][0]}:</b> ${esc(w.msg)}</p>`).join('')}
+  ${prod.length?`<details style="margin-top:10px"><summary style="cursor:pointer;font-weight:600;font-size:14px">${prod.length} sản phẩm cần kiểm tra</summary>${prod.slice(0,200).map(w=>{const p=D.byId[w.pid];return `<div class="crow"><img src="${esc(p?.images?.[0]||'')}" alt="" referrerpolicy="no-referrer"><div><b style="font-size:13px">${esc(p?p.title:w.pid)}</b><div class="note" style="margin:2px 0 0"><span class="${L[w.level][1]}">${L[w.level][0]}</span> · ${esc(w.msg)}</div>${w.url?`<a href="${esc(w.url)}" target="_blank" rel="noopener" style="font-size:13px">So với web brand ↗</a>`:''}</div></div>`}).join('')}</details>`:''}</div>`}).join(''):'<p class="empty">Không có cảnh báo nào. Dữ liệu khớp ở lần đồng bộ gần nhất.</p>'}`;
+}
+/* --- danh mục --- */
+function tCat(){
+ const left=D.products.filter(p=>catOf(p)==='Khác'&&!D.ov[p.id]?.category).length,hid=D.products.filter(p=>ovOf(p).hidden).length;
+ const kws=kwList.filter(k=>!D.kw[k.word]),nk=Object.keys(pendKw).length;
+ const kwPanel=`<div class="panel"><h3>Từ khoá chưa rõ danh mục</h3><p class="note">Lấy từ tên các sản phẩm đang ở "Khác" trong lần đồng bộ gần nhất. Gán một từ khoá là mọi sản phẩm có từ đó tự vào đúng danh mục, cả bây giờ lẫn các lần sau.</p>
+ ${kws.length?kws.map(k=>`<div class="crow" style="grid-template-columns:1fr"><div><b>${esc(k.word)}</b> <span class="note">${k.count} sản phẩm · vd: ${esc(k.samples.slice(0,2).join(' | '))}</span>
+  <select data-kw="${esc(k.word)}"><option value="">Chưa gán</option>${CATS.map(c=>`<option${pendKw[k.word]===c?' selected':''}>${c}</option>`).join('')}<option value="${SKIP}"${pendKw[k.word]===SKIP?' selected':''}>Không bán (ẩn khỏi sàn)</option></select></div></div>`).join(''):'<p class="note">Không có từ khoá nào cần gán.</p>'}
+ ${Object.keys(D.kw).length?`<p class="note" style="margin-top:12px">Đã gán: ${Object.entries(D.kw).map(([k,c])=>`<span class="tag" style="margin:2px">${esc(k)} → ${esc(c)} <button class="btn sm alt" style="min-height:22px;padding:0 6px" data-delkw="${esc(k)}" aria-label="Bỏ">×</button></span>`).join(' ')}</p>`:''}
+ ${nk?`<button class="btn" id="saveKw" style="margin-top:10px">Lưu ${nk} từ khoá</button>`:''}</div>`;
+ const list=D.products.filter(p=>{const o=ovOf(p),c=o.category??catOf(p);
+  if(brandQ&&p.brand!==brandQ)return false;
+  if(catFilter==='khac'&&!(c==='Khác'))return false;
+  if(catFilter==='hidden'&&!o.hidden)return false;
+  if(catFilter==='pinned'&&!o.pin)return false;
+  if(!['all','khac','hidden','pinned'].includes(catFilter)&&c!==catFilter)return false;
+  return !catQ||(p.title+' '+(o.title||'')).toLowerCase().includes(catQ)});
+ const n=Object.keys(pend).length,pl=pins();
+ const pinPanel=`<div class="panel" style="margin-top:14px"><h3>📌 Sản phẩm ghim</h3><p class="note">Hiện đầu trang Shop (ở chế độ "Featured"), theo đúng thứ tự dưới đây. Ghim bằng cách chọn sản phẩm bên dưới rồi bấm "Ghim".</p>
+ ${pl.length?pl.map((p,i)=>`<div class="crow" style="grid-template-columns:40px 1fr auto"><img src="${esc(p.images[0]||'')}" alt="" referrerpolicy="no-referrer" style="width:40px;height:50px"><div style="font-size:14px"><b>${i+1}.</b> ${esc(ovOf(p).title||p.title)} <span class="note">· ${esc(st(p.brand).name)}</span></div>
+ <div class="mrow"><button class="btn sm alt" data-pup="${esc(p.id)}" ${i?'':'disabled'} aria-label="Lên">↑</button><button class="btn sm alt" data-pdown="${esc(p.id)}" ${i<pl.length-1?'':'disabled'} aria-label="Xuống">↓</button><button class="btn sm alt" data-unpin="${esc(p.id)}" aria-label="Bỏ ghim">✕</button></div></div>`).join(''):'<p class="note">Chưa ghim món nào.</p>'}</div>`;
+ const allSel=list.slice(0,limitP).length&&list.slice(0,limitP).every(p=>selP.has(p.id));
+ const bulk=selP.size?`<div class="bulk"><b>Đã chọn ${selP.size}</b><button class="btn sm" data-bulk="pin">📌 Ghim</button><button class="btn sm alt" data-bulk="unpin">Bỏ ghim</button><button class="btn sm alt" data-bulk="hide">Ẩn</button><button class="btn sm alt" data-bulk="show">Hiện</button>
+ <select id="bulkCat" style="min-height:34px;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:0 6px"><option value="">Đổi danh mục…</option>${CATS.map(x=>`<option>${x}</option>`).join('')}</select><button class="btn sm alt" data-bulk="clear">Bỏ chọn</button></div>`:'';
+ $('aBody').innerHTML=kwPanel+pinPanel+`<div class="panel" style="margin-top:14px"><h3>Sản phẩm trên sàn</h3><p class="note">Sửa tên hiển thị (để trống = tên tự dịch), đổi danh mục, hoặc ẩn món không muốn bán. Giá luôn lấy theo web brand nên không sửa ở đây. ${hid} món đang ẩn.</p>
+ <div class="filters" style="margin-top:10px"><input id="catQ" type="search" placeholder="Tìm tên…" value="${esc(catQ)}">
+ <select id="brandQ"><option value="">Mọi brand</option>${D.status.map(b=>`<option value="${esc(b.id)}"${brandQ===b.id?' selected':''}>${esc(b.name)}</option>`).join('')}</select>
+ <select id="catFilter"><option value="all"${catFilter==='all'?' selected':''}>Mọi danh mục</option><option value="khac"${catFilter==='khac'?' selected':''}>Chưa xếp (${left})</option><option value="pinned"${catFilter==='pinned'?' selected':''}>Đang ghim (${pins().length})</option><option value="hidden"${catFilter==='hidden'?' selected':''}>Đang ẩn (${hid})</option>${CATS.filter(c=>c!=='Khác').map(c=>`<option${catFilter===c?' selected':''}>${c}</option>`).join('')}</select></div>
+ <p class="note" style="display:flex;gap:10px;align-items:center"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="selAll" ${allSel?'checked':''} style="width:18px;height:18px"> Chọn tất cả đang hiện</label> · ${list.length} sản phẩm</p>
+ ${list.slice(0,limitP).map(p=>{const o=ovOf(p),pe=pend[p.id]||{},c=pe.category??o.category??catOf(p),h=pe.hidden??o.hidden??false,tt=pe.title??o.title??'';
+  return `<div class="crow${pend[p.id]?' ch':''}" style="grid-template-columns:22px 56px 1fr;${h?'opacity:.55':''}"><input type="checkbox" data-psel="${esc(p.id)}" ${selP.has(p.id)?'checked':''} style="width:18px;height:18px" aria-label="Chọn"><img src="${esc(p.images[0]||'')}" alt="" referrerpolicy="no-referrer" loading="lazy"><div>
+  <div class="note" style="margin:0">${o.pin?'📌 ':''}${esc(st(p.brand).name)} · tên gốc: ${esc(p.title)} · <a href="${esc(p.url)}" target="_blank" rel="noopener">xem ↗</a></div>
+  <div class="mrow" style="margin-top:6px;align-items:center"><input data-ptitle="${esc(p.id)}" value="${esc(tt)}" placeholder="Tên hiển thị (để trống = tự dịch)" style="flex:2 1 220px;min-height:38px;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:var(--card)">
+  <select data-cat="${esc(p.id)}" style="flex:1 1 160px;margin:0">${CATS.map(x=>`<option${x===c?' selected':''}>${x}</option>`).join('')}</select>
+  <label style="display:flex;gap:6px;align-items:center;font-size:14px;flex:0 0 auto"><input type="checkbox" data-phide="${esc(p.id)}" ${h?'checked':''} style="width:18px;height:18px"> Ẩn</label></div></div></div>`}).join('')||'<p class="empty">Không có sản phẩm nào.</p>'}
+ ${list.length>limitP?`<button class="btn alt" id="moreP" style="margin-top:10px">Xem thêm (${list.length-limitP})</button>`:''}</div>
+ <div class="sticky">${bulk}<button class="btn" id="saveCats" ${n?'':'disabled'}>Lưu ${n} thay đổi</button>${n?'<button class="btn alt" id="undoP">Bỏ thay đổi</button>':''}</div>`;
+}
+/* --- brand --- */
+let brandsCfg=null,syncingIds=[];
+async function loadBrandsCfg(){const r=await api('/api/brands',null,'GET');brandsCfg=r.ok?r.j:[];return r}
+const PLAT=[['','Tự nhận diện'],['shopify','Shopify'],['haravan','Haravan'],['jsonld','Web tự làm (đọc dữ liệu công khai)']];
+async function saveBrands(list){const r=await api('/api/brands',{brands:list});if(r.ok){brandsCfg=r.j.brands;return true}toast(r.j.error||'Lưu không được');return false}
+async function syncBrands(ids,max){const r=await api('/api/sync',{max_products:max||null,brands:ids});if(!r.ok){toast(r.j.error||'Không chạy được');return}syncingIds=ids;syncTxt='Đang chạy…';toast('Đang đồng bộ '+(ids.length?ids.join(', '):'tất cả brand')+'…');render();setTimeout(pollSync,3000)}
+async function tBrand(){
+ if(!brandsCfg){$('aBody').innerHTML='<p class="note">Đang tải…</p>';await loadBrandsCfg()}
+ const running=!!syncTxt&&syncTxt.startsWith('Đang chạy');
+ $('aBody').innerHTML=`<div class="panel"><h3>Thêm brand</h3><p class="note">Dán link web chính thức của brand. Lưu xong, crawler tự đọc sản phẩm của brand đó (vài phút). Brand mới ở trạng thái chờ duyệt, chưa hiện cho khách cho tới khi bạn xác minh và duyệt.</p>
+ <form class="f" id="addBrand" style="margin-top:10px"><div class="two"><label>Website<input name="url" required placeholder="https://tenbrand.vn"></label><label>Tên hiển thị<input name="name" placeholder="VD: Whenever Atelier"></label>
+ <label>Instagram<input name="ig" placeholder="tenbrand"></label><label>Nền tảng<select name="plat">${PLAT.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select></label></div>
+ <button class="btn"${running?' disabled':''}>Thêm & đồng bộ</button></form></div>
+ ${running?`<div class="panel"><b>Đang đồng bộ…</b><pre class="out" id="syncOut">${esc(syncTxt)}</pre></div>`:''}
+ ${brandsCfg.map((c,i)=>{const b=D.status.find(x=>x.id===c.id)||{},r=rec(c.id),ok=r.ver.web&&r.ver.ig&&r.ver.biz;
+  return `<div class="panel"><div class="mrow" style="justify-content:space-between;align-items:center"><h3>${esc(c.name)} <span class="tag ${r.status}">${{live:'đang bán',review:'chờ duyệt',hidden:'tạm ẩn'}[r.status]||r.status}</span></h3>
+  <div class="mrow"><button class="btn sm alt" data-bup="${i}" ${i?'':'disabled'} aria-label="Lên">↑</button><button class="btn sm alt" data-bdown="${i}" ${i<brandsCfg.length-1?'':'disabled'} aria-label="Xuống">↓</button></div></div>
+  <p class="note" style="margin:4px 0"><a href="https://${esc(c.domain)}" target="_blank" rel="noopener">${esc(c.domain)} ↗</a> · ${b.last_ok||b.error?`${esc(b.platform||c.platform||'')} · ${b.products||0} sản phẩm${b.read?` (đọc ${b.read})`:''} · <span class="${b.ok?'in':'err'}">${b.ok?'đồng bộ '+ago(b.last_ok):'lỗi: '+esc(b.error||'')}</span>`:'<span class="warn">chưa đồng bộ lần nào</span>'}</p>
+  <div class="two" style="margin-top:8px"><label class="f" style="display:grid;gap:4px;font-size:14px;font-weight:600">Tên hiển thị<input data-bname="${i}" value="${esc(c.name)}"></label>
+  <label class="f" style="display:grid;gap:4px;font-size:14px;font-weight:600">Instagram<input data-ig="${esc(c.id)}" value="${esc(r.instagram||c.instagram||'')}" placeholder="tenbrand"></label>
+  <label class="f" style="display:grid;gap:4px;font-size:14px;font-weight:600">Nền tảng<select data-bplat="${i}">${PLAT.map(([v,l])=>`<option value="${v}"${(c.platform||'')===v?' selected':''}>${l}</option>`).join('')}</select></label></div>
+  <div class="chk">${VER.map(([k,l])=>`<label><input type="checkbox" data-ver="${esc(c.id)}:${k}" ${r.ver[k]?'checked':''}><span>${l}</span></label>`).join('')}
+  <label><input type="checkbox" data-tr="${esc(c.id)}" ${r.translate?'checked':''}><span>Web chỉ có tiếng Việt: link sản phẩm mở qua Google Dịch sang tiếng Anh</span></label></div>
+  <div class="mrow">${r.status!=='live'?`<button class="btn" data-bact="approve" data-id="${esc(c.id)}" ${ok?'':'disabled'}>Duyệt & đưa lên chợ</button>`:`<button class="btn alt" data-bact="hide" data-id="${esc(c.id)}">Tạm ẩn khỏi chợ</button>`}
+  <button class="btn alt" data-bsync="${esc(c.id)}"${running?' disabled':''}>Đồng bộ brand này</button><button class="btn alt" data-bdel="${i}" style="color:var(--bad)">Xoá brand</button></div>
+  ${!ok&&r.status!=='live'?'<p class="note">Cần tick đủ 3 mục đầu để duyệt.</p>':''}</div>`}).join('')||'<p class="empty">Chưa có brand nào. Thêm brand đầu tiên ở trên.</p>'}`;
+}
+/* --- chờ hàng --- */
+async function loadNotes(){const r=await api('/api/notify-list',null,'GET');notes=r.ok?r.j:[];return r}
+async function tNotify(){
+ $('aBody').innerHTML='<p class="note">Đang tải…</p>';
+ const r=await loadNotes();if(!r.ok){$('aBody').innerHTML=`<p class="empty">${esc(r.j.error||'Không tải được')}</p>`;return}
+ const rows=notes.map(n=>({n,back:isBack(n)})).sort((a,b)=>(a.n.done-b.n.done)||(b.back-a.back));
+ const k=rows.filter(x=>!x.n.done&&x.back).length;
+ $('aBody').innerHTML=`<p class="lead">Khách đăng ký nhận báo khi món hết hàng có lại. ${k?`<b>${k} yêu cầu đã có hàng lại, cần báo khách.</b>`:'Chưa có món nào có hàng lại.'} Tình trạng được kiểm tra theo lần đồng bộ gần nhất.</p>
+ ${rows.length?rows.map(({n,back})=>`<div class="panel"><h3 style="font-size:15px"><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a> ${n.done?'<span class="tag done">đã báo</span>':back?'<span class="tag back">CÓ HÀNG LẠI</span>':'<span class="tag wait">vẫn hết</span>'}</h3>
+ <p class="note" style="margin:4px 0">${esc(n.brand)}${n.variant?' · '+esc(n.variant):''} · đăng ký ${esc(new Date(n.created).toLocaleString('vi-VN'))}</p>
+ <p style="margin:4px 0">${n.email?`<a href="mailto:${esc(n.email)}?subject=${encodeURIComponent(n.title+' đã có hàng lại')}">${esc(n.email)}</a>`:''}${n.email&&n.phone?' · ':''}${esc(n.phone||'')}</p>
+ <button class="btn sm ${n.done?'alt':''}" data-done="${esc(n.id)}" data-v="${n.done?0:1}">${n.done?'Bỏ đánh dấu':'Đánh dấu đã báo'}</button></div>`).join(''):'<p class="empty">Chưa có ai đăng ký.</p>'}`;
+}
+/* --- journal --- */
+const blank=()=>({id:'a'+Date.now(),title:'',slug:'',tag:'',dek:'',date:new Date().toISOString().slice(0,10),cover:'',body:'',brands:[],status:'draft'});
+function tJournal(){
+ if(editing)return editor();
+ const list=[...D.articles].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+ $('aBody').innerHTML=`<div class="mrow" style="margin-bottom:12px"><button class="btn" data-newart>+ Viết bài mới</button></div>
+ ${list.length?`<div class="panel">${list.map(a=>`<div class="crow"><img src="${esc(a.cover||'')}" alt=""><div><b>${esc(a.title||'(chưa có tiêu đề)')}</b> <span class="tag ${a.status==='published'?'live':'review'}">${a.status==='published'?'đã đăng':'bản nháp'}</span>
+ <div class="note" style="margin:0">${esc(a.tag||'')} · ${esc(a.date||'')} · ${CV.readMin(a.body)} phút đọc</div><div class="mrow" style="margin-top:6px"><button class="btn sm alt" data-edit="${esc(a.id)}">Sửa</button>${a.status==='published'?`<a class="btn sm alt" style="display:grid;place-items:center;text-decoration:none" href="/#journal/${esc(a.slug)}" target="_blank" rel="noopener">Xem ↗</a>`:''}<button class="btn sm alt" data-delart="${esc(a.id)}">Xoá</button></div></div></div>`).join('')}</div>`:'<p class="empty">Chưa có bài nào.</p>'}`;
+}
+function editor(){
+ const a=editing;
+ $('aBody').innerHTML=`<div class="panel"><form class="f" id="artForm">
+ <label>Tiêu đề<input name="title" value="${esc(a.title)}" required placeholder="VD: 5 celeb quốc tế từng mặc đồ thiết kế Việt"></label>
+ <div class="two"><label>Chủ đề<input name="tag" list="tags" value="${esc(a.tag)}" placeholder="Chọn hoặc gõ"><datalist id="tags">${TAGS.map(t=>`<option>${t}</option>`).join('')}</datalist></label>
+ <label>Ngày đăng<input name="date" type="date" value="${esc(a.date)}"></label></div>
+ <label>Sapo (1–2 câu mở bài, in nghiêng)<textarea name="dek" maxlength="240">${esc(a.dek)}</textarea></label>
+ <div><b style="font-size:14px">Ảnh bìa</b><div class="mrow" style="align-items:flex-end;margin-top:4px"><img class="coverp" id="coverp" src="${esc(a.cover||'')}" alt=""><label class="btn alt" style="display:grid;place-items:center;font-weight:600">Tải ảnh bìa<input type="file" accept="image/*" id="coverFile" hidden></label></div></div>
+ <div><b style="font-size:14px">Nội dung</b>
+ <div class="tb"><button type="button" data-ins="h">Tiêu đề phụ</button><button type="button" data-ins="b">Đậm</button><button type="button" data-ins="i">Nghiêng</button><button type="button" data-ins="q">Trích dẫn lớn</button><button type="button" data-ins="l">Danh sách</button><button type="button" data-ins="a">Link</button><label style="min-height:34px;border:1px solid var(--line);background:var(--soft);border-radius:8px;padding:0 10px;font-size:13px;font-weight:600;display:grid;place-items:center;cursor:pointer">Chèn ảnh<input type="file" accept="image/*" id="imgFile" hidden></label><button type="button" data-preview>${preview?'Quay lại sửa':'Xem trước'}</button></div>
+ ${preview?`<div class="prose">${md(a.body)}</div>`:`<textarea id="body" name="body" placeholder="Viết ở đây. Cách đoạn bằng một dòng trống.">${esc(a.body)}</textarea>`}
+ <p class="note">Mẹo: dòng bắt đầu bằng ## là tiêu đề phụ, > là trích dẫn lớn, - là danh sách. **chữ** để in đậm.</p></div>
+ <div><b style="font-size:14px">Brand nhắc đến trong bài (hiện nút "Mua đồ" cuối bài)</b><div class="chk">${D.status.map(b=>`<label><input type="checkbox" name="brands" value="${esc(b.id)}" ${a.brands.includes(b.id)?'checked':''}><span>${esc(b.name)}</span></label>`).join('')}</div></div>
+ <div class="sticky"><select name="status" style="max-width:180px"><option value="draft"${a.status!=='published'?' selected':''}>Bản nháp</option><option value="published"${a.status==='published'?' selected':''}>Đăng lên web</option></select><button class="btn">Lưu bài</button><button type="button" class="btn alt" data-cancel>Đóng</button></div>
+ </form></div>`;
+}
+function syncForm(){const f=$('artForm');if(!f)return;const a=editing;a.title=f.title.value;a.tag=f.tag.value;a.date=f.date.value;a.dek=f.dek.value;if(f.body)a.body=f.body.value;a.status=f.status.value;a.brands=[...f.querySelectorAll('[name=brands]:checked')].map(x=>x.value)}
+async function shrink(file){   // ảnh lớn thì thu nhỏ còn cạnh dài 1800px để web nhẹ
+ const url=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(file)});
+ if(file.size<1.2e6||file.type==='image/gif')return url;
+ try{const img=await createImageBitmap(file),k=Math.min(1,1800/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.85)}catch(e){return url}
+}
+async function upload(file){toast('Đang tải ảnh…');const r=await api('/api/upload',{data:await shrink(file)});if(!r.ok){toast(r.j.error||'Tải ảnh lỗi');return null}toast('Đã tải ảnh');return r.j.path}
+function insert(before,after='',ph=''){const t=$('body');if(!t)return;const s=t.selectionStart,e=t.selectionEnd,sel=t.value.slice(s,e)||ph;t.setRangeText(before+sel+after,s,e,'end');t.focus();editing.body=t.value}
+/* --- moodboard --- */
+function tClip(){
+ const opts=D.status.map(b=>`<option value="${esc(b.id)}">${esc(b.name)}</option>`).join('');
+ $('aBody').innerHTML=`<div class="panel"><h3>Thêm clip TikTok</h3><form class="f" id="clipForm" style="margin-top:10px"><label>Link clip<input name="url" required placeholder="https://www.tiktok.com/@ten/video/123…"></label>
+ <div class="two"><label>Gắn với brand<select name="brand"><option value="">Không gắn</option>${opts}</select></label><label>Creator đến từ<input name="country" placeholder="Úc, Mỹ, Hàn…"></label></div>
+ <label>Mô tả ngắn<input name="cap" maxlength="140"></label><button class="btn" id="clipBtn">Lấy thumbnail & thêm</button></form></div>
+ <div class="panel">${D.clips.map((c,i)=>`<div class="crow"><img src="${esc(c.thumb||'')}" alt="" referrerpolicy="no-referrer"><div><b>@${esc(c.handle)}</b> <span class="note">${esc(c.brand?st(c.brand).name:'')} ${esc(c.country||'')}</span><div class="note" style="margin:0">${esc(c.cap||c.title||'')}</div>
+ <div class="mrow" style="margin-top:6px"><button class="btn sm alt" data-refetch="${i}">Lấy lại thumbnail</button><label class="btn sm alt" style="display:grid;place-items:center;font-weight:600;cursor:pointer">Tự tải ảnh lên<input type="file" accept="image/*" data-clipimg="${i}" hidden></label><button class="btn sm alt" data-delclip="${i}">Xoá</button></div></div></div>`).join('')||'<p class="note">Chưa có clip.</p>'}</div>`;
+}
+async function browserThumb(url){   // dự phòng: để trình duyệt tự hỏi TikTok
+ try{const r=await fetch('https://www.tiktok.com/oembed?url='+encodeURIComponent(url));if(!r.ok)return '';const j=await r.json();return j.thumbnail_url||''}catch(e){return ''}}
+/* --- cài đặt --- */
+function tSet(){
+ const s=D.set;
+ const ex=CV.quote(60,.6,false),ex1=CV.quote(60,.6,true);
+ $('aBody').innerHTML=`<form class="f" id="setForm">
+ <div class="panel"><h3>Thương hiệu</h3><div class="two" style="margin-top:10px"><label>Tên web<input name="site_name" value="${esc(s.site_name)}"></label><label>Slogan (tiếng Anh)<input name="slogan" value="${esc(s.slogan)}"></label>
+ <label>Mã Adobe Fonts (Halyard), VD: abc1234<input name="typekit" value="${esc(s.typekit||'')}" placeholder="để trống = dùng font mặc định" pattern="[a-z0-9]{5,12}"></label>
+ <label>Email liên hệ (hiện ở cuối trang)<input name="contact" type="email" value="${esc(s.contact)}"></label><label>Thời gian giao, viết tiếng Anh (VD: 10–14 days)<input name="eta" value="${esc(s.eta)}"></label></div></div>
+ <div class="panel"><h3>Phí ship & ưu đãi ra mắt</h3><div class="two" style="margin-top:10px">
+ <label>Cách tính ship<select name="ship_mode"><option value="flat"${s.ship_mode==='flat'?' selected':''}>Đồng giá mỗi đơn, toàn nước Úc</option><option value="perkg"${s.ship_mode!=='flat'?' selected':''}>Theo cân nặng</option></select></label>
+ <label>Giá đồng giá (A$/đơn)<input name="ship_flat" type="number" value="${s.ship_flat}" step="0.5"></label>
+ <label>Giá theo cân (A$/kg)<input name="ship" type="number" value="${s.ship}" step="0.5"></label>
+ <label>Giảm phí ship (%)<input name="ship_off" type="number" value="${s.ship_off}" min="0" max="100"></label>
+ <label>Free ship cho đơn từ (A$, 0 = tắt)<input name="free_over" type="number" value="${s.free_over}" min="0"></label>
+ <label class="ck" style="align-self:end;display:flex;gap:10px;font-weight:500"><input type="checkbox" name="free_first" ${s.free_first?'checked':''} style="width:20px;min-height:0"> Miễn phí ship đơn đầu tiên</label></div>
+ <p class="note">Ví dụ với đơn A$60, nặng 0,6 kg: khách cũ trả ship A$${ex.ship.toFixed(2)}, tổng A$${ex.total.toFixed(2)} · khách mới tổng A$${ex1.total.toFixed(2)}. Lưu xong ví dụ sẽ cập nhật.</p></div>
+ <div class="panel"><h3>Phí & thanh toán</h3><div class="two" style="margin-top:10px">
+ <label>Tỷ giá (₫ cho 1 AUD)<input name="rate" type="number" value="${s.rate}" step="50"></label><label>Phí dịch vụ (%)<input name="fee" type="number" value="${s.fee}" step="1"></label>
+ <label class="ck" style="align-self:end;display:flex;gap:10px;font-weight:500"><input type="checkbox" name="gst" ${s.gst?'checked':''} style="width:20px;min-height:0"> Cộng GST 10% (chỉ bật khi đã đăng ký GST)</label>
+ <label>Số phụ kiện tối đa mỗi brand<input name="acc_cap" type="number" value="${s.acc_cap??20}" min="0"></label>
+ <label>Gỡ mẫu hết hàng sau (ngày)<input name="soldout_days" type="number" min="0" step="1" value="${s.soldout_days??60}"><span class="note">Hết hàng thì vẫn hiện, xếp cuối trang. Hết liên tục quá số ngày này thì tự gỡ; có hàng lại thì tự lên lại. Gõ 0 để gỡ ngay khi hết.</span></label>
+ <label>Tiền cọc (%)<input name="deposit" type="number" value="${s.deposit}" min="0" max="100"></label><label>Khoá mua khi dữ liệu cũ hơn (giờ)<input name="stale_hours" type="number" value="${s.stale_hours}" min="1"></label></div></div>
+ <button class="btn">Lưu cài đặt</button></form>
+ <div class="panel" style="margin-top:14px"><h3>Chi phí vận chuyển (để tính lời/lỗ từng đơn)</h3><p class="note">Bảng cước quốc tế lấy theo Sài Cảnh Express (áp dụng từ 25/11/2026). Giao nội địa Úc theo Australia Post Parcel Post (từ 1/7/2026). Các số dưới là giả định của bạn, sửa cho đúng thực tế.</p>
+ <form class="f" id="costForm" style="margin-top:8px"><div class="two">
+ <label>Ship nội địa VN, brand → kho (₫ mỗi brand)<input name="vn_inbound" type="number" step="1000" value="${COST().vn_inbound}"></label>
+ <label>Đóng gói (₫ mỗi đơn)<input name="packaging" type="number" step="1000" value="${COST().packaging}"></label>
+ <label>Cân bao bì cộng thêm (kg)<input name="pack_kg" type="number" step="0.05" value="${COST().pack_kg}"></label>
+ <label>Phí chuyển tiền cho brand (%)<input name="pay_fee_pct" type="number" step="0.1" value="${COST().pay_fee_pct}"></label>
+ <label>Gom lô bay về Brisbane (₫/kg)<input name="consol_perkg" type="number" step="1000" value="${COST().consol_perkg}"></label>
+ <label>Australia Post trên 5kg (A$/kiện, ước tính)<input name="auspost_over5" type="number" step="0.5" value="${COST().auspost_over5}"></label>
+ <label>Chi phí khác mỗi đơn (A$)<input name="extra_aud" type="number" step="0.5" value="${COST().extra_aud}"></label></div>
+ <button class="btn">Lưu chi phí</button></form></div>
+ <div class="panel" style="margin-top:14px"><h3>Câu chữ phần cọc trong giỏ hàng</h3><p class="note">Viết tiếng Anh. Dùng {pct} cho % cọc, {deposit} cho số tiền cọc, {balance} cho số tiền còn lại (số tiền tự in đậm). Để trống một dòng là ẩn dòng đó.</p>
+ <form class="f" id="depForm" style="margin-top:8px"><label>Dòng 1 (chính)<input name="dep1" value="${esc(s.dep1??'')}"></label><label>Dòng 2<textarea name="dep2" style="min-height:60px">${esc(s.dep2??'')}</textarea></label><label>Dòng 3 (chữ xám)<textarea name="dep3" style="min-height:60px">${esc(s.dep3??'')}</textarea></label>
+ <p class="note" id="depPrev"></p><button class="btn">Lưu câu chữ</button></form></div>
+ <div class="panel" style="margin-top:14px"><h3>Online: web GitHub + nhận đơn qua Google</h3><p class="note">Điền sau khi làm theo README (mục "Đưa web lên mạng"). Link web và link Google sẽ lên web; mã bí mật chỉ nằm trên máy bạn.</p>
+ <form class="f" id="remoteForm" style="margin-top:8px"><label>Link web online<input name="site_url" placeholder="https://tenban.github.io/viebuy" value="${esc(D.set.site_url||'')}"></label>
+ <label>Link Google Apps Script (Web app URL)<input name="order_endpoint" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(D.set.order_endpoint||'')}"></label>
+ <label>Mã bí mật (giống dòng SECRET trong script)<input name="secret" type="password" value="${esc(remote.secret||'')}"></label>
+ <button class="btn">Lưu</button></form></div>
+ <div class="panel" style="margin-top:14px"><h3>Thông tin chuyển khoản</h3><p class="note">Chỉ lưu trên máy bạn (thư mục private), không hiện lên web. Tự chèn vào email xác nhận đơn.</p>
+ <form class="f" id="payForm" style="margin-top:8px"><textarea name="text" placeholder="PayID: 04xx xxx xxx (Tên tài khoản)&#10;hoặc&#10;Account name: …&#10;BSB: … · Account: …">${esc(payInfo)}</textarea><button class="btn">Lưu thông tin chuyển khoản</button></form></div>
+ <div class="panel"><h3>Đồng bộ ngay</h3><p class="note">Chạy crawler cho tất cả brand. Toàn bộ sản phẩm mất khoảng 5–10 phút.</p><div class="mrow" style="margin-top:8px"><button class="btn" data-sync="500">Đồng bộ toàn bộ sản phẩm</button><button class="btn alt" data-sync="50">Chạy thử nhanh (50 món/brand)</button></div><pre class="out" id="syncOut">${esc(syncTxt)}</pre></div>`;
+}
+async function pollSync(){const r=await api('/api/sync-status',null,'GET');if(!r.ok)return;syncTxt=r.j.output||'';const o=$('syncOut');if(o)o.textContent=syncTxt;
+ if(r.j.running)setTimeout(pollSync,3000);else{syncTxt=(r.j.output||'');syncingIds=[];await CV.load();await loadWarns();await loadBrandsCfg();toast('Đồng bộ xong '+(r.j.finished_at||''));render()}}
+/* --- đơn hàng --- */
+const STATUS=[['new','Mới'],['awaiting_deposit','Chờ cọc'],['deposit_paid','Đã cọc'],['ordered','Đã đặt với brand'],['awaiting_balance','Chờ thanh toán còn lại'],['shipped','Đã gửi'],['done','Hoàn tất'],['cancelled','Huỷ']];
+let orders=[],composing=null,payInfo='',remote={};
+const plusDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
+const longDate=s=>s?new Date(s+'T12:00:00').toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'';
+async function loadOrders(){const r=await api('/api/orders',null,'GET');if(r.ok)orders=r.j;return r}
+const COLS=[{k:'c1',t:'Xác nhận & chờ cọc',d:'Đơn mới, cần xác nhận hàng và nhận cọc',st:['new','awaiting_deposit'],to:'awaiting_deposit',c:'#d9730d',pc:'var(--o-bg)',cc:'var(--o-c)',card:'#3a2c20'},
+ {k:'c2',t:'Đã cọc · đang mua & gom',d:'Đặt với brand, chờ hàng về kho VN',st:['deposit_paid','ordered'],to:'deposit_paid',c:'#529cca',pc:'var(--b-bg)',cc:'var(--b-c)',card:'#243447'},
+ {k:'c3',t:'Hàng về kho · chờ bay',d:'Đã gom đủ, chờ khách trả nốt rồi gửi sang Úc',st:['awaiting_balance'],to:'awaiting_balance',c:'#4dab9a',pc:'var(--gr-bg)',cc:'var(--gr-c)',card:'#24382d'}];
+const FF=[['pending','Chờ đặt'],['ordered','Đã đặt với brand'],['brand_shipped','Brand đang gửi về kho'],['at_hub','Đã về kho VN'],['shipped_au','Đã gửi sang Úc'],['unavailable','Hết hàng / huỷ']];
+const FF_DONE=new Set(['at_hub','shipped_au','unavailable']);
+let openId=null,showArchive=false;
+const stName=k=>(STATUS.find(x=>x[0]===k)||['',k])[1];
+const tot=o=>o.confirm?.totals||o.totals||{};
+function cardHTML(o){
+ const T=tot(o),its=o.items.filter(i=>i.ff!=='unavailable'),done=its.filter(i=>FF_DONE.has(i.ff)).length;
+ const due=o.status==='awaiting_deposit'&&o.confirm?.deadline&&o.confirm.deadline<new Date().toISOString().slice(0,10);
+ const col=COLS.find(c=>c.st.includes(o.status||'new'))||{c:'#9b9a97',card:'#2a2a2a'};
+ const tags=[[stName(o.status||'new'),{new:'g',awaiting_deposit:'o',deposit_paid:'b',ordered:'p',awaiting_balance:'gr',shipped:'gr',done:'gr',cancelled:'r'}[o.status||'new']||'g']];
+ if(o.first_claim&&!o.repeat_customer)tags.push(['Đơn đầu','y']);
+ if(o.items.some(i=>i.price_check))tags.push(['Xác nhận giá','r']);
+ if(due)tags.push(['Quá hạn cọc','r']);
+ if(o.admin_note)tags.push(['Có ghi chú','g']);
+ {const r=costCalc(o,+(o.cost?.kg||estKg(o)),o.cost?.route||'air');if(!r.invalid)tags.push([(r.profit>=0?'Lãi A$':'Lỗ A$')+Math.abs(r.profit).toFixed(0),r.profit>=0?'gr':'r'])}
+ return `<button class="jc${openId===o.id?' sel':''}" data-openo="${esc(o.id)}" draggable="true" data-drag="${esc(o.id)}" style="--cardc:${col.card};--dot:${col.c}">
+ <span class="jh"><span class="jn">📦 ${esc(o.name)}</span><span class="jid">${esc(o.id)}</span></span>
+ <span class="jt">A$${Number(T.total||0).toFixed(2)} · ${o.items.length} món · ${esc(new Date(o.created).toLocaleDateString('vi-VN'))}</span>
+ <span class="jic">${tags.map(([l,c])=>`<i class="tg ${c}">${esc(l)}</i>`).join('')}</span>
+ ${o.status!=='new'&&o.status!=='awaiting_deposit'?`<span class="jp"><span style="width:${its.length?Math.round(done/its.length*100):0}%"></span></span><span class="jt">${done}/${its.length} món đã về kho</span>`:o.confirm?.deadline?`<span class="jt">Hạn cọc ${esc(new Date(o.confirm.deadline+'T12:00').toLocaleDateString('vi-VN'))}</span>`:''}
+ </button>`;
+}
+function renderBoard(){
+ const box=$('board');if(!box)return;
+ const arch=orders.filter(o=>['shipped','done','cancelled'].includes(o.status));
+ box.innerHTML=`<div class="kb">${COLS.map(c=>{const list=orders.filter(o=>c.st.includes(o.status||'new'));
+  return `<section class="kcol" data-drop="${c.k}" style="--pc:${c.pc};--cc:${c.cc};--dot:${c.c}"><div class="kh"><span class="pill">${c.t}</span><span class="cnt">${list.length}</span></div><p class="desc">${c.d}</p>${list.map(cardHTML).join('')||'<p class="kempty">Trống</p>'}</section>`}).join('')}</div>
+ <div style="margin-top:14px"><button class="btn alt" data-arch>${showArchive?'Ẩn':'Xem'} đơn đã gửi / hoàn tất / huỷ (${arch.length})</button></div>
+ ${showArchive?`<div class="kb" style="margin-top:10px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">${arch.map(cardHTML).join('')}</div>`:''}`;
+}
+function renderDetail(){
+ const dr=$('odr');const o=orders.find(x=>x.id===openId);
+ if(!o){dr.classList.remove('on');$('oveil').classList.remove('on');return}
+ dr.classList.add('on');$('oveil').classList.add('on');
+ const T=tot(o),n=x=>Number(x||0).toFixed(2),ci=COLS.findIndex(c=>c.st.includes(o.status||'new'));
+ const next=ci>=0&&ci<2?COLS[ci+1]:null;
+ const allHub=o.items.every(i=>FF_DONE.has(i.ff));
+ $('odrBody').innerHTML=`<div class="dhd"><div><h2 style="margin:0">${esc(o.id)}</h2><span class="note">${esc(new Date(o.created).toLocaleString('vi-VN'))}</span></div><button class="x" data-closeo aria-label="Đóng">×</button></div>
+ <div class="dsc">
+ <div class="mrow" style="align-items:center"><select data-ostatus="${esc(o.id)}" style="min-height:38px;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:0 8px">${STATUS.map(([k,l])=>`<option value="${k}"${k===(o.status||'new')?' selected':''}>${l}</option>`).join('')}</select>
+ ${next?`<button class="btn sm" data-advance="${esc(o.id)}">Chuyển sang: ${esc(next.t)} →</button>`:''}${o.status==='awaiting_balance'?`<button class="btn sm" data-shipped="${esc(o.id)}">Đã gửi sang Úc ✓</button>`:''}</div>
+ ${ci===1&&allHub?'<p class="in" style="font-size:14px;margin:8px 0 0">Tất cả món đã về kho. Có thể chuyển sang cột "Hàng về kho".</p>':''}
+ <h3 class="dt">Khách hàng</h3>
+ <p style="margin:0;font-size:14px"><b>${esc(o.name)}</b><br><a href="mailto:${esc(o.email)}">${esc(o.email)}</a>${o.phone?' · <a href="tel:'+esc(o.phone)+'">'+esc(o.phone)+'</a>':''}<br>${esc(o.address)}</p>
+ ${o.note?`<p class="note">Ghi chú của khách: ${esc(o.note)}</p>`:''}
+ ${o.first_claim?(o.repeat_customer?'<p class="err" style="font-size:13px;margin:6px 0 0">Khai là đơn đầu nhưng email này đã từng đặt</p>':'<p class="in" style="font-size:13px;margin:6px 0 0">Đơn đầu tiên, miễn phí ship</p>'):''}
+ <h3 class="dt">Thanh toán</h3>
+ <table class="mini"><tr><td>Tổng</td><td>A$${n(T.total)}</td></tr><tr><td>Cọc ${o.deposit_pct??''}%</td><td>A$${n(T.deposit)}${['deposit_paid','ordered','awaiting_balance','shipped','done'].includes(o.status)?' <span class="in">✓ đã nhận</span>':''}</td></tr><tr><td>Còn lại</td><td>A$${n(T.balance)}${['shipped','done'].includes(o.status)?' <span class="in">✓ đã nhận</span>':''}</td></tr></table>
+ <h3 class="dt">Chi phí & lời/lỗ</h3>
+ ${costPanel(o)}
+ <h3 class="dt">Tiến độ từng món</h3>
+ ${o.items.map((i,k)=>`<div class="ffrow"><div><b style="font-size:14px">${esc(i.title)}</b><div class="note" style="margin:0">${esc(i.brand)} · ${esc(i.variant)} × ${i.q} · ${vnd(o.confirm?.items?.[k]?.price??i.price_vnd)}${i.price_check?' · <span class="err">⚠ xác nhận giá</span>':''} · <a href="${esc(i.url)}" target="_blank" rel="noopener">web brand ↗</a></div></div>
+ <select data-iff="${k}" class="ff ${esc(i.ff||'pending')}">${FF.map(([v,l])=>`<option value="${v}"${(i.ff||'pending')===v?' selected':''}>${l}</option>`).join('')}</select></div>`).join('')}
+ <h3 class="dt">Ghi chú nội bộ</h3>
+ <textarea data-onote="${esc(o.id)}" placeholder="VD: đã nhắn brand lúc 10h, size M còn 1 cái…" style="width:100%;min-height:90px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--card);font-size:15px">${esc(o.admin_note||'')}</textarea>
+ <p class="note" style="margin:4px 0 0">Tự lưu khi bạn bấm ra ngoài ô.</p>
+ <h3 class="dt">Email cho khách</h3>
+ ${composing?.id===o.id?composer(o):ci>0?`<p class="note" style="margin:0">Email xác nhận đã xong ở bước trước. Email "đã nhận cọc" và "ảnh hàng thật + thanh toán phần còn lại" sẽ được thêm ở bản sau.</p>`:`<button class="btn" data-compose="${esc(o.id)}">${o.confirm?'Soạn lại email xác nhận':'Soạn email xác nhận & yêu cầu cọc'}</button>${o.confirm?.sent_at?`<p class="note">Đã soạn email xác nhận ${esc(new Date(o.confirm.sent_at).toLocaleString('vi-VN'))}</p>`:''}`}
+ ${(o.history||[]).length?`<h3 class="dt">Lịch sử</h3><ul class="note" style="padding-left:18px;margin:0">${o.history.slice().reverse().map(h=>`<li>${esc(new Date(h.at).toLocaleString('vi-VN'))} · ${esc(stName(h.status))}</li>`).join('')}</ul>`:''}
+ </div>`;
+}
+const redraw=()=>{renderBoard();const y=$('odrBody')?.querySelector('.dsc')?.scrollTop||0;renderDetail();const sc=$('odrBody')?.querySelector('.dsc');if(sc)sc.scrollTop=y};
+async function setStatus(id,status){const r=await api('/api/order-update',{id,patch:{status}});if(r.ok){Object.assign(orders.find(x=>x.id===id),r.j.order);redraw();toast('Đã chuyển: '+stName(status))}else toast(r.j.error||'Không cập nhật được')}
+async function pageOrders(){
+ $('box').innerHTML=`<div class="mrow" style="justify-content:space-between;align-items:center;margin-bottom:16px"><h2 style="margin:0;font-size:30px;font-weight:700">📦 Đơn hàng</h2><div class="mrow"><button class="btn alt sm" data-demo>+ Tạo đơn mẫu</button><button class="btn sm" data-pull>⇣ Lấy đơn mới</button><button class="btn alt sm" data-refresh>↻ Tải lại</button></div></div>
+ ${payInfo?'':'<p class="lead"><b class="warn">Chưa có thông tin chuyển khoản.</b> Vào Quản lý sàn → Cài đặt & đồng bộ để điền, email xác nhận sẽ tự chèn vào.</p>'}
+ <div id="board"><p class="note">Đang tải…</p></div>`;
+ const r=await loadOrders();if(!r.ok){$('board').innerHTML=`<p class="empty">${esc(r.j.error||'Không tải được')}</p>`;return}
+ renderBoard();renderDetail();
+}
+/* --- chi phí & lời lỗ --- */
+// Bảng giá mặc định (sửa được trong Cài đặt). Nguồn: Sài Cảnh Express, bảng giá áp dụng từ 25/11/2026; Australia Post Parcel Post từ 1/7/2026.
+const COST_DEFAULT={
+ air:[[0.5,381000],[1,448000],[1.5,513000],[2,532000],[2.5,597000],[3,617000],[3.5,694000],[4,724000],[4.5,817000],[5,863000],[5.5,956000],[6,1002000],[6.5,1095000],[7,1141000],[7.5,1234000],[8,1280000],[8.5,1373000],[9,1419000],[9.5,1512000],[10,1558000],[10.5,1633000],[11,1686000],[11.5,1785000],[12,1838000],[12.5,1936000],[13,1989000],[13.5,2088000],[14,2141000],[14.5,2240000],[15,2293000],[15.5,2392000],[16,2444000],[16.5,2544000],[17,2596000],[17.5,2696000],[18,2748000],[18.5,2847000],[19,2899000],[19.5,2999000],[20,3051000],[20.5,3151000]],
+ air_perkg:[[30,150000],[70,145000],[300,135000],[1e9,125000]],
+ epacket:[[0.05,115000],[0.1,121000],[0.15,128000],[0.2,134000],[0.25,141000],[0.3,148000],[0.35,154000],[0.4,161000],[0.45,167000],[0.5,174000],[0.55,181000],[0.6,188000],[0.65,194000],[0.7,201000],[0.75,207000],[0.8,214000],[0.85,221000],[0.9,227000],[0.95,234000],[1,240000],[1.05,247000],[1.1,253000],[1.15,260000],[1.2,267000],[1.25,274000],[1.3,280000],[1.35,287000],[1.4,293000],[1.45,300000],[1.5,307000],[1.55,313000],[1.6,320000],[1.65,326000],[1.7,333000],[1.75,340000],[1.8,347000],[1.85,353000],[1.9,360000],[1.95,366000],[2,372000]],
+ auspost:[[0.25,10.20],[0.5,11.70],[1,16.00],[3,20.25],[5,24.45]],
+ auspost_over5:30, consol_perkg:150000, vn_inbound:30000, packaging:15000, pack_kg:0.15, pay_fee_pct:1, extra_aud:0
+};
+const ROUTES=[['air','Bay thẳng tới khách (Sài Cảnh, hàng hoá, 4–6 ngày)'],['epacket','ePacket tới khách (Sài Cảnh, 8–12 ngày, tối đa 2kg)'],['consol','Gom lô bay về Brisbane + gửi Australia Post']];
+const COST=()=>({...COST_DEFAULT,...(D.set.cost||{})});
+const tier=(tbl,kg)=>{const r=tbl.find(([mx])=>kg<=mx+1e-9);return r?r[1]:null};
+function freightVND(route,kg,C){
+ if(route==='epacket'){const v=tier(C.epacket,kg);return v==null?null:v}
+ if(route==='air'){const v=tier(C.air,kg);if(v!=null)return v;const per=tier(C.air_perkg,kg);return Math.ceil(kg*2)/2*per}
+ return kg*C.consol_perkg;
+}
+const ausPost=(kg,C)=>{const v=tier(C.auspost,kg);return v==null?+C.auspost_over5:v};
+function estKg(o){const C=COST();return +(o.items.reduce((a,i,k)=>{if(o.confirm&&o.confirm.items?.[k]?.ok===false)return a;const p=D.byId[i.pid];return a+(p?(CV.WEIGHT[catOf(p)]||.5):.5)*i.q},0)+C.pack_kg).toFixed(2)}
+function costCalc(o,kg,route){
+ const C=COST(),rate=o.rate||D.set.rate,T=tot(o),A=v=>v/rate;
+ const live=o.items.map((i,k)=>({i,k,ok:o.confirm?.items?.[k]?.ok??true,price:o.confirm?.items?.[k]?.price??i.price_vnd})).filter(x=>x.ok);
+ const goodsV=live.reduce((a,x)=>a+x.price*x.i.q,0),brands=new Set(live.map(x=>x.i.brand)).size;
+ const revGoods=A(goodsV),revShip=+(T.shipFinal??T.ship??0),revFee=+(T.fee||0),revGst=+(T.gst||0);
+ const fV=freightVND(route,kg,C);
+ const cost={goods:A(goodsV),vn:A(brands*C.vn_inbound),pack:A(C.packaging),freight:fV==null?null:A(fV),au:route==='consol'?ausPost(kg,C):0,pay:A(goodsV)*C.pay_fee_pct/100,extra:+C.extra_aud||0};
+ const revenue=revGoods+revShip+revFee,costs=Object.values(cost).reduce((a,v)=>a+(v||0),0);
+ const shipCost=(cost.freight||0)+cost.au+cost.vn+cost.pack;
+ return {kg,route,rev:{goods:revGoods,ship:revShip,fee:revFee,gst:revGst},cost,revenue,costs,profit:revenue-costs,shipCost,breakEvenShip:shipCost+cost.pay+cost.extra-revFee,brands,invalid:fV==null};
+}
+function costPanel(o){
+ const c=o.cost||{},kg=+(c.kg||estKg(o)),route=c.route||'air',r=costCalc(o,kg,route),a=v=>v==null?'—':'A$'+v.toFixed(2),pos=r.profit>=0;
+ return `<div class="costbox">
+ <div class="two"><label style="display:grid;gap:4px;font-size:14px;font-weight:600">Cân nặng kiện (kg)<input type="number" step="0.05" min="0.05" data-ckg value="${kg}" style="min-height:38px;border:1px solid var(--line);border-radius:8px;padding:0 8px;background:var(--card)"><span class="note" style="margin:0;font-weight:400">${c.kg?'đã nhập tay':'ước tính theo loại hàng + bao bì'} · cân thật thì sửa lại</span></label>
+ <label style="display:grid;gap:4px;font-size:14px;font-weight:600">Cách gửi<select data-croute style="min-height:38px;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:0 6px">${ROUTES.map(([v,l])=>`<option value="${v}"${v===route?' selected':''}>${l}</option>`).join('')}</select></label></div>
+ ${r.invalid?'<p class="err" style="font-size:13px">ePacket chỉ nhận kiện tối đa 2kg, hãy chọn cách gửi khác.</p>':''}
+ <table class="mini" style="width:100%;margin-top:10px"><tr><td colspan="2" class="dt" style="margin:0;padding-top:4px">Khách trả</td></tr>
+ <tr><td>Tiền hàng</td><td>${a(r.rev.goods)}</td></tr><tr><td>Phí ship khách trả</td><td>${a(r.rev.ship)}</td></tr><tr><td>Phí dịch vụ</td><td>${a(r.rev.fee)}</td></tr>
+ <tr><td colspan="2" class="dt" style="padding-top:10px">Bạn trả</td></tr>
+ <tr><td>Tiền hàng cho brand</td><td>${a(r.cost.goods)}</td></tr><tr><td>Ship nội địa VN về kho (${r.brands} brand)</td><td>${a(r.cost.vn)}</td></tr><tr><td>Đóng gói</td><td>${a(r.cost.pack)}</td></tr>
+ <tr><td>Cước quốc tế (${kg} kg)</td><td>${a(r.cost.freight)}</td></tr>${route==='consol'?`<tr><td>Australia Post tới khách</td><td>${a(r.cost.au)}</td></tr>`:''}
+ <tr><td>Phí chuyển tiền cho brand</td><td>${a(r.cost.pay)}</td></tr>${r.cost.extra?`<tr><td>Chi phí khác</td><td>${a(r.cost.extra)}</td></tr>`:''}
+ <tr style="border-top:1px solid var(--line)"><td><b>${pos?'Lãi':'Lỗ'}</b></td><td><b class="${pos?'in':'err'}" style="font-size:17px">${a(Math.abs(r.profit))}</b></td></tr></table>
+ <p class="note">Tổng chi phí vận chuyển đơn này ${a(r.shipCost)}. Để hoà vốn, khách cần trả phí ship khoảng <b>${a(Math.max(0,r.breakEvenShip))}</b> (đang thu ${a(r.rev.ship)}). Chưa gồm phụ phí nhiên liệu, vùng xa, thuế nhập khẩu nếu có.</p></div>`;
+}
+
+function startCompose(o){
+ const c=o.confirm;
+ composing={id:o.id,items:o.items.map((i,k)=>({ok:c?.items?.[k]?.ok??true,price:c?.items?.[k]?.price??i.price_vnd})),eta:c?.eta||plusDays(7),deadline:c?.deadline||plusDays(2),edited:null};
+}
+function calc(o){
+ const rate=o.rate||D.set.rate;let goods=0,kg=0;
+ o.items.forEach((i,k)=>{const c=composing.items[k];if(!c.ok)return;goods+=c.price/rate*i.q;const p=D.byId[i.pid];kg+=(p?(CV.WEIGHT[catOf(p)]||.5):.5)*i.q});
+ return CV.quote(goods,kg,!!(o.first_claim&&!o.repeat_customer));
+}
+function emailText(o){
+ const t=calc(o),A=x=>'A$'+x.toFixed(2),S=D.set,name=S.site_name||'VieBuy',first=(o.name||'').trim().split(/\s+/)[0]||'there',rate=o.rate||S.rate;
+ const gone=o.items.filter((i,k)=>!composing.items[k].ok);
+ const changed=o.items.map((i,k)=>[i,k]).filter(([i,k])=>composing.items[k].ok&&composing.items[k].price!==i.price_vnd);
+ const L=[`Hi ${first},`,'',`Thanks for shopping with ${name}! We've checked with the brands and your order ${o.id} is confirmed:`,'',
+  ...o.items.map((i,k)=>composing.items[k].ok?`• ${i.brand} – ${i.title} (${i.variant}) × ${i.q} — ${A(composing.items[k].price/rate*i.q)}`:null).filter(Boolean)];
+ if(gone.length)L.push('',"Unfortunately these pieces are no longer available, so we've removed them from your order:",...gone.map(i=>`• ${i.brand} – ${i.title} (${i.variant})`));
+ if(changed.length)L.push('','Please note the brand has updated the price of:',...changed.map(([i,k])=>`• ${i.title}: now ${A(composing.items[k].price/rate)} each`));
+ L.push('','ORDER SUMMARY',`Items: ${A(t.goods)}`,`Shipping: ${t.firstOff?'Free (first order)':A(t.ship)}`,`Service fee (${S.fee}%): ${A(t.fee)}`);
+ if(S.gst)L.push(`GST: ${A(t.gst)}`);
+ L.push(`Total: ${A(t.total)}`,'',`To secure your pieces, please pay the ${S.deposit}% deposit of ${A(t.deposit)} by ${longDate(composing.deadline)}.`,'',payInfo||'[Payment details]',`Reference: ${o.id}`,'',
+  `The remaining balance of ${A(t.balance)} is due once your items are consolidated in Vietnam. We'll send you photos of your actual pieces before they ship.`,'',
+  `Estimated delivery: ${longDate(composing.eta)}`,'','If anything looks off, just reply to this email and we’ll sort it out.','','Thanks,',name);
+ return {subject:`Your ${name} order ${o.id} is confirmed – deposit details inside`,body:L.join('\n'),t};
+}
+function composer(o){
+ const e=emailText(o),body=composing.edited??e.body,inp='min-height:40px;border:1px solid var(--line);border-radius:8px;padding:0 8px;background:var(--card)';
+ return `<div style="border-top:1px solid var(--line);margin-top:10px;padding-top:12px">
+ <h3 style="font-size:15px;margin-bottom:6px">Soạn email xác nhận</h3>
+ <p class="note" style="margin:0 0 8px">Bỏ tick món đã hết hàng. Sửa giá (₫) nếu brand đổi giá. Tổng tiền và tiền cọc tự tính lại.</p>
+ ${o.items.map((i,k)=>`<div class="crow" style="grid-template-columns:28px 1fr 130px"><input type="checkbox" data-cok="${k}" ${composing.items[k].ok?'checked':''} style="width:20px;height:20px" aria-label="Còn hàng"><div style="font-size:14px">${i.price_check?'<b class="err">⚠</b> ':''}${esc(i.brand)} · ${esc(i.title)} · ${esc(i.variant)} × ${i.q}</div>
+ <input type="number" data-cprice="${k}" value="${composing.items[k].price}" step="1000" style="${inp}" aria-label="Giá cuối (VND)"></div>`).join('')}
+ <div class="two" style="margin-top:10px"><label style="display:grid;gap:4px;font-size:14px;font-weight:600">Ngày giao dự kiến<input type="date" data-ceta value="${composing.eta}" style="${inp}"></label>
+ <label style="display:grid;gap:4px;font-size:14px;font-weight:600">Hạn chuyển cọc<input type="date" data-cdead value="${composing.deadline}" style="${inp}"></label></div>
+ <p style="margin:10px 0 4px;font-size:14px">Tổng mới: <b>A$${e.t.total.toFixed(2)}</b> · cọc <b>A$${e.t.deposit.toFixed(2)}</b> · còn lại A$${e.t.balance.toFixed(2)}</p>
+ <div class="f" style="margin-top:8px"><label>Tiêu đề<input id="cSubj" value="${esc(e.subject)}"></label>
+ <label>Nội dung${composing.edited!=null?' <span class="note">(đã sửa tay: đổi số ở trên sẽ không cập nhật vào đây)</span> <button type="button" class="btn sm alt" data-creset>Soạn lại tự động</button>':''}<textarea id="cBody" style="min-height:340px;font-size:14px;line-height:1.5">${esc(body)}</textarea></label></div>
+ <div class="mrow" style="margin-top:10px"><button class="btn" data-csend="${esc(o.id)}">Mở trong Mail & đánh dấu Chờ cọc</button><button class="btn alt" data-ccopy>Copy nội dung</button><button class="btn alt" data-ccancel>Đóng</button></div>
+ <p class="note">Nút đầu mở ứng dụng mail mặc định với email soạn sẵn gửi tới ${esc(o.email)}. Xem lại rồi bấm gửi trong ứng dụng mail.</p></div>`;
+}
+const keepScroll=fn=>setTimeout(()=>{const y=scrollY;fn();scrollTo(0,y)},0);
+
+/* --- sự kiện --- */
+document.addEventListener('click',async e=>{
+ const t=e.target.closest('button');if(!t)return;const d=t.dataset;
+ if(d.tab){if(editing&&d.tab!=='journal')syncForm();tab=d.tab;render()}
+ else if(d.logout!==undefined){pw='';try{sessionStorage.removeItem('cv_pw')}catch(x){}render()}
+ else if(t.id==='saveCats'){const ov={...D.ov};for(const[id,ch]of Object.entries(pend)){const m={...(ov[id]||{}),...ch};if(!m.title)delete m.title;if(!m.hidden)delete m.hidden;ov[id]=m}if(await saveFile('overrides.json',ov)){D.ov=ov;pend={};render()}}
+ else if(t.id==='undoP'){pend={};render()}
+ else if(d.fadd!==undefined){draftC.faq.push(['New question','Answer']);render()}
+ else if(d.fdel!==undefined){draftC.faq.splice(+d.fdel,1);render()}
+ else if(d.fup!==undefined||d.fdown!==undefined){const i=+(d.fup??d.fdown),j=d.fup!==undefined?i-1:i+1,f=draftC.faq;[f[i],f[j]]=[f[j],f[i]];render()}
+ else if(d.csave!==undefined){const c=draftC,s={...D.set,content:{bar:c.bar.filter(Boolean),lead:c.lead,steps:c.steps,faq:c.faq.filter(([q])=>q.trim()),about:c.about}};if(await saveFile('settings.json',s)){D.set=s;draftC=null;render()}}
+ else if(d.creset2!==undefined){if(t.dataset.sure!=='1'){t.dataset.sure='1';t.textContent='Bấm lần nữa để khôi phục';return}const s={...D.set};delete s.content;if(await saveFile('settings.json',s)){D.set=s;draftC=null;render()}}
+ else if(d.cup!==undefined||d.cdown!==undefined){const r=catRows(),i=+(d.cup??d.cdown),j=d.cup!==undefined?i-1:i+1;[r[i],r[j]]=[r[j],r[i]];await saveCats(r)}
+ else if(d.cdel){if(t.dataset.sure!=='1'){t.dataset.sure='1';t.textContent='Bấm lần nữa';return}const n=D.products.filter(p=>catOf(p)===d.cdel).length;await saveCats(catRows().filter(c=>c.key!==d.cdel));if(n)toast(`${n} sản phẩm của danh mục này sẽ về "Khác"`)}
+ else if(d.bulk){const ids=[...selP];if(d.bulk==='clear'){selP.clear();return render()}
+  if(await saveOv(ov=>{let mx=Math.max(0,...Object.values(ov).map(m=>m.pin||0));for(const id of ids){const m=ov[id]=ov[id]||{};
+   if(d.bulk==='pin'&&!m.pin)m.pin=++mx;if(d.bulk==='unpin')delete m.pin;if(d.bulk==='hide')m.hidden=true;if(d.bulk==='show')delete m.hidden}renum(ov)})){toast(`Đã cập nhật ${ids.length} sản phẩm`);selP.clear();render()}}
+ else if(d.pup||d.pdown){const id=d.pup||d.pdown,l=pins().map(p=>p.id),i=l.indexOf(id),j=d.pup?i-1:i+1;[l[i],l[j]]=[l[j],l[i]];if(await saveOv(ov=>l.forEach((x,k)=>{ov[x]={...(ov[x]||{}),pin:k+1}})))render()}
+ else if(d.unpin){if(await saveOv(ov=>{delete ov[d.unpin].pin;renum(ov)}))render()}
+ else if(t.id==='moreP'){limitP+=60;render()}
+ else if(d.bact){const r=rec(d.id);r.status=d.bact==='approve'?'live':'hidden';if(d.bact==='approve')r.verified_at=new Date().toISOString();D.badm[d.id]=r;if(await saveFile('brands_admin.json',D.badm))render()}
+ else if(d.page){page=d.page;try{sessionStorage.setItem('cv_page',page)}catch(x){}openId=null;render()}
+ else if(d.openo&&!t.closest('[data-drag]')?.dataset.dragging){openId=d.openo;composing=composing?.id===openId?composing:null;redraw()}
+ else if(d.closeo!==undefined){openId=null;composing=null;redraw()}
+ else if(d.arch!==undefined){showArchive=!showArchive;renderBoard()}
+ else if(d.demo!==undefined){const pick=[],seen=new Set();for(const p of D.products){if(!p.in_stock||seen.has(catOf(p))||ovOf(p).hidden)continue;const v=p.variants.find(x=>x.available);if(!v)continue;seen.add(catOf(p));pick.push({pid:p.id,title:ovOf(p).title||p.title,variant:v.name,q:1,price_vnd:v.price||p.price,url:p.url,brand:st(p.brand).name});if(pick.length===2)break}
+  if(!pick.length)return toast('Chưa có sản phẩm còn hàng để tạo đơn mẫu');let goods=0,kg=0;pick.forEach(i=>{goods+=i.price_vnd/D.set.rate;const p=D.byId[i.pid];kg+=CV.WEIGHT[catOf(p)]||.5});const T=CV.quote(goods,kg,true);
+  const r=await fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Khách mẫu (DEMO)',email:'demo@example.com',phone:'',address:'1 Demo St, Brisbane QLD 4000',note:'Đơn mẫu để thử, đổi trạng thái sang Huỷ khi xong',items:pick,first_claim:true,totals:Object.fromEntries(Object.entries(T).filter(([,v])=>typeof v==='number').map(([k,v])=>[k,+v.toFixed(2)])),rate:D.set.rate,deposit_pct:D.set.deposit})});
+  if(r.ok){const j=await r.json();await loadOrders();openId=j.id;redraw();toast('Đã tạo đơn mẫu '+j.id)}else toast('Không tạo được')}
+ else if(d.pull!==undefined){await pullOnline(false)}
+ else if(d.refresh!==undefined){await loadOrders();redraw();toast('Đã tải lại')}
+ else if(d.advance){const o=orders.find(x=>x.id===d.advance),ci=COLS.findIndex(c=>c.st.includes(o.status||'new'));await setStatus(o.id,COLS[ci+1].to)}
+ else if(d.shipped){await setStatus(d.shipped,'shipped')}
+ else if(d.compose){const o=orders.find(x=>x.id===d.compose);startCompose(o);redraw()}
+ else if(d.ccancel!==undefined){composing=null;redraw()}
+ else if(d.creset!==undefined){composing.edited=null;redraw()}
+ else if(d.ccopy!==undefined){try{await navigator.clipboard.writeText($('cSubj').value+'\n\n'+$('cBody').value);toast('Đã copy')}catch(x){toast('Không copy được, hãy bôi đen rồi Cmd+C')}}
+ else if(d.csend){const o=orders.find(x=>x.id===d.csend),e=emailText(o),body=$('cBody').value,subj=$('cSubj').value;
+  location.href=`mailto:${encodeURIComponent(o.email)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+  const r=await api('/api/order-update',{id:o.id,patch:{status:'awaiting_deposit',confirm:{items:composing.items,eta:composing.eta,deadline:composing.deadline,totals:Object.fromEntries(Object.entries(e.t).map(([k,v])=>[k,+(+v).toFixed(2)])),sent_at:new Date().toISOString()}}});
+  if(r.ok){Object.assign(o,r.j.order);composing=null;redraw();toast('Đã chuyển sang Chờ cọc')}}
+ else if(d.done){const r=await api('/api/notify-done',{id:d.done,done:d.v==='1'});if(r.ok){await loadNotes();render()}}
+ else if(t.id==='saveKw'){const kw={...D.kw,...pendKw};if(await saveFile('keywords.json',kw)){D.kw=kw;pendKw={};render()}}
+ else if(d.delkw){const kw={...D.kw};delete kw[d.delkw];if(await saveFile('keywords.json',kw)){D.kw=kw;render()}}
+ else if(d.newart!==undefined){editing=blank();preview=false;render()}
+ else if(d.edit){editing=JSON.parse(JSON.stringify(D.articles.find(a=>a.id===d.edit)));editing.brands=editing.brands||[];preview=false;render()}
+ else if(d.cancel!==undefined){editing=null;render()}
+ else if(d.delart){const a=D.articles.find(x=>x.id===d.delart);if(!a)return;if(t.dataset.sure!=='1'){t.dataset.sure='1';t.textContent='Bấm lần nữa để xoá';return}const list=D.articles.filter(x=>x.id!==d.delart);if(await saveFile('articles.json',list)){D.articles=list;render()}}
+ else if(d.preview!==undefined){syncForm();preview=!preview;render()}
+ else if(d.ins){if(preview)return;({h:()=>insert('\n\n## ','\n\n','Tiêu đề phụ'),b:()=>insert('**','**','chữ đậm'),i:()=>insert('*','*','chữ nghiêng'),q:()=>insert('\n\n> ','\n\n','Câu trích dẫn đáng nhớ'),l:()=>insert('\n\n- ','\n- \n- \n\n','Ý thứ nhất'),a:()=>insert('[','](https://)','chữ hiện ra')})[d.ins]()}
+ else if(d.refetch){t.disabled=true;t.textContent='Đang lấy…';const c=D.clips[+d.refetch],r=await api('/api/clip',{url:c.url});if(!r.ok){toast(r.j.error||'Không lấy được');render();return}
+  if(!r.j.thumb)r.j.thumb=await browserThumb(r.j.url||c.url);
+  const cl=D.clips.map((x,i)=>i===+d.refetch?{...x,...r.j,brand:x.brand,country:x.country,cap:x.cap}:x);if(await saveFile('clips.json',cl)){D.clips=cl;render();toast(r.j.thumb?'Đã có thumbnail':'Vẫn chưa lấy được. Dùng nút "Tự tải ảnh lên" nhé')}}
+ else if(d.delclip){const cl=D.clips.filter((_,i)=>i!==+d.delclip);if(await saveFile('clips.json',cl)){D.clips=cl;render()}}
+ else if(d.sync!==undefined){await syncBrands([],+d.sync)}
+ else if(d.bsync){await syncBrands([d.bsync])}
+ else if(d.bup!==undefined||d.bdown!==undefined){const i=+(d.bup??d.bdown),j=d.bup!==undefined?i-1:i+1,l=[...brandsCfg];[l[i],l[j]]=[l[j],l[i]];if(await saveBrands(l))render()}
+ else if(d.bdel!==undefined){const c=brandsCfg[+d.bdel];if(t.dataset.sure!=='1'){t.dataset.sure='1';t.textContent='Bấm lần nữa để xoá '+c.name;return}
+  if(await saveBrands(brandsCfg.filter((_,k)=>k!==+d.bdel))){const r=rec(c.id);r.status='hidden';D.badm[c.id]=r;await saveFile('brands_admin.json',D.badm);toast('Đã xoá '+c.name+'. Sản phẩm sẽ biến mất ở lần đồng bộ tới (đã ẩn khỏi chợ ngay).');render()}}
+});
+document.addEventListener('change',async e=>{const t=e.target,d=t.dataset;
+ if(d.cat){setPend(d.cat,'category',t.value);render()}
+ else if(d.phide){setPend(d.phide,'hidden',t.checked);render()}
+ else if(d.caten!==undefined){await saveCats(catRows().map(c=>c.key===d.caten?{...c,en:t.value.trim()||CV.CAT_EN_DEFAULT[c.key]||c.key}:c))}
+ else if(d.cathide!==undefined){await saveCats(catRows().map(c=>c.key===d.cathide?{...c,hidden:t.checked}:c))}
+ else if(d.psel){t.checked?selP.add(d.psel):selP.delete(d.psel);render()}
+ else if(t.id==='selAll'){const vis=[...document.querySelectorAll('[data-psel]')].map(x=>x.dataset.psel);vis.forEach(id=>t.checked?selP.add(id):selP.delete(id));render()}
+ else if(t.id==='bulkCat'&&t.value){const ids=[...selP],c=t.value;if(await saveOv(ov=>ids.forEach(id=>{ov[id]={...(ov[id]||{}),category:c}}))){toast(`Đã đổi ${ids.length} sản phẩm sang ${c}`);selP.clear();render()}}
+ else if(d.ptitle!==undefined){setPend(d.ptitle,'title',t.value.trim());render()}
+ else if(t.id==='brandQ'){brandQ=t.value;limitP=60;render()}
+ else if(d.ostatus){await setStatus(d.ostatus,t.value)}
+ else if(d.ckg!==undefined||d.croute!==undefined){const o=orders.find(x=>x.id===openId),c={...(o.cost||{})};if(d.ckg!==undefined)c.kg=Math.max(.05,+t.value||estKg(o));else c.route=t.value;const r=await api('/api/order-update',{id:o.id,patch:{cost:c}});if(r.ok){Object.assign(o,r.j.order);redraw()}}
+ else if(d.iff!==undefined){const o=orders.find(x=>x.id===openId),ff=o.items.map((i,k)=>k===+d.iff?t.value:(i.ff||'pending'));const r=await api('/api/order-update',{id:o.id,patch:{items_ff:ff}});if(r.ok){Object.assign(o,r.j.order);redraw()}}
+ else if(d.onote){const o=orders.find(x=>x.id===d.onote);const r=await api('/api/order-update',{id:o.id,patch:{admin_note:t.value}});if(r.ok){o.admin_note=t.value;renderBoard();toast('Đã lưu ghi chú')}}
+ else if(d.cok!==undefined&&composing){composing.items[+d.cok].ok=t.checked;redraw()}
+ else if(d.cprice!==undefined&&composing){composing.items[+d.cprice].price=Math.max(0,Math.round(+t.value||0));redraw()}
+ else if(d.ceta!==undefined&&composing){composing.eta=t.value;redraw()}
+ else if(d.cdead!==undefined&&composing){composing.deadline=t.value;redraw()}
+ else if(d.kw!==undefined){if(t.value)pendKw[d.kw]=t.value;else delete pendKw[d.kw];render()}
+ else if(t.id==='catFilter'){catFilter=t.value;limitP=60;render()}
+ else if(d.ver){const[id,k]=d.ver.split(':'),r=rec(id);r.ver[k]=t.checked?1:0;D.badm[id]=r;await saveFile('brands_admin.json',D.badm);render()}
+ else if(d.tr){const r=rec(d.tr);r.translate=t.checked;D.badm[d.tr]=r;await saveFile('brands_admin.json',D.badm)}
+ else if(d.bname!==undefined){const l=brandsCfg.map((c,k)=>k===+d.bname?{...c,name:t.value.trim()||c.name}:c);if(await saveBrands(l))toast('Đã lưu tên. Tên mới hiện sau lần đồng bộ tới.')}
+ else if(d.bplat!==undefined){const l=brandsCfg.map((c,k)=>k===+d.bplat?{...c,platform:t.value}:c);if(await saveBrands(l))toast('Đã lưu')}
+ else if(d.ig){const r=rec(d.ig);r.instagram=t.value.trim().replace(/^@/,'');D.badm[d.ig]=r;await saveFile('brands_admin.json',D.badm)}
+ else if(d.clipimg!==undefined&&t.files[0]){const p=await upload(t.files[0]);if(p){const cl=D.clips.map((x,i)=>i===+d.clipimg?{...x,thumb:p}:x);if(await saveFile('clips.json',cl)){D.clips=cl;render()}}}
+ else if(t.id==='coverFile'&&t.files[0]){syncForm();const p=await upload(t.files[0]);if(p){editing.cover=p;render()}}
+ else if(t.id==='imgFile'&&t.files[0]){const p=await upload(t.files[0]);if(p){insert('\n\n![','](' + p + ')\n\n','Chú thích ảnh')}t.value=''}
+});
+document.addEventListener('input',e=>{const T=e.target,dd=T.dataset;
+ if(draftC){if(dd.cbar!==undefined){draftC.bar=T.value.split('\n').map(x=>x.trim()).filter(Boolean);return}if(dd.clead!==undefined){draftC.lead=T.value;return}if(dd.cabout!==undefined){draftC.about=T.value;return}
+  if(dd.cstep){const[i,k]=dd.cstep.split(':');draftC.steps[+i][+k]=T.value;return}if(dd.cfaq){const[i,k]=dd.cfaq.split(':');draftC.faq[+i][+k]=T.value;return}}
+if(e.target.id==='cBody'&&composing){composing.edited=e.target.value;return}
+ if(e.target.id==='catQ'){catQ=e.target.value.trim().toLowerCase();limitP=60;const pos=e.target.selectionStart;render();const n=$('catQ');n.focus();n.setSelectionRange(pos,pos)}
+ else if(e.target.id==='body'&&editing)editing.body=e.target.value});
+document.addEventListener('submit',async e=>{e.preventDefault();const f=e.target;
+ if(f.id==='loginForm'){pw=f.pw.value;const r=await api('/api/login',{});if(r.ok){try{sessionStorage.setItem('cv_pw',pw)}catch(x){}await loadNotes();await loadWarns();await loadPay();await loadRemote();await loadOrders();render();pullOnline(true)}else{pw='';$('loginMsg').textContent=r.j.error||'Không đăng nhập được'}}
+ if(f.id==='costForm'){const c={...(D.set.cost||{})};['vn_inbound','packaging','pack_kg','pay_fee_pct','consol_perkg','auspost_over5','extra_aud'].forEach(k=>{const v=parseFloat(f[k].value);if(!isNaN(v))c[k]=v});const s={...D.set,cost:c};if(await saveFile('settings.json',s)){D.set=s;render()}return}
+ if(f.id==='depForm'){const s={...D.set,dep1:f.dep1.value.trim(),dep2:f.dep2.value.trim(),dep3:f.dep3.value.trim()};if(await saveFile('settings.json',s)){D.set=s;render()}return}
+ if(f.id==='addCat'){const key=f.key.value.trim(),en=f.en.value.trim();if(!key||!en)return;if(CATS.includes(key))return toast('Danh mục này đã có');const r=catRows();r.splice(r.length-1,0,{key,en,hidden:false});await saveCats(r);toast('Đã thêm '+en);return}
+ if(f.id==='addBrand'){let u=f.url.value.trim();const dom=u.replace(/^https?:\/\//i,'').split('/')[0].replace(/^www\./,'').toLowerCase();
+  const id=dom.split('.')[0].replace(/[^a-z0-9-]/g,'').slice(0,40);if(!id)return toast('Link không hợp lệ');
+  if(brandsCfg.some(b=>b.domain===dom||b.id===id))return toast('Brand này đã có');
+  const name=f.name.value.trim()||id.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+  if(await saveBrands([...brandsCfg,{id,name,domain:dom,platform:f.plat.value,instagram:f.ig.value.trim().replace(/^@/,'')}])){const r=rec(id);r.instagram=f.ig.value.trim().replace(/^@/,'');D.badm[id]=r;await saveFile('brands_admin.json',D.badm);await syncBrands([id])}return}
+ if(f.id==='remoteForm'){const s={...D.set,site_url:f.site_url.value.trim().replace(/\/+$/,''),order_endpoint:f.order_endpoint.value.trim()};
+  const r=await api('/api/private-save',{file:'remote.json',data:{secret:f.secret.value.trim()}});if(!r.ok)return toast(r.j.error||'Lưu không được');remote={secret:f.secret.value.trim()};
+  if(await saveFile('settings.json',s)){D.set=s;render();toast('Đã lưu. Nhớ chạy publish để web online nhận link mới')}return}
+ if(f.id==='payForm'){const r=await api('/api/private-save',{file:'payment.json',data:{text:f.text.value.trim()}});if(r.ok){payInfo=f.text.value.trim();toast('Đã lưu')}else toast(r.j.error||'Lưu không được');return}
+ if(f.id==='setForm'){const n=(k,dv)=>{const v=parseFloat(f[k].value);return isNaN(v)?dv:v};
+  const s={...D.set,site_name:f.site_name.value.trim()||'VieBuy',typekit:f.typekit.value.trim().toLowerCase(),slogan:f.slogan.value.trim(),contact:f.contact.value.trim(),eta:f.eta.value.trim(),ship_mode:f.ship_mode.value,ship_flat:n('ship_flat',15),ship:n('ship',14),ship_off:Math.min(100,Math.max(0,n('ship_off',0))),free_over:Math.max(0,n('free_over',0)),free_first:f.free_first.checked,gst:f.gst.checked,acc_cap:Math.max(0,n('acc_cap',20)),soldout_days:Math.max(0,Math.round(n('soldout_days',60))),rate:n('rate',18400),fee:n('fee',10),deposit:Math.min(100,Math.max(0,n('deposit',70))),stale_hours:Math.max(1,n('stale_hours',6))};
+  if(await saveFile('settings.json',s)){D.set=s;render()}}
+ if(f.id==='clipForm'){const b=$('clipBtn');b.disabled=true;b.textContent='Đang lấy thông tin clip…';
+  const r=await api('/api/clip',{url:f.url.value.trim()});b.disabled=false;b.textContent='Lấy thumbnail & thêm';
+  if(!r.ok)return toast(r.j.error||'Không thêm được');
+  const c={...r.j,brand:f.brand.value,country:f.country.value.trim(),cap:f.cap.value.trim(),added:new Date().toISOString()};
+  if(!c.thumb)c.thumb=await browserThumb(c.url);
+  const cl=[c,...D.clips.filter(x=>x.id!==c.id)];if(await saveFile('clips.json',cl)){D.clips=cl;render();toast(c.thumb?'Đã thêm clip':'Đã thêm. Chưa lấy được ảnh: bấm "Tự tải ảnh lên" ở clip bên dưới')}}
+ if(f.id==='artForm'){syncForm();const a=editing;if(!a.title.trim())return toast('Cần tiêu đề');
+  let s=a.slug||slug(a.title);while(D.articles.some(x=>x.slug===s&&x.id!==a.id))s+='-2';a.slug=s;
+  const list=[a,...D.articles.filter(x=>x.id!==a.id)];if(await saveFile('articles.json',list)){D.articles=list;toast(a.status==='published'?'Đã lưu và đăng':'Đã lưu bản nháp')}}
+});
+async function loadRemote(){const q=await api('/api/private?file=remote.json',null,'GET');remote=q.ok?q.j:{}}
+async function pullOnline(quiet){if(!D.set.site_url&&!D.set.order_endpoint){if(!quiet)toast('Chưa cài web online (Cài đặt → Online)');return}
+ const r=await api('/api/pull',{});if(!r.ok)return;const j=r.j;await loadOrders();if(j.data){await CV.load('/');await loadWarns()}
+ const m=[j.orders?j.orders+' đơn mới':'',j.notify?j.notify+' đăng ký báo hàng':'',j.data?'dữ liệu sản phẩm mới':''].filter(Boolean).join(', ');
+ if(m||!quiet)toast(m?'Đã lấy: '+m:(j.msgs[0]||'Không có gì mới'));if(j.msgs.length&&m)console.warn(j.msgs);render()}
+async function loadPay(){const q=await api('/api/private?file=payment.json',null,'GET');payInfo=q.ok?(q.j.text||''):''}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&openId){openId=null;composing=null;redraw()}});
+document.addEventListener('dragstart',e=>{const c=e.target.closest?.('[data-drag]');if(!c)return;e.dataTransfer.setData('text/plain',c.dataset.drag);e.dataTransfer.effectAllowed='move'});
+document.addEventListener('dragover',e=>{const col=e.target.closest?.('[data-drop]');if(!col)return;e.preventDefault();document.querySelectorAll('.kcol.over').forEach(x=>x!==col&&x.classList.remove('over'));col.classList.add('over')});
+document.addEventListener('dragleave',e=>{const col=e.target.closest?.('[data-drop]');if(col&&!col.contains(e.relatedTarget))col.classList.remove('over')});
+document.addEventListener('drop',async e=>{const col=e.target.closest?.('[data-drop]');if(!col)return;e.preventDefault();col.classList.remove('over');const id=e.dataTransfer.getData('text/plain'),o=orders.find(x=>x.id===id),C=COLS.find(c=>c.k===col.dataset.drop);if(!o||!C||C.st.includes(o.status||'new'))return;await setStatus(id,C.k==='c1'&&!o.confirm?'new':C.to)});
+CV.load('/').then(async()=>{if(pw){await loadNotes();await loadWarns();await loadPay();await loadRemote();await loadOrders()}render();if(pw)pullOnline(true)});
+}
+</script>
+</body>
+</html>

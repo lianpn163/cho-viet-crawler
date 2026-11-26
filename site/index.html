@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VieBuy – Exploring local brands from Vietnam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+/* Trắng sạch, chữ xanh dương đậm. Bố cục tham khảo RVB: thanh thông tin mỏng, logo giữa, tiêu đề lớn, hàng brand, hàng danh mục. */
+:root{--sans:"Be Vietnam Pro",system-ui,sans-serif;--display:"Be Vietnam Pro",system-ui,sans-serif;--script:"Be Vietnam Pro",system-ui,sans-serif;color-scheme:light;--bg:#fff;--ink:#10142e;--blue:#00007F;--deep:#00005c;--mute:#6b6f85;--line:#e6e7ef;--soft:#f5f6fb;--tint:#ececfa;--yel:#ffd34d;--ok:#0f7a4a;--warn:#a35a00;--bad:#c42b1c;--card:#fff;--red:#00007F;--ind:#00007F;--serif:"Be Vietnam Pro",system-ui,sans-serif}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:#fff;color:var(--ink);font:15px/1.5 var(--sans);overflow-x:clip}
+html.hal{--sans:"halyard-text","Be Vietnam Pro",system-ui,sans-serif;--display:"halyard-display","halyard-text","Be Vietnam Pro",sans-serif}
+h1,h2,h3,.logo b,.ph1 h1,.jhead h2,.art h2,.feat h3,.jcard h3,.proc h2{font-family:var(--display)}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}
+a{color:var(--blue)}:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.wrap{max-width:1320px;margin:0 auto;padding:0 max(4vw,16px)}
+.cap{text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:600}
+/* thanh thông tin */
+.bar{background:var(--blue);color:#fff}
+.bar .wrap{display:flex;justify-content:center;gap:clamp(16px,4vw,56px);min-height:38px;align-items:center;flex-wrap:wrap;padding-block:8px}
+.bar span{white-space:nowrap}
+@media(max-width:720px){.bar .wrap{flex-wrap:nowrap;justify-content:center;position:relative;overflow:hidden}.bar span{display:none}.bar span.on{display:block}}
+/* header */
+.hd{border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:15}
+.hd .wrap{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;min-height:72px;gap:12px}
+.nav{display:flex;gap:clamp(14px,2.4vw,32px)}
+.nav a{color:var(--ink);text-decoration:none;padding:6px 0;border-bottom:2px solid transparent}
+.nav a.on{color:var(--blue);border-color:var(--blue)}
+.logo{text-align:center;text-decoration:none;color:var(--blue);line-height:1}
+.logo b{display:block;font-size:clamp(26px,3.4vw,34px);font-weight:800;letter-spacing:-.04em}
+.logo i{display:block;font-style:italic;font-weight:500;font-size:16px;line-height:1.2;color:var(--blue);margin-top:4px}
+.right{display:flex;justify-content:flex-end;align-items:center;gap:clamp(10px,2vw,24px)}
+.cur{border:0;background:transparent;color:var(--ink);padding:6px 2px;min-height:40px}
+.bagbtn{border:0;background:transparent;color:var(--ink);min-height:40px;padding:0}
+.bagbtn b{color:var(--blue)}
+@media(max-width:720px){.hd .wrap{grid-template-columns:auto 1fr auto;min-height:60px}.logo{text-align:left;order:-1}.logo i{display:none}.nav{grid-column:1/-1;order:3;padding-bottom:8px;justify-content:center}}
+/* tiêu đề trang */
+.ph1{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;padding:clamp(28px,5vw,64px) 0 clamp(18px,3vw,28px)}
+.ph1 h1{font-size:clamp(40px,7.5vw,92px);line-height:.9;letter-spacing:-.045em;font-weight:800;margin:0;color:var(--blue);text-transform:uppercase;text-wrap:balance}
+.ph1 .n{color:var(--mute);margin-top:12px;display:block}
+.howlink{border:0;background:none;color:var(--blue);padding:8px 0;display:inline-flex;gap:8px;align-items:center}
+.howlink svg{width:14px;height:14px;transition:transform .2s}.howlink:hover svg{transform:translateY(3px)}
+.tabs{display:flex;gap:clamp(16px,2.6vw,34px);overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line)}
+.tabs button{flex:none;border:0;background:none;color:var(--mute);text-transform:inherit;letter-spacing:inherit;font-weight:inherit;padding:12px 0;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--blue);border-color:var(--blue)}
+.tabs button small{font-weight:400;opacity:.7;margin-left:4px}
+.tabs.sub{border:0;margin-top:4px}
+.tabs.sub button{font-weight:500;letter-spacing:.1em}
+.tools{display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:flex-end;align-items:center;padding:14px 0 6px;font-size:13px}
+.tools label{display:flex;align-items:center;gap:6px;color:var(--mute)}
+.tools select{border:1px solid var(--line);border-radius:0;background:#fff;min-height:36px;padding:0 8px;color:var(--ink)}
+.tools input[type=search]{border:1px solid var(--line);min-height:36px;padding:0 10px;width:min(240px,100%)}
+.tools .sp{margin-right:auto}
+@media(max-width:700px){.tools{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tools .sp{grid-column:1/-1;width:100%}.tools label{justify-content:space-between}.tools label select{flex:1}.tools label:has(#instock){grid-column:1/-1;justify-content:flex-start}}
+/* lưới */
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(28px,3vw,44px) clamp(12px,2vw,28px);padding:18px 0}
+@media(max-width:1000px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.card{display:flex;flex-direction:column;text-align:center}
+.ph{position:relative;aspect-ratio:4/5;background:#f6f6f7;display:block;overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s}
+.ph:hover img{transform:scale(1.03)}
+.body{padding:14px 2px 0;display:flex;flex-direction:column;gap:6px;flex:1;align-items:center}
+.bt{border:0;background:none;padding:0;color:var(--mute);font-size:11px}
+.body h3{font-size:13px;line-height:1.35;margin:0;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--ink)}
+.price{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:14px;letter-spacing:.03em}
+.price s{color:#9aa0ad}.price b{font-weight:600}.price b.sale{color:var(--blue)}
+.off{background:var(--blue);color:#fff;font-size:11px;font-weight:700;padding:1px 6px;letter-spacing:.04em}
+.meta{font-size:12px}.in{color:var(--ok)}.wa{color:var(--warn)}.outc{color:var(--mute)}
+.note2{font-size:11px;color:var(--mute)}
+.opts{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:4px}
+.opt{min-height:32px;border:1px solid var(--line);background:#fff;padding:0 10px;font-size:12px;letter-spacing:.04em}
+.opt small{color:var(--mute)}.opt:disabled{color:#b8bcc6;text-decoration:line-through;cursor:not-allowed}
+.opt.on{background:var(--tint);border-color:var(--blue);color:var(--blue)}
+.opt.done{background:var(--blue);color:#fff;font-weight:700;border-color:var(--blue)}.opt.done small{color:#fff}
+.subsel{min-height:36px;border:1px solid var(--blue);background:#fff;padding:0 8px;font-size:13px;width:100%;max-width:220px}
+.add{width:100%;min-height:42px;border:1px solid var(--blue);background:#fff;color:var(--blue);font-weight:700;margin-top:6px;text-transform:uppercase;letter-spacing:.12em;font-size:12px;transition:background .15s,color .15s}
+.add:hover:not(:disabled){background:var(--blue);color:#fff}
+.add:disabled{border-color:var(--line);color:#9aa0ad;cursor:not-allowed}
+.add.alt{border-color:var(--ink);color:var(--ink)}
+.lnk{border:0;background:none;padding:0;font-size:11px;color:var(--blue);text-decoration:underline}
+.go{font-size:11px;color:var(--mute);text-decoration:underline}
+.more{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 0 56px}
+.more button{min-height:48px;padding:0 40px;border:1px solid var(--blue);background:#fff;color:var(--blue)}
+.more button:hover{background:var(--blue);color:#fff}
+.more span{font-size:12px;color:var(--mute)}
+.empty{color:var(--mute);text-align:center;padding:48px 12px;border:1px dashed var(--line);grid-column:1/-1}
+/* drawer & modal */
+.veil{position:fixed;inset:0;background:#0f1b3d66;display:none;z-index:20}.veil.on{display:block}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(460px,100%);background:#fff;z-index:21;transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column}
+.drawer.on{transform:none}
+.dh{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}.dh h2{margin:0;font-size:15px;text-transform:uppercase;letter-spacing:.12em;color:var(--blue)}
+.x{width:40px;height:40px;border:0;background:none;font-size:24px}
+.db{padding:16px 20px;overflow-y:auto;flex:1}.df{padding:16px 20px;border-top:1px solid var(--line);background:var(--soft)}
+.item{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.item img{width:56px;height:70px;object-fit:cover;background:var(--soft)}
+.item small{display:block;color:var(--mute);font-size:12px}
+.flag{display:block;color:var(--bad);font-size:12px;font-weight:600}
+.qty{display:flex;align-items:center;gap:4px}.qty button{width:32px;height:32px;border:1px solid var(--line);background:#fff}
+.grp{font-size:11px;font-weight:700;color:var(--mute);margin:14px 0 0;text-transform:uppercase;letter-spacing:.14em}
+table.sum{width:100%;border-collapse:collapse;font-size:14px}.sum td{padding:4px 0}.sum td:last-child{text-align:right;white-space:nowrap}
+.sum tr.tot td{border-top:1px solid var(--ink);font-weight:800;font-size:17px;padding-top:8px}
+.note{font-size:12px;color:var(--mute);margin:8px 0 0}
+.big{width:100%;min-height:50px;border:0;background:var(--blue);color:#fff;font-weight:700;font-size:13px;margin-top:10px;text-transform:uppercase;letter-spacing:.12em}.big:disabled{opacity:.5}
+.btn{min-height:42px;border:1px solid var(--blue);background:var(--blue);color:#fff;font-weight:600;padding:0 14px}.btn.alt{background:#fff;color:var(--blue)}
+.f{display:grid;gap:10px}.f label{display:grid;gap:4px;font-size:13px;font-weight:600}
+.f input,.f select,.f textarea{min-height:44px;border:1px solid var(--line);padding:0 12px;background:#fff;font-size:16px;width:100%}
+.ck{display:flex!important;gap:10px;align-items:flex-start;font-size:13px;font-weight:500!important}.ck input{width:18px!important;height:18px;min-height:0!important;flex:none;margin-top:2px}
+.dep{background:var(--tint);padding:10px 12px;margin-top:10px;font-size:13px}.dep b{font-size:15px;color:var(--blue)}
+.nexts{list-style:none;padding:0;margin:12px 0;display:grid;gap:10px;counter-reset:n}
+.nexts li{display:grid;grid-template-columns:28px 1fr;gap:10px;font-size:14px}
+.nexts li::before{counter-increment:n;content:counter(n);width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:700;font-size:12px}
+.bhero{padding:18px;color:#fff;margin-bottom:14px;background:var(--blue)}.bhero h3{font-size:28px;margin:2px 0;letter-spacing:-.02em}
+.bhero .lk{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.bhero .lk a{display:inline-flex;align-items:center;min-height:40px;background:#fff;color:var(--blue);padding:0 14px;font-weight:600;text-decoration:none;font-size:13px}
+.trust{list-style:none;padding:0;margin:0 0 14px;display:grid;gap:6px;font-size:14px}
+.trust li::before{content:"✓ ";color:var(--blue);font-weight:800}.trust li.no::before{content:"! ";color:var(--warn)}
+.modal{position:fixed;inset:0;z-index:40;background:#0f1b3dcc;display:none;place-items:center;padding:16px}.modal.on{display:grid}
+.mbox{width:min(380px,100%);display:grid;gap:10px}
+.mbox iframe{width:100%;aspect-ratio:9/16;max-height:78vh;border:0;background:#000}
+.mbox .sheet{background:#fff;color:var(--ink);padding:20px}.mbox .sheet h3{font-size:18px;margin:0 0 4px;color:var(--blue)}
+.mrow{display:flex;gap:8px;flex-wrap:wrap}.mrow a,.mrow button{flex:1;min-height:44px;border:0;background:#fff;color:var(--blue);font-weight:600;display:grid;place-items:center;text-decoration:none}
+/* moodboard */
+h2{font-size:22px;margin:0 0 12px}h3{margin:0}
+.lead{color:var(--mute);margin:-4px 0 18px;max-width:70ch}
+.tags{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:18px}
+.tags a{flex:none;padding:8px 14px;border:1px solid var(--line);text-decoration:none;color:var(--ink);font-size:13px}
+.clips{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:16px;padding-bottom:48px}
+.clip{display:flex;flex-direction:column}
+.vid{aspect-ratio:9/14;position:relative;border:0;padding:0;display:block;width:100%;background:linear-gradient(160deg,#2a3c78,#0f1b3d);color:#fff}
+.vid img{width:100%;height:100%;object-fit:cover;display:block}
+.vid .play{position:absolute;inset:0;margin:auto;width:52px;height:52px;border-radius:50%;background:#0007;display:grid;place-items:center;font-size:20px}
+.vid .who{position:absolute;left:10px;right:10px;bottom:10px;font-weight:600;font-size:13px;text-align:left;text-shadow:0 1px 4px #000}
+.clip .cb{padding:8px 0;display:grid;gap:6px;font-size:13px}
+/* journal */
+.jhead{padding:clamp(28px,5vw,64px) 0 clamp(18px,3vw,32px);border-bottom:1px solid var(--ink);margin-bottom:clamp(20px,4vw,40px);display:flex;flex-wrap:wrap;gap:12px 32px;align-items:flex-end;justify-content:space-between}
+.jhead h2{font-size:clamp(48px,11vw,128px);line-height:.85;letter-spacing:-.05em;margin:0;font-weight:800;color:var(--blue)}
+.jhead p{font-family:var(--serif);font-style:italic;font-size:clamp(18px,2.4vw,24px);margin:0;max-width:30ch;line-height:1.3}
+.jtags{display:flex;gap:8px;overflow-x:auto;margin-bottom:24px}
+.jtag{flex:none;min-height:36px;padding:0 14px;border:1px solid var(--ink);background:transparent;font-size:13px;font-weight:600}.jtag.on{background:var(--ink);color:#fff}
+.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:clamp(16px,3vw,40px);align-items:center;margin-bottom:clamp(28px,5vw,56px);text-decoration:none;color:inherit}
+.cover{aspect-ratio:4/5;background:var(--soft);overflow:hidden}.cover img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s}a:hover .cover img{transform:scale(1.03)}
+.kick{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
+.feat h3{font-size:clamp(30px,4.6vw,52px);line-height:1.02;letter-spacing:-.025em;margin:8px 0 12px;font-weight:800;text-wrap:balance}
+.dek{font-family:var(--serif);font-style:italic;font-size:19px;line-height:1.4;margin:0 0 12px}
+.byl{font-size:13px;color:var(--mute)}
+.jgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:clamp(20px,3vw,36px);padding-bottom:48px}
+.jcard{text-decoration:none;color:inherit;display:grid;gap:8px}.jcard .cover{aspect-ratio:3/4}
+.jcard h3{font-size:22px;line-height:1.1;letter-spacing:-.015em;font-weight:800}.jcard .dek{font-size:16px;margin:0}
+.art{max-width:1100px;margin:0 auto;padding:clamp(24px,4vw,48px) 0}
+.art .back{display:inline-block;margin-bottom:18px;font-size:13px;font-weight:600;color:var(--ink)}
+.art h2{font-size:clamp(36px,6.5vw,76px);line-height:.98;letter-spacing:-.035em;margin:10px 0 16px;font-weight:800;max-width:16ch;color:var(--blue)}
+.art .dek{font-size:clamp(20px,2.6vw,26px);max-width:34ch}
+.art .hero{aspect-ratio:16/9;margin:24px 0 32px;overflow:hidden;background:var(--soft)}.art .hero img{width:100%;height:100%;object-fit:cover;display:block}
+.prose{max-width:680px;margin:0 auto;font-size:18px;line-height:1.75}
+.prose h3{font-size:28px;line-height:1.15;margin:40px 0 10px;font-weight:800}.prose h4{font-size:20px;margin:28px 0 6px}
+.prose blockquote{font-family:var(--serif);font-style:italic;font-size:clamp(24px,3.4vw,32px);line-height:1.3;margin:36px 0;padding:0;border:0;color:var(--blue)}
+.prose figure{margin:32px 0}.prose figure img{width:100%;display:block}.prose figcaption{font-size:13px;color:var(--mute);margin-top:8px}
+.inart{max-width:680px;margin:40px auto 0;padding-top:20px;border-top:1px solid var(--line)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{min-height:40px;border:1px solid var(--blue);background:#fff;color:var(--blue);padding:0 14px;font-weight:600;font-size:13px}
+/* footer: quy trình + FAQ */
+footer{background:var(--soft);margin-top:32px;scroll-margin-top:80px}
+.proc{padding:clamp(36px,5vw,64px) 0 clamp(24px,3vw,40px);border-bottom:1px solid var(--line)}
+.proc h2{font-size:clamp(26px,3.4vw,38px);letter-spacing:-.03em;color:var(--blue);margin:0 0 6px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:24px;margin-top:24px;counter-reset:s;list-style:none;padding:0}
+.steps li{display:grid;gap:6px;counter-increment:s;align-content:start}
+.steps li::before{content:counter(s);width:36px;height:36px;border-radius:50%;border:1.5px solid var(--blue);color:var(--blue);display:grid;place-items:center;font-weight:800}
+.steps b{font-size:16px}.steps span{color:var(--mute);font-size:14px;line-height:1.5}
+.foot{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:24px 64px;padding:clamp(28px,4vw,48px) 0}
+.foot h3{font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:var(--blue);margin-bottom:10px}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{cursor:pointer;font-weight:600;min-height:46px;display:flex;align-items:center;font-size:14px}
+.faq p{margin:0 0 14px;color:var(--mute);font-size:14px;max-width:70ch}
+.copy{border-top:1px solid var(--line);padding:16px 0 24px;font-size:12px;color:var(--mute)}
+.view{display:none}.view.on{display:block}
+.toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,90px);background:var(--ink);color:#fff;padding:10px 16px;z-index:50;transition:transform .2s;font-size:14px;max-width:90vw}
+.toast.on{transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="bar cap" id="bar"></div>
+<header class="hd"><div class="wrap">
+ <nav class="nav cap" id="nav"><a href="#shop" data-v="shop">Shop</a><a href="#moodboard" data-v="moodboard">Moodboard</a><a href="#journal" data-v="journal">Journal</a></nav>
+ <a class="logo" href="#shop"><b id="siteName">VieBuy</b><i id="slogan"></i></a>
+ <div class="right cap"><select class="cur cap" id="cur" aria-label="Currency"><option value="AUD">AUD</option><option value="VND">VND</option></select><button class="bagbtn cap" id="openCart">Bag [<b id="cc">0</b>]</button></div>
+</div></header>
+
+<main><div class="wrap">
+ <section class="view" id="v-shop">
+  <div class="ph1"><div><h1 id="pageTitle">All items</h1><span class="n cap" id="count"></span></div>
+   <button class="howlink cap" id="howBtn">How we process your order <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1v11M2 7.5 7 12.5 12 7.5" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button></div>
+  <div class="tabs cap" id="brands" role="tablist" aria-label="Brands"></div>
+  <div class="tabs sub cap" id="cats" role="tablist" aria-label="Categories"></div>
+  <div class="tools">
+   <input class="sp" id="q" type="search" placeholder="Search" aria-label="Search products">
+   <label>Colour <select id="col" aria-label="Colour"></select></label>
+   <label><input type="checkbox" id="instock"> In stock only</label>
+   <label>Sort <select id="sort" aria-label="Sort"><option value="rel">Featured</option><option value="new">Newest</option><option value="asc">Price: low to high</option><option value="desc">Price: high to low</option></select></label>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="more" id="more"></div>
+ </section>
+
+ <section class="view" id="v-moodboard" style="padding-top:clamp(28px,5vw,56px)">
+  <h2>Moodboard</h2>
+  <p class="lead">How people around the world wear Vietnamese labels. Every clip links to a brand you can shop here.</p>
+  <div class="tags" id="tags"></div>
+  <div class="clips" id="clips"></div>
+ </section>
+
+ <section class="view" id="v-journal"><div id="jBox"></div></section>
+</div></main>
+
+<footer id="process"><div class="wrap">
+ <div class="proc"><h2>How we process your order</h2><p style="margin:0;color:var(--mute)" id="procLead"></p><ol class="steps" id="steps"></ol></div>
+ <div class="foot">
+  <div><h3>FAQ</h3><div class="faq" id="faq"></div></div>
+  <div><h3 id="fName">VieBuy</h3><p id="about" style="margin:0 0 10px;color:var(--mute);font-size:14px"></p><p id="contact" style="margin:0;font-weight:600;font-size:14px"></p></div>
+ </div>
+ <div class="copy" id="copy"></div>
+</div></footer>
+
+<div class="toast" id="toast" role="status"></div>
+<div class="veil" id="veil"></div>
+<aside class="drawer" id="cart" aria-label="Shopping bag"><div class="dh"><h2 id="cartTitle">Your bag</h2><button class="x" data-close aria-label="Close">×</button></div><div class="db" id="cartBody"></div><div class="df" id="cartFoot"></div></aside>
+<aside class="drawer" id="brandD" aria-label="Brand details"><div class="dh"><h2>Brand</h2><button class="x" data-close aria-label="Close">×</button></div><div class="db" id="brandBody"></div></aside>
+<div class="modal" id="modal"><div class="mbox" id="mbox"></div></div>
+
+<script src="common.js"></script>
+<script>
+{
+const {SKIP,sleeve,L,esc,CATS,WEIGHT,COLOURS,D,ago,hue,st,rec,isLive,stale,catOf,link,vopts,plain,rest,colours,readMin,md,safeUrl,quote,promos}=CV;
+L.lang='en';
+const $=id=>document.getElementById(id);
+const CAT_EN={'Áo thun & polo':'Tees & polos','Sơ mi':'Shirts','Áo len & hoodie':'Sweaters & hoodies','Áo khoác':'Jackets','Quần':'Pants & shorts','Mũ':'Hats','Túi':'Bags','Phụ kiện':'Accessories','Váy & đầm':'Skirts & dresses','Khác':'Other'};
+const COL_EN={'Đen':'Black','Trắng':'White','Xám':'Grey','Be & kem':'Beige','Nâu':'Brown','Đỏ':'Red','Hồng':'Pink','Cam':'Orange','Vàng':'Yellow','Xanh lá':'Green','Xanh dương':'Blue','Tím':'Purple','Nhiều màu':'Multi'};
+const catEN=c=>CV.catEN(c);
+const VN_PREFIX=/^(áo quần|áo thun|áo sơ mi(?: tay (?:dài|ngắn))?|áo khoác|áo polo|áo len|áo nỉ|áo hoodie|áo|quần short|quần jean|quần dài|quần|vớ|tất|túi|balo|ba lô|mũ|nón|giày|dép|váy|đầm)\s+/i;
+/* Dịch các từ tiếng Việt hay gặp trong tên sản phẩm / màu / size của brand sang tiếng Anh */
+const VN_EN=[['áo sơ mi tay dài','long sleeve shirt'],['áo sơ mi tay ngắn','short sleeve shirt'],['áo thun tay dài','long sleeve tee'],['áo thun','t-shirt'],['áo sơ mi','shirt'],['áo khoác','jacket'],['áo polo','polo'],['áo len','sweater'],['áo nỉ','sweatshirt'],['áo ba lỗ','tank top'],['áo hoodie','hoodie'],['quần short','shorts'],['quần đùi','shorts'],['quần jean','jeans'],['quần jeans','jeans'],['quần dài','pants'],['quần','pants'],['chân váy','skirt'],['váy','skirt'],['đầm','dress'],['ba lô','backpack'],['balo','backpack'],['túi đeo chéo','crossbody bag'],['túi','bag'],['ví','wallet'],['mũ','cap'],['nón','cap'],['tất','socks'],['vớ','socks'],['giày','shoes'],['dép','sandals'],['thắt lưng','belt'],['dây chuyền','necklace'],['vòng tay','bracelet'],['nhẫn','ring'],['móc khoá','keychain'],['tay dài','long sleeve'],['tay ngắn','short sleeve'],
+ ['xanh dương','blue'],['xanh biển','blue'],['xanh navy','navy'],['xanh lá','green'],['xanh rêu','olive'],['xanh ngọc','teal'],['xanh','blue'],['đen','black'],['trắng','white'],['xám','grey'],['ghi','grey'],['đỏ','red'],['đô','burgundy'],['hồng','pink'],['nâu','brown'],['kem','cream'],['be','beige'],['vàng','yellow'],['cam','orange'],['tím','purple'],['bạc','silver'],
+ ['màu sắc','colour'],['màu','colour'],['kích thước','size'],['kích cỡ','size'],['mặc định','default'],['một size','one size'],['nhiều màu','multi'],['nam','men'],['nữ','women'],['unisex','unisex']];
+const VN_RE=VN_EN.map(([v,e])=>[new RegExp('(?<![\\p{L}\\p{N}])'+v+'(?![\\p{L}\\p{N}])','giu'),e]);
+const hasVN=t=>/[ạảãàáâầấậẩẫăằắặẳẵẹẻẽèéêềếệểễịỉĩìíọỏõòóôồốộổỗơờớợởỡụủũùúưừứựửữỳýỵỷỹđ]/i.test(t);
+const cased=(m,e)=>m===m.toUpperCase()&&/\p{L}/u.test(m)?e.toUpperCase():m[0]===m[0].toUpperCase()?e.replace(/\b\w/g,c=>c.toUpperCase()):e;
+const en=(t,force)=>{if(!t||!(force||hasVN(t)))return t;let r=t;for(const[re,e]of VN_RE)r=r.replace(re,m=>cased(m,e));return r.replace(/\s{2,}/g,' ').trim()};
+const GARMENT=/\b(t-?shirt|tee|shirt|jacket|pants?|shorts|hoodie|polo|sweater|sweatshirt|jeans|denim|skirt|dress|bag|backpack|cap|hat|socks|tank|jersey|cardigan|bomber|blazer|vest|trousers|jogger|wallet|belt)\b/i;
+const T=p=>{if(D.ov[p.id]?.title)return D.ov[p.id].title;const t=p.title,vn=hasVN(t),r=t.replace(VN_PREFIX,'');return en(vn&&GARMENT.test(r)?r:t,vn)};
+const vnd=v=>(v||0).toLocaleString('en-AU')+' ₫';
+const HT=['vietnamfashion','madeinvietnam','vietnamesebrand','localbrandvietnam','saigonstreetwear'];
+let brandF='',colF='',sel={},cart=[],jTag='',cur='AUD',firstClaim=true;
+try{cur=localStorage.getItem('cv_cur')||'AUD'}catch(e){}
+try{cart=JSON.parse(localStorage.getItem('cv_cart')||'[]')}catch(e){}
+const saveCart=()=>{try{localStorage.setItem('cv_cart',JSON.stringify(cart))}catch(e){}};
+let tt;const toast=m=>{const e=$('toast');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2400)};
+const byId=id=>D.byId[id];
+const fA=a=>cur==='VND'?Math.round(a*D.set.rate/1000)*1000>0?(Math.round(a*D.set.rate/1000)*1000).toLocaleString('en-AU')+' ₫':'0 ₫':'A$'+a.toFixed(2);   // tiền gốc AUD
+const fP=v=>cur==='VND'?vnd(v):'A$'+(v/D.set.rate).toFixed(2);                    // tiền gốc VND (giá brand)
+const fP2=v=>cur==='VND'?'≈ A$'+(v/D.set.rate).toFixed(2):vnd(v);                 // dòng phụ
+const IC={cart:'<path d="M5 7h22l-2.5 11H8z" fill="currentColor" opacity=".25"/><path d="M3 4h4l3 15h15M12 26a2 2 0 1 0 0 .1M23 26a2 2 0 1 0 0 .1" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+ mail:'<rect x="4" y="7" width="24" height="18" rx="3" fill="currentColor" opacity=".25"/><path d="M4 9l12 9 12-9" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linejoin="round"/><rect x="4" y="7" width="24" height="18" rx="3" stroke="currentColor" stroke-width="2.2" fill="none"/>',
+ box:'<path d="M16 4l11 6v12l-11 6-11-6V10z" fill="currentColor" opacity=".25"/><path d="M16 4l11 6v12l-11 6-11-6V10zM5 10l11 6 11-6M16 16v12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linejoin="round"/>',
+ home:'<path d="M6 15l10-9 10 9v11H6z" fill="currentColor" opacity=".25"/><path d="M4 16L16 5l12 11M7 14v12h18V14M13 26v-7h6v7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linejoin="round"/>'};
+function renderChrome(){
+ const S=D.set,name=S.site_name||'VieBuy';
+ document.title=`${name} – Exploring local brands from Vietnam`;
+ $('siteName').textContent=name;$('fName').textContent=name;$('slogan').textContent=S.slogan||'';
+ $('cur').value=cur;
+ if(/^[a-z0-9]{5,12}$/.test(S.typekit||'')&&!document.getElementById('tk')){const l=document.createElement('link');l.id='tk';l.rel='stylesheet';l.href=`https://use.typekit.net/${S.typekit}.css`;l.onload=()=>document.documentElement.classList.add('hal');document.head.appendChild(l)}
+ const C=CV.content(),F=CV.fill,bar=S.content?.bar?.length?C.bar:[];
+ if(!bar.length){if(S.eta)bar.push('Get your order in {eta}');if(S.ship_mode==='flat')bar.push('Flat A${ship_flat} shipping Australia-wide');if(S.free_first)bar.push('Free shipping on your first order');if(S.free_over>0)bar.push(`Free shipping over A$${S.free_over}`)}
+ $('bar').innerHTML=`<div class="wrap">${bar.map((t,i)=>`<span class="${i?'':'on'}">${esc(F(t))}</span>`).join('')}</div>`;
+ $('procLead').textContent=F(C.lead);
+ $('steps').innerHTML=C.steps.map(([t,d])=>`<li><b>${esc(F(t))}</b><span>${esc(F(d))}</span></li>`).join('');
+ $('faq').innerHTML=C.faq.map(([q,a])=>`<details><summary>${esc(F(q))}</summary><p>${esc(F(a))}</p></details>`).join('');
+ $('about').textContent=F(C.about);
+ $('contact').innerHTML=S.contact?`<a href="mailto:${esc(S.contact)}">${esc(S.contact)}</a>`:'';
+ $('copy').textContent=`© ${new Date().getFullYear()} ${name} · A$1 ≈ ${D.set.rate.toLocaleString('en-AU')} ₫ (indicative) · updated ${ago(D.gen)}`;
+}
+let barI=0;setInterval(()=>{if(innerWidth>720||matchMedia('(prefers-reduced-motion: reduce)').matches)return;const sp=[...document.querySelectorAll('#bar span')];if(sp.length<2)return;sp.forEach(x=>x.classList.remove('on'));barI=(barI+1)%sp.length;sp[barI].classList.add('on')},3500);
+
+/* ===== CHỢ ===== */
+function interleave(list){const g={};list.forEach(p=>(g[p.brand]=g[p.brand]||[]).push(p));const qs=Object.values(g),out=[];
+ for(let i=0;out.length<list.length;i++)qs.forEach(q=>{if(q[i])out.push(q[i])});return out}
+function score(p,q){const t=T(p).toLowerCase();return t.startsWith(q)?3:new RegExp('(^|\\s)'+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).test(t)?2:1}
+let catF='',slvF='',shown=24;const PAGE=24;
+function renderShop(keep){
+ if(!keep)shown=PAGE;
+ const live=D.status.filter(b=>isLive(b.id)),ids=new Set(live.map(b=>b.id));
+ const all=D.products.filter(p=>ids.has(p.brand)&&p.sellable!==false&&catOf(p)!==SKIP&&!D.ov[p.id]?.hidden&&!CV.catHidden(catOf(p)));
+ $('brands').innerHTML=`<button class="${brandF?'':'on'}" data-bf="">All brands</button>`+live.map(b=>`<button class="${brandF===b.id?'on':''}" data-bf="${esc(b.id)}">${esc(b.name)}</button>`).join('');
+ const scope=all.filter(p=>!brandF||p.brand===brandF);
+ const cats=[...new Set(scope.map(catOf))].sort((a,b)=>CATS.indexOf(a)-CATS.indexOf(b));
+ if(catF&&catF!=='sale'&&!cats.includes(catF))catF='';
+ $('cats').innerHTML=`<button class="${catF?'':'on'}" data-cf="">All items</button>${scope.some(p=>p.compare_at)?`<button class="${catF==='sale'?'on':''}" data-cf="sale">Sale</button>`:''}`+cats.map(c=>`<button class="${catF===c?'on':''}" data-cf="${esc(c)}">${esc(catEN(c))}</button>`).join('')
+  +(catF==='Áo thun & polo'?`<span style="flex:none;width:1px;background:var(--line);margin:10px 0"></span>`+[['','All sleeves'],['short','Short sleeve'],['long','Long sleeve']].map(([v,l])=>`<button class="${slvF===v?'on':''}" data-slv="${v}">${l}</button>`).join(''):'');
+ const cols=COLOURS.filter(([n])=>scope.some(p=>colours(p).includes(n)));
+ if(colF&&!cols.some(([n])=>n===colF))colF='';
+ $('col').innerHTML='<option value="">All</option>'+cols.map(([n])=>`<option value="${esc(n)}"${colF===n?' selected':''}>${esc(COL_EN[n]||n)}</option>`).join('');
+ const q=$('q').value.trim().toLowerCase(),so=$('sort').value,inOnly=$('instock').checked;
+ let list=scope.filter(p=>(!catF||(catF==='sale'?p.compare_at:catOf(p)===catF))&&(catF!=='Áo thun & polo'||!slvF||sleeve(p)===slvF)&&(!colF||colours(p).includes(colF))&&(!inOnly||p.in_stock)&&(!q||(p.title+' '+T(p)+' '+st(p.brand).name+' '+catEN(catOf(p))).toLowerCase().includes(q)));
+ if(so==='new')list.sort((a,b)=>(b.created||'').localeCompare(a.created||''));
+ else if(so==='asc')list.sort((a,b)=>a.price-b.price);
+ else if(so==='desc')list.sort((a,b)=>b.price-a.price);
+ else if(q)list=list.map((p,i)=>[p,score(p,q),i]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]).map(x=>x[0]);
+ else{const pin=p=>D.ov[p.id]?.pin||0,pinned=list.filter(pin).sort((a,b)=>pin(a)-pin(b));list=[...pinned,...interleave(list.filter(p=>!pin(p)).sort((a,b)=>(b.in_stock-a.in_stock)))]}
+ list=[...list.filter(p=>p.in_stock),...list.filter(p=>!p.in_stock)];   // hết hàng luôn xếp cuối, mọi kiểu sắp xếp
+ $('pageTitle').textContent=catF==='sale'?'Sale':catF?(catF==='Áo thun & polo'&&slvF?(slvF==='long'?'Long sleeve tees':'Short sleeve tees'):catEN(catF)):brandF?st(brandF).name:'All items';
+ $('count').textContent=`${list.length} item${list.length===1?'':'s'}`;
+ $('grid').innerHTML=list.length?list.slice(0,shown).map(card).join(''):`<p class="empty">${!live.length?'Brands are coming soon.':'No products match these filters.'}</p>`;
+ const left=list.length-Math.min(shown,list.length);
+ $('more').innerHTML=left>0?`<button class="cap" id="loadMore">Load more</button><span>Showing ${Math.min(shown,list.length)} of ${list.length}</span>`:'';
+}
+function picker(p){
+ if(plain(p))return '';
+ const s=sel[p.id]||{},V=p.variants,lv=Math.max(...V.map(v=>vopts(v).length));
+ if(lv<=1)return `<div class="opts">${V.map((v,i)=>`<button class="opt${s.vi===i?' on done':''}" data-pick="${esc(p.id)}" data-vi="${i}" ${v.available?'':'disabled'}>${esc(en(v.name))}${v.available&&v.qty!=null?` <small>${v.qty}</small>`:''}</button>`).join('')}</div>`;
+ const groups=[...new Set(V.map(v=>vopts(v)[0]))];
+ let h=`<div class="opts">${groups.map(g=>{const any=V.some(v=>vopts(v)[0]===g&&v.available),on=s.g===g,done=on&&s.vi!=null;
+  return `<button class="opt${on?' on':''}${done?' done':''}" data-grp="${esc(p.id)}" data-g="${esc(g)}" ${any?'':'disabled'}>${esc(en(done?g+' / '+rest(V[s.vi]):g))}</button>`}).join('')}</div>`;
+ if(s.g!=null){const nm=p.option_names?.[1]||'size';
+  h+=`<select class="subsel" data-sub="${esc(p.id)}" aria-label="Choose ${esc(nm)}"><option value="">Choose size…</option>${V.map((v,i)=>vopts(v)[0]!==s.g?'':`<option value="${i}" ${v.available?'':'disabled'} ${s.vi===i?'selected':''}>${esc(en(rest(v)))}${v.available?(v.qty!=null?' · '+v.qty+' left':''):' · sold out'}</option>`).join('')}</select>`}
+ return h;
+}
+function card(p){
+ const b=st(p.brand),old=stale(p.brand),d=p.compare_at?Math.round((1-p.price/p.compare_at)*100):0,s=sel[p.id]||{};
+ const vi=plain(p)?0:s.vi,v=p.variants[vi],price=v&&v.price?v.price:p.price;
+ const av=p.variants.filter(x=>x.available),tot=av.reduce((a,x)=>a+(x.qty??0),0),hasQ=av.length&&av.every(x=>x.qty!=null);
+ const meta=old?['wa','Checking stock with the brand']:!p.in_stock?['outc','Sold out']:hasQ&&tot<=3?['wa',`Only ${tot} left`]:null;
+ const ready=!old&&v&&v.available,someOut=p.in_stock&&p.variants.some(x=>!x.available);
+ const btn=!p.in_stock&&!old?`<button class="add alt" data-notify="${esc(p.id)}">Notify me</button>`
+  :`<button class="add" data-add="${esc(p.id)}" ${ready?'':'disabled'}>${old?'Unavailable':!ready?'Select size':'Add to bag'}</button>`;
+ return `<article class="card" data-pid="${esc(p.id)}"><a class="ph" href="${esc(link(p))}" target="_blank" rel="noopener">${p.images[0]?`<img src="${esc(p.images[0])}" alt="${esc(T(p))}" loading="lazy" referrerpolicy="no-referrer">`:''}</a>
+ <div class="body"><button class="bt cap" data-brand="${esc(p.brand)}">${esc(b.name)}</button><h3>${esc(T(p))}</h3>
+ <div class="price">${d?`<s>${fP(p.compare_at)}</s>`:''}<b class="${d?'sale':''}">${fP(price)}</b>${d?`<span class="off">-${d}%</span>`:''}</div>
+ ${meta?`<div class="meta ${meta[0]}">${meta[1]}</div>`:''}${p.in_stock&&p.size_unverified?'<div class="note2">Size availability confirmed by email</div>':''}
+ ${p.in_stock?picker(p):''}${btn}
+ ${someOut&&!old?`<button class="lnk" data-notify="${esc(p.id)}">Size sold out? Notify me</button>`:''}
+ <a class="go" href="${esc(link(p))}" target="_blank" rel="noopener">Size guide on ${esc(b.name)} ↗</a></div></article>`;
+}
+function redrawCard(pid){const el=[...document.querySelectorAll('article[data-pid]')].find(a=>a.dataset.pid===pid);if(el&&byId(pid))el.outerHTML=card(byId(pid))}
+function openBrand(id){
+ const b=st(id),r=rec(id),h=hue(id),lk=(u,t)=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)} ↗</a>`;
+ $('brandBody').innerHTML=`<div class="bhero" style="background:hsl(${h} 45% 32%)"><small>${esc(b.platform||'')}</small><h3>${esc(b.name)}</h3>
+ <div class="lk">${lk('https://'+b.domain,'Website '+b.domain)}${r.instagram?lk('https://instagram.com/'+r.instagram,'Instagram @'+r.instagram):''}</div></div>
+ <ul class="trust"><li${r.ver.web?'':' class="no"'}>Official website: ${esc(b.domain)}</li><li${r.ver.ig?'':' class="no"'}>Official Instagram${r.instagram?' @'+esc(r.instagram):''}, linked to the website</li>
+ <li${r.ver.biz?'':' class="no"'}>Business details checked</li><li${r.verified_at?'':' class="no"'}>${r.verified_at?'Verified on '+new Date(r.verified_at).toLocaleDateString('en-AU'):'Not yet verified'}</li>
+ <li${stale(id)?' class="no"':''}>Prices and stock updated ${ago(b.last_ok)}</li></ul>
+ <button class="btn" data-showbrand="${esc(id)}" style="width:100%">Shop ${esc(b.name)}</button>`;
+ openD('brandD');
+}
+function addToCart(pid){
+ const p=byId(pid),vi=plain(p)?0:sel[pid]?.vi,v=p?.variants[vi];
+ if(!v||!v.available||stale(p.brand))return toast('Please choose an option that’s in stock');
+ const ex=cart.find(i=>i.pid===pid&&i.vi===vi);
+ if(v.qty!=null&&(ex?.q||0)>=v.qty)return toast(`Only ${v.qty} left`);
+ ex?ex.q++:cart.push({pid,vi,q:1,price:v.price||p.price,name:v.name});
+ saveCart();renderCart();toast(`Added: ${T(p)}${plain(p)?'':' · '+en(v.name)}`);
+}
+/* --- báo khi có hàng --- */
+function openNotify(pid){
+ const p=byId(pid),out=p.variants.filter(v=>!v.available);
+ $('mbox').innerHTML=`<div class="sheet"><h3>Notify me when it’s back</h3><p class="note" style="margin:0 0 12px">${esc(T(p))} · ${esc(st(p.brand).name)}</p>
+ <form class="f" id="notifyForm" data-pid="${esc(pid)}">
+ ${out.length>1||p.variants.length>1?`<label>Option you want<select name="variant">${!p.in_stock?'<option value="">Any option</option>':''}${out.map(v=>`<option value="${esc(v.name)}">${esc(en(v.name))}</option>`).join('')}</select></label>`:''}
+ <label>Email<input type="email" name="email" autocomplete="email" placeholder="you@email.com"></label>
+ <label>Mobile (optional)<input type="tel" name="phone" autocomplete="tel" placeholder="04xx xxx xxx"></label>
+ <button class="big">Notify me</button><button type="button" class="btn alt" data-closemodal>Cancel</button>
+ <p class="note">We’ll only use this to tell you when this item is back.</p></form></div>`;
+ $('modal').classList.add('on');
+}
+async function sendNotify(f){
+ const p=byId(f.dataset.pid),email=f.email.value.trim(),phone=f.phone.value.trim();
+ if(!email&&!phone)return toast('Please enter an email or mobile number');
+ let ok=false,err='';try{await CV.send('notify',{pid:p.id,title:T(p),url:p.url,brand:st(p.brand).name,variant:f.variant?.value||'',email,phone});ok=true}catch(e){err=e.message==='send failed'?'':e.message}
+ if(!ok)return toast(err||'Something went wrong, please try again');
+ $('mbox').innerHTML=`<div class="sheet"><h3>You’re on the list</h3><p>We’ll let you know as soon as ${esc(T(p))} is back in stock.</p><button class="big" data-closemodal>Done</button></div>`;
+}
+
+/* ===== GIỎ ===== */
+const vOf=i=>byId(i.pid)?.variants[i.vi];
+function issues(i){const p=byId(i.pid),v=vOf(i),o=[];
+ if(!p||!v||v.name!==i.name||D.ov[p.id]?.hidden||catOf(p)===SKIP||CV.catHidden(catOf(p)))return ['No longer available'];
+ if(!isLive(p.brand))o.push('Brand temporarily unavailable');
+ if(stale(p.brand))o.push('Stock can’t be confirmed right now');
+ else if(!v.available)o.push('This option just sold out');
+ else if(v.qty!=null&&i.q>v.qty)o.push(`Only ${v.qty} left`);
+ if((v.price||p.price)!==i.price)o.push(`Price changed: ${fP(i.price)} → ${fP(v.price||p.price)}`);
+ return o}
+const blocking=i=>issues(i).some(m=>!m.startsWith('Price changed'));
+function totals(){let goods=0,kg=0;
+ cart.forEach(i=>{const p=byId(i.pid),v=vOf(i);if(!p||!v)return;goods+=(v.price||p.price)/D.set.rate*i.q;kg+=(v.grams>0?v.grams/1000:WEIGHT[catOf(p)]||.5)*i.q});
+ return quote(goods,kg,firstClaim)}
+const A=fA;
+function renderCart(){
+ $('cc').textContent=cart.reduce((a,i)=>a+i.q,0);
+ const body=$('cartBody'),foot=$('cartFoot');
+ if(!cart.length){body.innerHTML='<p class="empty">Your bag is empty.</p>';foot.innerHTML='';return}
+ const g={};cart.forEach((i,ix)=>{const b=byId(i.pid)?.brand||'?';(g[b]=g[b]||[]).push([i,ix])});
+ body.innerHTML=Object.entries(g).map(([bid,its])=>`<p class="grp">${esc(st(bid).name)}</p>`+its.map(([i,ix])=>{const p=byId(i.pid);
+  return `<div class="item">${p?.images[0]?`<img src="${esc(p.images[0])}" alt="" referrerpolicy="no-referrer">`:'<img alt="">'}<div><b style="font-size:14px">${esc(p?T(p):'Item removed')}</b><small>${esc(en(i.name))} · ${fP(i.price)}</small>${issues(i).map(m=>`<span class="flag">${esc(m)}</span>`).join('')}</div>
+  <div class="qty"><button data-dq="${ix}" aria-label="Decrease">−</button><span>${i.q}</span><button data-iq="${ix}" aria-label="Increase">+</button></div></div>`}).join('')).join('');
+ const t=totals(),block=cart.some(blocking),pch=cart.some(i=>issues(i).some(m=>m.startsWith('Price changed')));
+ const S=D.set,shipLbl=S.ship_mode==='flat'?`Shipping (flat, Australia-wide)`:`Shipping VN → AU (~${t.kg.toFixed(1)} kg, billed ${t.bill} kg)`;
+ foot.innerHTML=`<table class="sum"><tr><td>Items</td><td>${A(t.goods)}</td></tr>
+ <tr><td>${shipLbl}${t.note?` <small style="color:var(--ok)">(${esc(t.note)})</small>`:''}</td><td>${t.ship<t.base?`<s style="color:var(--mute);font-size:13px">${A(t.base)}</s> `:''}${A(t.ship)}</td></tr>
+ ${t.firstOff?`<tr><td style="color:var(--ok)">First order: free shipping</td><td style="color:var(--ok)">−${A(t.firstOff)}</td></tr>`:''}
+ <tr><td>Service fee ${S.fee}%</td><td>${A(t.fee)}</td></tr>${S.gst?`<tr><td>GST 10%</td><td>${A(t.gst)}</td></tr>`:''}<tr class="tot"><td>Total, delivered</td><td>${A(t.total)}</td></tr></table>
+ ${S.free_first?`<label class="ck" style="margin-top:8px"><input type="checkbox" id="firstChk" ${firstClaim?'checked':''}><span>This is my first order (free shipping, checked against your email)</span></label>`:''}
+ <div class="dep">${[S.dep1,S.dep2,S.dep3].filter(Boolean).map((x,k)=>`<span style="display:block;${k?'font-size:13px;margin-top:4px;':''}${k===2?'color:var(--mute)':''}">${esc(x).replace(/\{pct\}/g,S.deposit).replace(/\{deposit\}/g,`<b>${A(t.deposit)}</b>`).replace(/\{balance\}/g,`<b>${A(t.balance)}</b>`)}</span>`).join('')}</div>
+ <button class="big" id="checkout" ${block?'disabled':''}>${block?'Remove or reduce the flagged items':pch?'Accept new prices & continue':'Request this order'}</button>`;
+}
+async function checkout(){
+ if(cart.some(i=>issues(i).some(m=>m.startsWith('Price changed')))&&!cart.some(blocking)){cart.forEach(i=>{const v=vOf(i);if(v)i.price=v.price||byId(i.pid).price});saveCart();renderCart();return toast('Updated to the latest prices')}
+ $('checkout').disabled=true;$('checkout').textContent='Checking the latest stock & prices…';
+ await CV.load();renderCart();
+ if(cart.some(i=>issues(i).length))return toast('Something changed since you added it. See the items in red');
+ const t=totals();$('cartTitle').textContent='Request your order';
+ $('cartBody').innerHTML=`<p class="note" style="margin:0 0 10px">Stock and prices checked at ${new Date().toLocaleTimeString('en-AU',{hour:'numeric',minute:'2-digit'})}. Estimated total <b style="color:var(--ink)">${A(t.total)}</b>.</p>
+ <form class="f" id="orderForm"><label>Full name<input required name="name" autocomplete="name"></label>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><label>Email<input required type="email" name="email" autocomplete="email"></label><label>Mobile<input type="tel" name="phone" autocomplete="tel" placeholder="04xx xxx xxx"></label></div>
+ <label>Street address<input required name="address" autocomplete="address-line1"></label>
+ <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:10px"><label>Suburb<input required name="suburb" autocomplete="address-level2"></label><label>State<select name="state" required>${['QLD','NSW','VIC','ACT','SA','WA','TAS','NT'].map(x=>`<option>${x}</option>`).join('')}</select></label><label>Postcode<input required name="postcode" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="postal-code"></label></div>
+ <label>Notes (optional)<input name="note" placeholder="e.g. needed before a date"></label>
+ <label class="ck"><input type="checkbox" required><span>I understand this is an order request, not a payment. After the confirmation email, I’ll pay a ${D.set.deposit}% deposit (${A(t.deposit)}) to lock in my order.</span></label>
+ <button class="big">Send order request</button></form>`;
+ $('cartFoot').innerHTML='';
+}
+async function sendOrder(f){
+ const t=totals(),items=cart.map(i=>{const p=byId(i.pid);return {pid:i.pid,title:T(p),title_raw:p.title,variant:en(i.name),q:i.q,price_vnd:i.price,url:p.url,brand:st(p.brand).name,price_check:!!p.price_check}});
+ const body={name:f.name.value,email:f.email.value,phone:f.phone.value,address:`${f.address.value}, ${f.suburb.value} ${f.state.value} ${f.postcode.value}`,note:f.note.value,first_claim:!!(D.set.free_first&&firstClaim),items,totals:Object.fromEntries(Object.entries(t).filter(([k,v])=>typeof v==='number').map(([k,v])=>[k,+v.toFixed(2)])),rate:D.set.rate,deposit_pct:D.set.deposit};
+ let res=null;const btn=f.querySelector('button.big');if(btn){btn.disabled=true;btn.textContent='Sending…'}
+ try{res=await CV.send('order',body)}catch(e){}
+ if(btn){btn.disabled=false;btn.textContent='Send order request'}
+ if(!res)return toast('We couldn’t send your request, please try again');
+ $('cartBody').innerHTML=`<h3 style="font-size:24px;margin:0 0 4px">Request ${esc(res.id)} received</h3><p style="margin:0">Thanks ${esc(f.name.value)}! Here’s what happens next:</p>
+ <ol class="nexts"><li><span>Within 24 hours we email <b>${esc(f.email.value)}</b> to confirm stock, the final price and your delivery date.</span></li><li><span>You pay a ${D.set.deposit}% deposit by bank transfer. We order from the brand straight away.</span></li><li><span>Your items arrive at our hub in Vietnam, get checked, and we send you real photos.</span></li><li><span>You pay the balance, your parcel flies to Australia and comes to your door.</span></li></ol>
+ <p class="note">Can’t see our email? Check your Spam or Promotions folder.</p><button class="big" data-close>Keep browsing</button>`;
+ cart=[];saveCart();$('cc').textContent=0;
+}
+function openD(id){$('veil').classList.add('on');$(id).classList.add('on')}
+function closeD(){$('veil').classList.remove('on');document.querySelectorAll('.drawer').forEach(d=>d.classList.remove('on'));$('cartTitle').textContent='Your bag'}
+
+/* ===== MOODBOARD ===== */
+function renderMood(){
+ $('tags').innerHTML=HT.map(h=>`<a href="https://www.tiktok.com/tag/${h}" target="_blank" rel="noopener">#${h} ↗</a>`).join('');
+ const list=D.clips.filter(c=>!c.brand||isLive(c.brand));
+ $('clips').innerHTML=list.length?list.map(c=>`<div class="clip"><button class="vid" data-play="${esc(c.id)}" aria-label="Watch @${esc(c.handle)}’s clip">${c.thumb?`<img src="${esc(c.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:''}<span class="play">▶</span><span class="who">@${esc(c.handle)}${c.country?' · '+esc(c.country):''}</span></button>
+ <div class="cb">${c.cap?`<span>${esc(c.cap)}</span>`:''}${c.brand&&isLive(c.brand)?`<button class="btn alt" data-showbrand="${esc(c.brand)}">Shop ${esc(st(c.brand).name)}</button>`:''}</div></div>`).join(''):'<p class="empty">Clips coming soon.</p>';
+}
+function play(id){const c=D.clips.find(x=>x.id===id);if(!c)return;
+ $('mbox').innerHTML=`<iframe src="https://www.tiktok.com/embed/v2/${encodeURIComponent(c.id)}" allow="encrypted-media;fullscreen" allowfullscreen title="TikTok clip"></iframe>
+ <div class="mrow"><a href="${esc(c.url)}" target="_blank" rel="noopener">Open in TikTok ↗</a>${c.brand&&isLive(c.brand)?`<button data-showbrand="${esc(c.brand)}">Shop ${esc(st(c.brand).name)}</button>`:''}<button data-closemodal>Close</button></div>`;
+ $('modal').classList.add('on')}
+const closeModal=()=>{$('modal').classList.remove('on');$('mbox').innerHTML=''};
+
+/* ===== JOURNAL ===== */
+const pubs=()=>D.articles.filter(a=>a.status==='published').sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+const dateVN=d=>d?new Date(d).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'}):'';
+const cover=a=>`<div class="cover">${a.cover?`<img src="${esc(safeUrl(a.cover))}" alt="" loading="lazy">`:''}</div>`;
+function renderJournalList(){
+ const all=pubs(),tags=[...new Set(all.map(a=>a.tag).filter(Boolean))],list=all.filter(a=>!jTag||a.tag===jTag);
+ const [f,...rest]=list;
+ $('jBox').innerHTML=`<div class="jhead"><h2>Journal</h2><p>Vietnamese fashion, explained: who’s wearing it, what it’s made of, and why it matters.</p></div>
+ ${tags.length>1?`<div class="jtags"><button class="jtag${jTag?'':' on'}" data-jtag="">All</button>${tags.map(t=>`<button class="jtag${jTag===t?' on':''}" data-jtag="${esc(t)}">${esc(t)}</button>`).join('')}</div>`:''}
+ ${f?`<a class="feat" href="#journal/${esc(f.slug)}">${cover(f)}<div><span class="kick">${esc(f.tag||'Journal')}</span><h3>${esc(f.title)}</h3>${f.dek?`<p class="dek">${esc(f.dek)}</p>`:''}<span class="byl">${dateVN(f.date)} · ${CV.readMin(f.body)} min read</span></div></a>
+ <div class="jgrid">${rest.map(a=>`<a class="jcard" href="#journal/${esc(a.slug)}">${cover(a)}<span class="kick">${esc(a.tag||'Journal')}</span><h3>${esc(a.title)}</h3>${a.dek?`<p class="dek">${esc(a.dek)}</p>`:''}<span class="byl">${dateVN(a.date)} · ${CV.readMin(a.body)} min read</span></a>`).join('')}</div>`
+ :'<p class="empty" style="padding:60px 12px">Our first story is on its way.</p>'}`;
+}
+function renderArticle(slug){
+ const a=pubs().find(x=>x.slug===slug);
+ if(!a){$('jBox').innerHTML='<p class="empty">Story not found. <a href="#journal">Back to Journal</a></p>';return}
+ const brands=(a.brands||[]).filter(isLive);
+ $('jBox').innerHTML=`<article class="art"><a class="back" href="#journal">← Journal</a><br><span class="kick">${esc(a.tag||'Journal')}</span><h2>${esc(a.title)}</h2>${a.dek?`<p class="dek">${esc(a.dek)}</p>`:''}
+ <span class="byl">${dateVN(a.date)} · ${CV.readMin(a.body)} min read</span>
+ ${a.cover?`<div class="hero"><img src="${esc(safeUrl(a.cover))}" alt=""></div>`:'<div style="height:28px"></div>'}
+ <div class="prose">${md(a.body)}</div>
+ ${brands.length?`<div class="inart"><span class="kick">In this story</span><div class="chips" style="margin-top:10px">${brands.map(b=>`<button class="chip" data-showbrand="${esc(b)}">Shop ${esc(st(b).name)} →</button>`).join('')}</div></div>`:''}</article>`;
+}
+
+/* ===== ĐIỀU HƯỚNG ===== */
+function route(){
+ const h=decodeURIComponent(location.hash.slice(1));let v=h.split('/')[0];if(v==='cho')v='shop';if(!['shop','moodboard','journal'].includes(v))v='shop';
+ document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
+ document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));
+ if(v==='journal'){h.startsWith('journal/')?renderArticle(h.slice(8)):renderJournalList();scrollTo(0,0)}
+}
+function renderAll(){renderChrome();renderShop();renderMood();renderCart();route()}
+document.addEventListener('click',e=>{
+ const t=e.target.closest('button');if(!t)return;const d=t.dataset;
+ if(d.close!==undefined)closeD();
+ else if(d.closemodal!==undefined)closeModal();
+ else if(d.bf!==undefined){brandF=d.bf;colF='';catF='';renderShop()}
+ else if(d.cf!==undefined){catF=d.cf;slvF='';renderShop()}
+ else if(d.slv!==undefined){slvF=d.slv;renderShop()}
+ else if(t.id==='loadMore'){shown+=PAGE;renderShop(true)}
+ else if(t.id==='howBtn')$('process').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+ else if(d.brand)openBrand(d.brand);
+ else if(d.showbrand){closeD();closeModal();brandF=d.showbrand;colF='';catF='';location.hash='#shop';renderShop();scrollTo(0,0)}
+ else if(d.grp){const s=sel[d.grp]||{};sel[d.grp]=s.g===d.g?{}:{g:d.g};redrawCard(d.grp)}
+ else if(d.pick){sel[d.pick]={vi:+d.vi};redrawCard(d.pick)}
+ else if(d.add)addToCart(d.add);
+ else if(d.notify)openNotify(d.notify);
+ else if(d.iq){const i=cart[+d.iq],v=vOf(i);if(v&&v.qty!=null&&i.q>=v.qty)return toast(`Only ${v.qty} left`);i.q++;saveCart();renderCart()}
+ else if(d.dq){const ix=+d.dq;cart[ix].q--;if(cart[ix].q<=0)cart.splice(ix,1);saveCart();renderCart()}
+ else if(t.id==='checkout')checkout();
+ else if(d.play)play(d.play);
+ else if(d.jtag!==undefined){jTag=d.jtag;renderJournalList()}
+});
+document.addEventListener('change',e=>{const t=e.target,d=t.dataset;
+ if(t.id==='cur'){cur=t.value;try{localStorage.setItem('cv_cur',cur)}catch(x){}renderShop(true);renderCart();return}
+ if(t.id==='col'){colF=t.value;renderShop();return}
+ if(t.id==='instock'){renderShop();return}
+ if(t.id==='firstChk'){firstClaim=t.checked;renderCart();return}
+ if(d.sub){sel[d.sub]={...sel[d.sub],vi:t.value===''?null:+t.value};redrawCard(d.sub)}});
+document.addEventListener('submit',e=>{e.preventDefault();const f=e.target;if(f.id==='orderForm')sendOrder(f);if(f.id==='notifyForm')sendNotify(f)});
+$('openCart').addEventListener('click',()=>{renderCart();openD('cart')});
+$('veil').addEventListener('click',closeD);
+$('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeD();closeModal()}});
+$('q').addEventListener('input',()=>renderShop());$('sort').addEventListener('change',()=>renderShop());
+window.addEventListener('hashchange',route);
+CV.load().then(renderAll);
+}
+</script>
+</body>
+</html>

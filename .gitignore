@@ -1,0 +1,12 @@
+# Thông tin riêng: mật khẩu admin, đơn hàng, chuyển khoản, mã bí mật – KHÔNG BAO GIỜ đưa lên GitHub
+private/
+# Dữ liệu sản phẩm do GitHub tự crawl, không lưu trong code
+site/data/products.json
+site/data/status.json
+site/data/review.json
+site/data/warnings.json
+__pycache__/
+.pytest_cache/
+*.tmp
+*.zip
+.DS_Store

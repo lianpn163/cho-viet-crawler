@@ -1,0 +1,67 @@
+# Tự cập nhật giá & tồn kho mỗi giờ rồi đăng web lên GitHub Pages (miễn phí).
+# Mỗi lần bạn đẩy code mới (sửa giao diện), web cũng tự đăng lại trong ~1 phút.
+name: Cập nhật & đăng web
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "23 * * * *"        # mỗi tiếng (GitHub có thể chạy trễ vài phút)
+  workflow_dispatch:            # nút "Run workflow" để chạy tay
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+
+      - name: Lấy dữ liệu đang chạy trên web (để so giá, giữ hàng cũ nếu brand lỗi)
+        env:
+          SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io/{1}', github.repository_owner, github.event.repository.name) }}
+        run: |
+          mkdir -p site/data
+          for f in products status review; do
+            curl -fsSL "$SITE_URL/data/$f.json" -o "site/data/$f.json" || rm -f "site/data/$f.json"
+          done
+          # dữ liệu rỗng (lần đầu chưa có brand) thì coi như chưa có, để crawl lại
+          python -c "import json,os;f='site/data/products.json';os.path.exists(f) and not json.load(open(f)).get('products') and os.remove(f)" || rm -f site/data/products.json
+          ls -la site/data
+
+      - name: Chạy crawler (theo lịch, chạy tay, hoặc khi web chưa có dữ liệu)
+        if: github.event_name != 'push' || hashFiles('site/data/products.json') == ''
+        env:
+          WARNINGS_FILE: site/data/warnings.json
+        run: python crawler.py || echo "::warning::Crawler báo lỗi, giữ dữ liệu cũ"
+
+      - name: Giữ cảnh báo cũ khi chỉ sửa giao diện
+        if: github.event_name == 'push'
+        env:
+          SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io/{1}', github.repository_owner, github.event.repository.name) }}
+        run: test -f site/data/warnings.json || curl -fsSL "$SITE_URL/data/warnings.json" -o site/data/warnings.json || true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
