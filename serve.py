@@ -196,6 +196,8 @@ def pull_online():
             out["msgs"].append(f"Không lấy được đơn từ Google: {e}")
     elif ep or secret:
         out["msgs"].append("Thiếu link Google Apps Script hoặc mã bí mật (Cài đặt → Online)")
+    else:
+        out["msgs"].append(f"Chưa cài web online (Cài đặt → Online). Đang đọc cài đặt ở: {SITE / 'data' / 'admin' / 'settings.json'}")
     if site:
         try:
             got = {}
@@ -433,6 +435,7 @@ class Handler(SimpleHTTPRequestHandler):
                           "name": d["name"][:120], "email": email, "phone": str(d.get("phone", ""))[:30],
                           "address": d["address"][:300], "note": str(d.get("note", ""))[:500], "items": items[:50],
                           "totals": d.get("totals", {}), "rate": d.get("rate"), "deposit_pct": d.get("deposit_pct"),
+                          "ref": re.sub(r"[^A-Za-z0-9-]", "", str(d.get("ref", "")))[:20],
                           "first_claim": bool(d.get("first_claim")), "repeat_customer": repeat, "status": "new"})
         save(ORDERS, orders)
         return self.reply(200, {"id": code})

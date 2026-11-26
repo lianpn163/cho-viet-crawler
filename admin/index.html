@@ -346,14 +346,18 @@ function tSet(){
  <label>Mã bí mật (giống dòng SECRET trong script)<input name="secret" type="password" value="${esc(remote.secret||'')}"></label>
  <button class="btn">Lưu</button></form></div>
  <div class="panel" style="margin-top:14px"><h3>Thông tin chuyển khoản</h3><p class="note">Chỉ lưu trên máy bạn (thư mục private), không hiện lên web. Tự chèn vào email xác nhận đơn.</p>
- <form class="f" id="payForm" style="margin-top:8px"><textarea name="text" placeholder="PayID: 04xx xxx xxx (Tên tài khoản)&#10;hoặc&#10;Account name: …&#10;BSB: … · Account: …">${esc(payInfo)}</textarea><button class="btn">Lưu thông tin chuyển khoản</button></form></div>
+ <form class="f" id="payForm" style="margin-top:8px"><textarea name="text" placeholder="PayID: 04xx xxx xxx (Tên tài khoản)&#10;hoặc&#10;Account name: …&#10;BSB: … · Account: …">${esc(payInfo)}</textarea>
+ <p class="note" style="margin:4px 0 0">Liên hệ cá nhân ở cuối email (khách thấy). Cũng chỉ lưu trên máy bạn.</p>
+ <div class="two"><label>Tên ký cuối email<input name="sign_name" value="${esc(contact.name||'')}" placeholder="Lian"></label><label>Số điện thoại<input name="phone" value="${esc(contact.phone||'')}" placeholder="04xx xxx xxx"></label></div>
+ <label>Email liên hệ<input name="email" type="email" value="${esc(contact.email||'')}" placeholder="ban@gmail.com"></label>
+ <button class="btn">Lưu thông tin chuyển khoản & liên hệ</button></form></div>
  <div class="panel"><h3>Đồng bộ ngay</h3><p class="note">Chạy crawler cho tất cả brand. Toàn bộ sản phẩm mất khoảng 5–10 phút.</p><div class="mrow" style="margin-top:8px"><button class="btn" data-sync="500">Đồng bộ toàn bộ sản phẩm</button><button class="btn alt" data-sync="50">Chạy thử nhanh (50 món/brand)</button></div><pre class="out" id="syncOut">${esc(syncTxt)}</pre></div>`;
 }
 async function pollSync(){const r=await api('/api/sync-status',null,'GET');if(!r.ok)return;syncTxt=r.j.output||'';const o=$('syncOut');if(o)o.textContent=syncTxt;
  if(r.j.running)setTimeout(pollSync,3000);else{syncTxt=(r.j.output||'');syncingIds=[];await CV.load();await loadWarns();await loadBrandsCfg();toast('Đồng bộ xong '+(r.j.finished_at||''));render()}}
 /* --- đơn hàng --- */
 const STATUS=[['new','Mới'],['awaiting_deposit','Chờ cọc'],['deposit_paid','Đã cọc'],['ordered','Đã đặt với brand'],['awaiting_balance','Chờ thanh toán còn lại'],['shipped','Đã gửi'],['done','Hoàn tất'],['cancelled','Huỷ']];
-let orders=[],composing=null,payInfo='',remote={};
+let orders=[],composing=null,payInfo='',contact={},remote={};
 const plusDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
 const longDate=s=>s?new Date(s+'T12:00:00').toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'';
 async function loadOrders(){const r=await api('/api/orders',null,'GET');if(r.ok)orders=r.j;return r}
@@ -374,6 +378,8 @@ function cardHTML(o){
  if(o.items.some(i=>i.price_check))tags.push(['Xác nhận giá','r']);
  if(due)tags.push(['Quá hạn cọc','r']);
  if(o.admin_note)tags.push(['Có ghi chú','g']);
+ if(o.ref)tags.push(['↻ Cập nhật của '+o.ref,'p']);
+ if(o.confirm?.mode==='update'&&!orders.some(x=>x.ref===o.id))tags.push(['Chờ khách chọn lại','o']);
  {const r=costCalc(o,+(o.cost?.kg||estKg(o)),o.cost?.route||'air');if(!r.invalid)tags.push([(r.profit>=0?'Lãi A$':'Lỗ A$')+Math.abs(r.profit).toFixed(0),r.profit>=0?'gr':'r'])}
  return `<button class="jc${openId===o.id?' sel':''}" data-openo="${esc(o.id)}" draggable="true" data-drag="${esc(o.id)}" style="--cardc:${col.card};--dot:${col.c}">
  <span class="jh"><span class="jn">📦 ${esc(o.name)}</span><span class="jid">${esc(o.id)}</span></span>
@@ -478,41 +484,65 @@ function costPanel(o){
 
 function startCompose(o){
  const c=o.confirm;
- composing={id:o.id,items:o.items.map((i,k)=>({ok:c?.items?.[k]?.ok??true,price:c?.items?.[k]?.price??i.price_vnd})),eta:c?.eta||plusDays(7),deadline:c?.deadline||plusDays(2),edited:null};
+ composing={id:o.id,items:o.items.map((i,k)=>({ok:c?.items?.[k]?.ok??true,price:c?.items?.[k]?.price??i.price_vnd})),eta:(c?.eta&&!/^\d{4}-/.test(c.eta))?c.eta:(D.set.eta_email||D.set.eta||'10–12 days'),deadline:c?.deadline||plusDays(2),edited:null};
 }
 function calc(o){
  const rate=o.rate||D.set.rate;let goods=0,kg=0;
  o.items.forEach((i,k)=>{const c=composing.items[k];if(!c.ok)return;goods+=c.price/rate*i.q;const p=D.byId[i.pid];kg+=(p?(CV.WEIGHT[catOf(p)]||.5):.5)*i.q});
  return CV.quote(goods,kg,!!(o.first_claim&&!o.repeat_customer));
 }
+function bagLink(o){
+ const base=(D.set.site_url||'').replace(/\/+$/,'');if(!base)return '[link web: điền "Link web online" trong Cài đặt → Online]';
+ const arr=o.items.map((i,k)=>composing.items[k].ok?[i.pid,i.variant_raw||i.variant,i.q]:null).filter(Boolean);
+ return `${base}/?bag=${encodeURIComponent(JSON.stringify(arr))}&ref=${encodeURIComponent(o.id)}`;
+}
+function emailFooter(){
+ const c=contact,ways=!!c.phone;
+ return ['','—',`${D.set.site_name||'VieBuy'} is a small, personal service. If you have any questions, just reply to this email${ways?' or call/text me':''}. I'll get back to you within 2 hours.`,'',
+  'Warmly,',c.name||'[Tên của bạn]',D.set.site_name||'VieBuy',c.phone||'',c.email||''].filter((x,i,a)=>x!==''||a[i-1]!=='');
+}
 function emailText(o){
  const t=calc(o),A=x=>'A$'+x.toFixed(2),S=D.set,name=S.site_name||'VieBuy',first=(o.name||'').trim().split(/\s+/)[0]||'there',rate=o.rate||S.rate;
- const gone=o.items.filter((i,k)=>!composing.items[k].ok);
- const changed=o.items.map((i,k)=>[i,k]).filter(([i,k])=>composing.items[k].ok&&composing.items[k].price!==i.price_vnd);
- const L=[`Hi ${first},`,'',`Thanks for shopping with ${name}! We've checked with the brands and your order ${o.id} is confirmed:`,'',
-  ...o.items.map((i,k)=>composing.items[k].ok?`• ${i.brand} – ${i.title} (${i.variant}) × ${i.q} — ${A(composing.items[k].price/rate*i.q)}`:null).filter(Boolean)];
- if(gone.length)L.push('',"Unfortunately these pieces are no longer available, so we've removed them from your order:",...gone.map(i=>`• ${i.brand} – ${i.title} (${i.variant})`));
+ const ok=o.items.map((i,k)=>[i,k]).filter(([,k])=>composing.items[k].ok),gone=o.items.filter((i,k)=>!composing.items[k].ok);
+ const line=([i,k])=>`• ${i.brand} – ${i.title} (${i.variant}) × ${i.q} — ${A(composing.items[k].price/rate*i.q)}`;
+ const changed=ok.filter(([i,k])=>composing.items[k].price!==i.price_vnd);
+ const L=[`Hi ${first},`,'',`Thank you for your order with ${name}! I've checked every piece with the brands.`,''];
+ if(gone.length){   // (2) một vài món đã hết: mời khách chọn lại trên web
+  L.push('1. AVAILABILITY','');
+  if(ok.length)L.push('Still available:',...ok.map(([i,k])=>`✓ ${i.brand} – ${i.title} (${i.variant}) × ${i.q}`),'');
+  L.push('Sold out at the brand, sorry:',...gone.map(i=>`✗ ${i.brand} – ${i.title} (${i.variant})`),'',
+   '2. UPDATE YOUR BAG','',ok.length?'I’ve saved the available pieces in your bag. Open the link below to swap the sold-out pieces for something else (or just send it as is):':'Open the link below to choose something else:','',bagLink(o),'',
+   'Once you send your updated bag, I’ll confirm the final total and payment details straight away.',
+   ...(ok.length?['',`Happy to go ahead with just the available pieces? Simply reply “go ahead” and I’ll send the payment details.`]:[]),
+   ...emailFooter());
+  return {mode:'update',subject:`${name} order ${o.id}: a few pieces sold out, please update your bag`,body:L.join('\n'),t};
+ }
+ // (1) đủ hàng: xác nhận + ETA + tiền cọc + thông tin chuyển khoản
+ L.push('1. AVAILABILITY','','Great news: everything in your bag is available.',...ok.map(line));
  if(changed.length)L.push('','Please note the brand has updated the price of:',...changed.map(([i,k])=>`• ${i.title}: now ${A(composing.items[k].price/rate)} each`));
- L.push('','ORDER SUMMARY',`Items: ${A(t.goods)}`,`Shipping: ${t.firstOff?'Free (first order)':A(t.ship)}`,`Service fee (${S.fee}%): ${A(t.fee)}`);
+ L.push('','2. DELIVERY',`Estimated delivery: ${composing.eta} after your deposit is received.`,'',
+  '3. PAYMENT',`Items: ${A(t.goods)}`,`Shipping: ${t.firstOff?'Free (first order)':A(t.ship)}`,`Service fee (${S.fee}%): ${A(t.fee)}`);
  if(S.gst)L.push(`GST: ${A(t.gst)}`);
- L.push(`Total: ${A(t.total)}`,'',`To secure your pieces, please pay the ${S.deposit}% deposit of ${A(t.deposit)} by ${longDate(composing.deadline)}.`,'',payInfo||'[Payment details]',`Reference: ${o.id}`,'',
-  `The remaining balance of ${A(t.balance)} is due once your items are consolidated in Vietnam. We'll send you photos of your actual pieces before they ship.`,'',
-  `Estimated delivery: ${longDate(composing.eta)}`,'','If anything looks off, just reply to this email and we’ll sort it out.','','Thanks,',name);
- return {subject:`Your ${name} order ${o.id} is confirmed – deposit details inside`,body:L.join('\n'),t};
+ L.push(`Total: ${A(t.total)}`,'',`Deposit to pay now (${S.deposit}%): ${A(t.deposit)}`,`Please transfer by ${longDate(composing.deadline)}.`,'',payInfo||'[Thông tin chuyển khoản: điền trong Cài đặt]',`Reference: ${o.id}`,'',
+  'Your order is placed with the brands only once your deposit arrives, so the sooner you transfer, the sooner your pieces are on their way.',
+  `The remaining ${A(t.balance)} is due once your pieces reach our Vietnam hub. I'll send you photos of your actual items before they fly to Australia.`,'',
+  'That’s it! Once the deposit lands, I’ll email you to confirm your order is being processed.',...emailFooter());
+ return {mode:'confirm',subject:`${name} order ${o.id} confirmed: deposit details inside`,body:L.join('\n'),t};
 }
 function composer(o){
  const e=emailText(o),body=composing.edited??e.body,inp='min-height:40px;border:1px solid var(--line);border-radius:8px;padding:0 8px;background:var(--card)';
  return `<div style="border-top:1px solid var(--line);margin-top:10px;padding-top:12px">
  <h3 style="font-size:15px;margin-bottom:6px">Soạn email xác nhận</h3>
- <p class="note" style="margin:0 0 8px">Bỏ tick món đã hết hàng. Sửa giá (₫) nếu brand đổi giá. Tổng tiền và tiền cọc tự tính lại.</p>
+ <p class="note" style="margin:0 0 8px">Bỏ tick món đã hết hàng. Sửa giá (₫) nếu brand đổi giá. Đủ hàng → email xác nhận + tiền cọc. Có món hết → email mời khách chọn lại, kèm link mở lại giỏ hàng trên web.</p>
+ <p style="margin:0 0 8px;font-weight:600">${e.mode==='update'?'✎ Loại email: có món hết, mời khách cập nhật giỏ':'✓ Loại email: đủ hàng, xác nhận & yêu cầu cọc'}</p>
  ${o.items.map((i,k)=>`<div class="crow" style="grid-template-columns:28px 1fr 130px"><input type="checkbox" data-cok="${k}" ${composing.items[k].ok?'checked':''} style="width:20px;height:20px" aria-label="Còn hàng"><div style="font-size:14px">${i.price_check?'<b class="err">⚠</b> ':''}${esc(i.brand)} · ${esc(i.title)} · ${esc(i.variant)} × ${i.q}</div>
  <input type="number" data-cprice="${k}" value="${composing.items[k].price}" step="1000" style="${inp}" aria-label="Giá cuối (VND)"></div>`).join('')}
- <div class="two" style="margin-top:10px"><label style="display:grid;gap:4px;font-size:14px;font-weight:600">Ngày giao dự kiến<input type="date" data-ceta value="${composing.eta}" style="${inp}"></label>
+ <div class="two" style="margin-top:10px"><label style="display:grid;gap:4px;font-size:14px;font-weight:600">Thời gian giao (ETA)<input data-ceta value="${esc(composing.eta)}" style="${inp}"></label>
  <label style="display:grid;gap:4px;font-size:14px;font-weight:600">Hạn chuyển cọc<input type="date" data-cdead value="${composing.deadline}" style="${inp}"></label></div>
  <p style="margin:10px 0 4px;font-size:14px">Tổng mới: <b>A$${e.t.total.toFixed(2)}</b> · cọc <b>A$${e.t.deposit.toFixed(2)}</b> · còn lại A$${e.t.balance.toFixed(2)}</p>
  <div class="f" style="margin-top:8px"><label>Tiêu đề<input id="cSubj" value="${esc(e.subject)}"></label>
  <label>Nội dung${composing.edited!=null?' <span class="note">(đã sửa tay: đổi số ở trên sẽ không cập nhật vào đây)</span> <button type="button" class="btn sm alt" data-creset>Soạn lại tự động</button>':''}<textarea id="cBody" style="min-height:340px;font-size:14px;line-height:1.5">${esc(body)}</textarea></label></div>
- <div class="mrow" style="margin-top:10px"><button class="btn" data-csend="${esc(o.id)}">Mở trong Mail & đánh dấu Chờ cọc</button><button class="btn alt" data-ccopy>Copy nội dung</button><button class="btn alt" data-ccancel>Đóng</button></div>
+ <div class="mrow" style="margin-top:10px"><button class="btn" data-csend="${esc(o.id)}">${e.mode==='update'?'Mở trong Mail':'Mở trong Mail & đánh dấu Chờ cọc'}</button><button class="btn alt" data-ccopy>Copy nội dung</button><button class="btn alt" data-ccancel>Đóng</button></div>
  <p class="note">Nút đầu mở ứng dụng mail mặc định với email soạn sẵn gửi tới ${esc(o.email)}. Xem lại rồi bấm gửi trong ứng dụng mail.</p></div>`;
 }
 const keepScroll=fn=>setTimeout(()=>{const y=scrollY;fn();scrollTo(0,y)},0);
@@ -556,8 +586,8 @@ document.addEventListener('click',async e=>{
  else if(d.ccopy!==undefined){try{await navigator.clipboard.writeText($('cSubj').value+'\n\n'+$('cBody').value);toast('Đã copy')}catch(x){toast('Không copy được, hãy bôi đen rồi Cmd+C')}}
  else if(d.csend){const o=orders.find(x=>x.id===d.csend),e=emailText(o),body=$('cBody').value,subj=$('cSubj').value;
   location.href=`mailto:${encodeURIComponent(o.email)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
-  const r=await api('/api/order-update',{id:o.id,patch:{status:'awaiting_deposit',confirm:{items:composing.items,eta:composing.eta,deadline:composing.deadline,totals:Object.fromEntries(Object.entries(e.t).map(([k,v])=>[k,+(+v).toFixed(2)])),sent_at:new Date().toISOString()}}});
-  if(r.ok){Object.assign(o,r.j.order);composing=null;redraw();toast('Đã chuyển sang Chờ cọc')}}
+  const r=await api('/api/order-update',{id:o.id,patch:{...(e.mode==='update'?{}:{status:'awaiting_deposit'}),confirm:{mode:e.mode,items:composing.items,eta:composing.eta,deadline:composing.deadline,totals:Object.fromEntries(Object.entries(e.t).map(([k,v])=>[k,+(+v).toFixed(2)])),sent_at:new Date().toISOString()}}});
+  if(r.ok){Object.assign(o,r.j.order);composing=null;redraw();toast(e.mode==='update'?'Đã soạn email mời khách cập nhật giỏ':'Đã chuyển sang Chờ cọc')}}
  else if(d.done){const r=await api('/api/notify-done',{id:d.done,done:d.v==='1'});if(r.ok){await loadNotes();render()}}
  else if(t.id==='saveKw'){const kw={...D.kw,...pendKw};if(await saveFile('keywords.json',kw)){D.kw=kw;pendKw={};render()}}
  else if(d.delkw){const kw={...D.kw};delete kw[d.delkw];if(await saveFile('keywords.json',kw)){D.kw=kw;render()}}
@@ -593,7 +623,7 @@ document.addEventListener('change',async e=>{const t=e.target,d=t.dataset;
  else if(d.onote){const o=orders.find(x=>x.id===d.onote);const r=await api('/api/order-update',{id:o.id,patch:{admin_note:t.value}});if(r.ok){o.admin_note=t.value;renderBoard();toast('Đã lưu ghi chú')}}
  else if(d.cok!==undefined&&composing){composing.items[+d.cok].ok=t.checked;redraw()}
  else if(d.cprice!==undefined&&composing){composing.items[+d.cprice].price=Math.max(0,Math.round(+t.value||0));redraw()}
- else if(d.ceta!==undefined&&composing){composing.eta=t.value;redraw()}
+ else if(d.ceta!==undefined&&composing){composing.eta=t.value;const s2={...D.set,eta_email:t.value};saveFile('settings.json',s2).then(ok=>{if(ok)D.set=s2});redraw()}
  else if(d.cdead!==undefined&&composing){composing.deadline=t.value;redraw()}
  else if(d.kw!==undefined){if(t.value)pendKw[d.kw]=t.value;else delete pendKw[d.kw];render()}
  else if(t.id==='catFilter'){catFilter=t.value;limitP=60;render()}
@@ -625,7 +655,7 @@ document.addEventListener('submit',async e=>{e.preventDefault();const f=e.target
  if(f.id==='remoteForm'){const s={...D.set,site_url:f.site_url.value.trim().replace(/\/+$/,''),order_endpoint:f.order_endpoint.value.trim()};
   const r=await api('/api/private-save',{file:'remote.json',data:{secret:f.secret.value.trim()}});if(!r.ok)return toast(r.j.error||'Lưu không được');remote={secret:f.secret.value.trim()};
   if(await saveFile('settings.json',s)){D.set=s;render();toast('Đã lưu. Nhớ chạy publish để web online nhận link mới')}return}
- if(f.id==='payForm'){const r=await api('/api/private-save',{file:'payment.json',data:{text:f.text.value.trim()}});if(r.ok){payInfo=f.text.value.trim();toast('Đã lưu')}else toast(r.j.error||'Lưu không được');return}
+ if(f.id==='payForm'){const data={text:f.text.value.trim(),sign_name:f.sign_name.value.trim(),phone:f.phone.value.trim(),email:f.email.value.trim()};const r=await api('/api/private-save',{file:'payment.json',data});if(r.ok){payInfo=data.text;contact={name:data.sign_name,phone:data.phone,email:data.email};toast('Đã lưu')}else toast(r.j.error||'Lưu không được');return}
  if(f.id==='setForm'){const n=(k,dv)=>{const v=parseFloat(f[k].value);return isNaN(v)?dv:v};
   const s={...D.set,site_name:f.site_name.value.trim()||'VieBuy',typekit:f.typekit.value.trim().toLowerCase(),slogan:f.slogan.value.trim(),contact:f.contact.value.trim(),eta:f.eta.value.trim(),ship_mode:f.ship_mode.value,ship_flat:n('ship_flat',15),ship:n('ship',14),ship_off:Math.min(100,Math.max(0,n('ship_off',0))),free_over:Math.max(0,n('free_over',0)),free_first:f.free_first.checked,gst:f.gst.checked,acc_cap:Math.max(0,n('acc_cap',20)),soldout_days:Math.max(0,Math.round(n('soldout_days',60))),rate:n('rate',18400),fee:n('fee',10),deposit:Math.min(100,Math.max(0,n('deposit',70))),stale_hours:Math.max(1,n('stale_hours',6))};
   if(await saveFile('settings.json',s)){D.set=s;render()}}
@@ -640,11 +670,11 @@ document.addEventListener('submit',async e=>{e.preventDefault();const f=e.target
   const list=[a,...D.articles.filter(x=>x.id!==a.id)];if(await saveFile('articles.json',list)){D.articles=list;toast(a.status==='published'?'Đã lưu và đăng':'Đã lưu bản nháp')}}
 });
 async function loadRemote(){const q=await api('/api/private?file=remote.json',null,'GET');remote=q.ok?q.j:{}}
-async function pullOnline(quiet){if(!D.set.site_url&&!D.set.order_endpoint){if(!quiet)toast('Chưa cài web online (Cài đặt → Online)');return}
- const r=await api('/api/pull',{});if(!r.ok)return;const j=r.j;await loadOrders();if(j.data){await CV.load('/');await loadWarns()}
+async function pullOnline(quiet){if(!quiet)toast('Đang lấy đơn…');
+ const r=await api('/api/pull',{});if(!r.ok)return toast(r.j.error||'Không lấy được');const j=r.j;await loadOrders();if(j.data){await CV.load('/');await loadWarns()}
  const m=[j.orders?j.orders+' đơn mới':'',j.notify?j.notify+' đăng ký báo hàng':'',j.data?'dữ liệu sản phẩm mới':''].filter(Boolean).join(', ');
  if(m||!quiet)toast(m?'Đã lấy: '+m:(j.msgs[0]||'Không có gì mới'));if(j.msgs.length&&m)console.warn(j.msgs);render()}
-async function loadPay(){const q=await api('/api/private?file=payment.json',null,'GET');payInfo=q.ok?(q.j.text||''):''}
+async function loadPay(){const q=await api('/api/private?file=payment.json',null,'GET');payInfo=q.ok?(q.j.text||''):'';contact=q.ok?{name:q.j.sign_name||'',phone:q.j.phone||'',email:q.j.email||''}:{}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&openId){openId=null;composing=null;redraw()}});
 document.addEventListener('dragstart',e=>{const c=e.target.closest?.('[data-drag]');if(!c)return;e.dataTransfer.setData('text/plain',c.dataset.drag);e.dataTransfer.effectAllowed='move'});
 document.addEventListener('dragover',e=>{const col=e.target.closest?.('[data-drop]');if(!col)return;e.preventDefault();document.querySelectorAll('.kcol.over').forEach(x=>x!==col&&x.classList.remove('over'));col.classList.add('over')});

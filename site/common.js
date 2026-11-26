@@ -23,7 +23,7 @@ const CV = (() => {
     ['Nhiều màu', 'conic-gradient(red,orange,yellow,green,blue,purple,red)', ['multi', 'multicolor', 'camo', 'rainbow', 'nhiều màu']]];
   const COLOUR_RE = COLOURS.map(([n, , ws]) => [n, new RegExp('(?<![\\p{L}\\p{N}])(' + ws.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')(?![\\p{L}\\p{N}])', 'iu')]);
 
-  const D = { products: [], status: [], gen: '', ov: {}, clips: [], badm: {}, articles: [], kw: {}, set: { rate: 18400, ship_mode: 'flat', ship_flat: 15, ship: 14, ship_off: 0, free_first: true, free_over: 0, gst: false, acc_cap: 20, soldout_days: 60, fee: 10, deposit: 70, eta: '5–7 days', stale_hours: 6, site_name: 'VieBuy', typekit: '', order_endpoint: '', site_url: '',
+  const D = { products: [], status: [], gen: '', ov: {}, clips: [], badm: {}, articles: [], kw: {}, set: { rate: 18400, ship_mode: 'flat', ship_flat: 15, ship: 14, ship_off: 0, free_first: true, free_over: 0, gst: false, acc_cap: 20, soldout_days: 60, fee: 10, deposit: 70, eta: '10–12 days', stale_hours: 6, site_name: 'VieBuy', typekit: '', order_endpoint: '', site_url: '',
     dep1: '{pct}% deposit once we confirm stock: {deposit}',
     dep2: 'Keep an eye on your inbox for our confirmation email, and pay your deposit as soon as possible to secure your pieces.',
     dep3: 'The remaining balance of {balance} is due before your parcel ships to Australia.', slogan: 'Exploring local brands from Vietnam - Emerging Fashion Capital', contact: '' } };
@@ -49,7 +49,8 @@ const CV = (() => {
     const [pd, sd, ov, cl, ba, se, ar, kw] = await Promise.all(files.map(f => jget(base + f)));
     D.products = pd?.products || []; D.gen = pd?.generated_at || ''; D.status = sd?.brands || [];
     D.ov = ov || {}; D.clips = cl || []; D.badm = ba || {}; D.set = { ...D.set, ...(se || {}) };
-    if (D.set.site_name === 'Viefs') D.set.site_name = 'VieBuy';   // tên cũ → tên mới
+    if (D.set.site_name === 'Viefs') D.set.site_name = 'VieBuy';
+    if (D.set.eta === '5–7 days') D.set.eta = '10–12 days';   // thời gian giao mới   // tên cũ → tên mới
     if (D.set.slogan === "Vietnam's new wave, delivered.") D.set.slogan = 'Exploring local brands from Vietnam - Emerging Fashion Capital'; D.articles = ar || []; D.kw = kw || {};
     D.byId = Object.fromEntries(D.products.map(p => [p.id, p]));
     applyCats();
@@ -79,7 +80,7 @@ const CV = (() => {
     about: 'We buy authentic pieces from independent Vietnamese fashion labels on your behalf, consolidate them in Vietnam and deliver to your door in Australia. Prices are converted at an indicative exchange rate; product images and details belong to each brand.'
   };
   const content = () => ({ ...DEFAULT_CONTENT, ...Object.fromEntries(Object.entries(D.set.content || {}).filter(([, v]) => v && (!Array.isArray(v) || v.length))) });
-  const fill = t => { const s = D.set; return String(t || '').replace(/\{eta\}/g, s.eta || '5–7 days').replace(/\{deposit\}/g, s.deposit).replace(/\{ship_flat\}/g, s.ship_flat).replace(/\{fee\}/g, s.fee)
+  const fill = t => { const s = D.set; return String(t || '').replace(/\{eta\}/g, s.eta || '10–12 days').replace(/\{deposit\}/g, s.deposit).replace(/\{ship_flat\}/g, s.ship_flat).replace(/\{fee\}/g, s.fee)
     .replace(/\{shipping\}/g, s.ship_mode === 'flat' ? `a flat A$${s.ship_flat} per order, anywhere in Australia` : `A$${s.ship}/kg based on the estimated parcel weight`)
     .replace(/\{first_free\}/g, s.free_first ? ', and your first order ships free' : '') };
   const catCfg = k => (D.set.cats || []).find(c => c.key === k) || {};

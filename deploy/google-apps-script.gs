@@ -56,9 +56,9 @@ function order_(d) {
   const o = {
     id, created: new Date().toISOString().slice(0, 19), name: clean_(d.name, 120), email, phone: clean_(d.phone, 30),
     address: clean_(d.address, 300), note: clean_(d.note, 500),
-    items: items.map(i => ({ pid: clean_(i.pid, 200), title: clean_(i.title, 200), title_raw: clean_(i.title_raw, 200), variant: clean_(i.variant, 80),
+    items: items.map(i => ({ pid: clean_(i.pid, 200), title: clean_(i.title, 200), title_raw: clean_(i.title_raw, 200), variant: clean_(i.variant, 80), variant_raw: clean_(i.variant_raw, 80),
       q: Math.max(1, Math.min(20, parseInt(i.q, 10) || 1)), price_vnd: Number(i.price_vnd) || 0, url: clean_(i.url, 300), brand: clean_(i.brand, 80), price_check: !!i.price_check })),
-    totals: d.totals || {}, rate: d.rate, deposit_pct: d.deposit_pct, first_claim: !!d.first_claim, repeat_customer: repeat, status: 'new'
+    ref: clean_(d.ref, 20).replace(/[^A-Za-z0-9-]/g, ''), totals: d.totals || {}, rate: d.rate, deposit_pct: d.deposit_pct, first_claim: !!d.first_claim, repeat_customer: repeat, status: 'new'
   };
   const t = o.totals;
   sh.appendRow([id, o.created, o.name, email, o.phone, o.address, o.note,
@@ -68,14 +68,14 @@ function order_(d) {
   const rows = o.items.map(i => `<tr><td style="padding:6px 0;border-bottom:1px solid #eee"><b>${esc_(i.brand)}</b> – <a href="${esc_(i.url)}">${esc_(i.title_raw || i.title)}</a><br>
     <span style="color:#555">${esc_(i.variant)} · SL ${i.q} · ${Number(i.price_vnd).toLocaleString('vi-VN')}₫${i.price_check ? ' · ⚠️ kiểm tra giá' : ''}</span></td></tr>`).join('');
   const html = `<div style="font-family:Arial,sans-serif;font-size:15px;max-width:560px">
-    <h2 style="margin:0 0 6px">Đơn mới ${id}</h2>
+    <h2 style="margin:0 0 6px">${o.ref ? `Khách cập nhật giỏ: ${id} (thay đơn ${esc_(o.ref)})` : `Đơn mới ${id}`}</h2>
     <p style="margin:0 0 12px">${esc_(o.name)} · <a href="mailto:${esc_(email)}">${esc_(email)}</a> ${o.phone ? '· ' + esc_(o.phone) : ''}<br>${esc_(o.address)}
     ${repeat ? '<br><b>Khách cũ</b>' : ''}${o.first_claim ? '<br>Khách chọn free ship đơn đầu' : ''}</p>
     <table style="width:100%;border-collapse:collapse">${rows}</table>
     <p style="margin:12px 0 0">Tổng: <b>A$${t.total || '?'}</b> · Cọc ${o.deposit_pct || ''}%: <b>A$${t.deposit || '?'}</b></p>
     ${o.note ? `<p>Ghi chú: ${esc_(o.note)}</p>` : ''}
     <p style="color:#777;font-size:13px">Về laptop: mở admin → Đơn hàng → "Lấy đơn mới" để cập nhật tiến độ.</p></div>`;
-  MailApp.sendEmail({ to: OWNER_EMAIL, subject: `🛍️ ${SITE_NAME}: đơn mới ${id} – ${o.name} – A$${t.total || '?'}`, htmlBody: html, replyTo: email, name: SITE_NAME });
+  MailApp.sendEmail({ to: OWNER_EMAIL, subject: `${SITE_NAME}: ${o.ref ? `cập nhật giỏ ${id} (đơn cũ ${o.ref})` : `đơn mới ${id}`} – ${o.name} – A$${t.total || '?'}`, htmlBody: html, replyTo: email, name: SITE_NAME });
   return json_({ id });
 }
 

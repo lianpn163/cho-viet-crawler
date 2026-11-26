@@ -251,7 +251,8 @@ const GARMENT=/\b(t-?shirt|tee|shirt|jacket|pants?|shorts|hoodie|polo|sweater|sw
 const T=p=>{if(D.ov[p.id]?.title)return D.ov[p.id].title;const t=p.title,vn=hasVN(t),r=t.replace(VN_PREFIX,'');return en(vn&&GARMENT.test(r)?r:t,vn)};
 const vnd=v=>(v||0).toLocaleString('en-AU')+' ₫';
 const HT=['vietnamfashion','madeinvietnam','vietnamesebrand','localbrandvietnam','saigonstreetwear'];
-let brandF='',colF='',sel={},cart=[],jTag='',cur='AUD',firstClaim=true;
+let brandF='',colF='',sel={},cart=[],jTag='',cur='AUD',firstClaim=true,orderRef='';
+try{orderRef=sessionStorage.getItem('vb_ref')||''}catch(e){}
 try{cur=localStorage.getItem('cv_cur')||'AUD'}catch(e){}
 try{cart=JSON.parse(localStorage.getItem('cv_cart')||'[]')}catch(e){}
 const saveCart=()=>{try{localStorage.setItem('cv_cart',JSON.stringify(cart))}catch(e){}};
@@ -400,7 +401,7 @@ function renderCart(){
  const body=$('cartBody'),foot=$('cartFoot');
  if(!cart.length){body.innerHTML='<p class="empty">Your bag is empty.</p>';foot.innerHTML='';return}
  const g={};cart.forEach((i,ix)=>{const b=byId(i.pid)?.brand||'?';(g[b]=g[b]||[]).push([i,ix])});
- body.innerHTML=Object.entries(g).map(([bid,its])=>`<p class="grp">${esc(st(bid).name)}</p>`+its.map(([i,ix])=>{const p=byId(i.pid);
+ body.innerHTML=(orderRef?`<p class="note" style="margin:0 0 12px;padding:10px 12px;border:1px solid var(--line)">Updating order <b>${esc(orderRef)}</b>. Swap any sold-out pieces for something you love, then send your request again.</p>`:'')+Object.entries(g).map(([bid,its])=>`<p class="grp">${esc(st(bid).name)}</p>`+its.map(([i,ix])=>{const p=byId(i.pid);
   return `<div class="item">${p?.images[0]?`<img src="${esc(p.images[0])}" alt="" referrerpolicy="no-referrer">`:'<img alt="">'}<div><b style="font-size:14px">${esc(p?T(p):'Item removed')}</b><small>${esc(en(i.name))} · ${fP(i.price)}</small>${issues(i).map(m=>`<span class="flag">${esc(m)}</span>`).join('')}</div>
   <div class="qty"><button data-dq="${ix}" aria-label="Decrease">−</button><span>${i.q}</span><button data-iq="${ix}" aria-label="Increase">+</button></div></div>`}).join('')).join('');
  const t=totals(),block=cart.some(blocking),pch=cart.some(i=>issues(i).some(m=>m.startsWith('Price changed')));
@@ -430,8 +431,8 @@ async function checkout(){
  $('cartFoot').innerHTML='';
 }
 async function sendOrder(f){
- const t=totals(),items=cart.map(i=>{const p=byId(i.pid);return {pid:i.pid,title:T(p),title_raw:p.title,variant:en(i.name),q:i.q,price_vnd:i.price,url:p.url,brand:st(p.brand).name,price_check:!!p.price_check}});
- const body={name:f.name.value,email:f.email.value,phone:f.phone.value,address:`${f.address.value}, ${f.suburb.value} ${f.state.value} ${f.postcode.value}`,note:f.note.value,first_claim:!!(D.set.free_first&&firstClaim),items,totals:Object.fromEntries(Object.entries(t).filter(([k,v])=>typeof v==='number').map(([k,v])=>[k,+v.toFixed(2)])),rate:D.set.rate,deposit_pct:D.set.deposit};
+ const t=totals(),items=cart.map(i=>{const p=byId(i.pid);return {pid:i.pid,title:T(p),title_raw:p.title,variant:en(i.name),variant_raw:i.name,q:i.q,price_vnd:i.price,url:p.url,brand:st(p.brand).name,price_check:!!p.price_check}});
+ const body={name:f.name.value,email:f.email.value,phone:f.phone.value,address:`${f.address.value}, ${f.suburb.value} ${f.state.value} ${f.postcode.value}`,note:f.note.value,first_claim:!!(D.set.free_first&&firstClaim),items,totals:Object.fromEntries(Object.entries(t).filter(([k,v])=>typeof v==='number').map(([k,v])=>[k,+v.toFixed(2)])),rate:D.set.rate,deposit_pct:D.set.deposit,ref:orderRef};
  let res=null;const btn=f.querySelector('button.big');if(btn){btn.disabled=true;btn.textContent='Sending…'}
  try{res=await CV.send('order',body)}catch(e){}
  if(btn){btn.disabled=false;btn.textContent='Send order request'}
@@ -439,7 +440,7 @@ async function sendOrder(f){
  $('cartBody').innerHTML=`<h3 style="font-size:24px;margin:0 0 4px">Request ${esc(res.id)} received</h3><p style="margin:0">Thanks ${esc(f.name.value)}! Here’s what happens next:</p>
  <ol class="nexts"><li><span>Within 24 hours we email <b>${esc(f.email.value)}</b> to confirm stock, the final price and your delivery date.</span></li><li><span>You pay a ${D.set.deposit}% deposit by bank transfer. We order from the brand straight away.</span></li><li><span>Your items arrive at our hub in Vietnam, get checked, and we send you real photos.</span></li><li><span>You pay the balance, your parcel flies to Australia and comes to your door.</span></li></ol>
  <p class="note">Can’t see our email? Check your Spam or Promotions folder.</p><button class="big" data-close>Keep browsing</button>`;
- cart=[];saveCart();$('cc').textContent=0;
+ cart=[];saveCart();$('cc').textContent=0;orderRef='';try{sessionStorage.removeItem('vb_ref')}catch(e){}
 }
 function openD(id){$('veil').classList.add('on');$(id).classList.add('on')}
 function closeD(){$('veil').classList.remove('on');document.querySelectorAll('.drawer').forEach(d=>d.classList.remove('on'));$('cartTitle').textContent='Your bag'}
@@ -523,7 +524,21 @@ $('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeD();closeModal()}});
 $('q').addEventListener('input',()=>renderShop());$('sort').addEventListener('change',()=>renderShop());
 window.addEventListener('hashchange',route);
-CV.load().then(renderAll);
+// Link "update your bag" trong email: ?bag=[[pid,variant,q],…]&ref=VB-xxxx → nạp lại giỏ hàng
+function loadBagFromLink(){
+ const u=new URLSearchParams(location.search),b=u.get('bag');if(!b)return;
+ let arr=[];try{arr=JSON.parse(b)}catch(e){}
+ let miss=0;cart=[];
+ for(const [pid,vn,q] of (Array.isArray(arr)?arr:[])){const p=byId(pid);if(!p){miss++;continue}
+  const vi=p.variants.findIndex(v=>v.name===vn||en(v.name)===vn),v=p.variants[vi];
+  if(vi<0||!v.available){miss++;continue}
+  cart.push({pid,vi,q:Math.max(1,Math.min(20,parseInt(q)||1)),price:v.price||p.price,name:v.name})}
+ orderRef=String(u.get('ref')||'').replace(/[^A-Z0-9-]/gi,'').slice(0,20);try{sessionStorage.setItem('vb_ref',orderRef)}catch(e){}
+ saveCart();history.replaceState(null,'',location.pathname+location.hash);
+ $('cc').textContent=cart.reduce((a,i)=>a+i.q,0);renderCart();openD('cart');
+ if(miss)toast(miss===1?'One piece has just sold out, so it’s not in your bag':`${miss} pieces have just sold out, so they’re not in your bag`);
+}
+CV.load().then(()=>{renderAll();loadBagFromLink()});
 }
 </script>
 </body>
