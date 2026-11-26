@@ -373,7 +373,7 @@ function cardHTML(o){
  const T=tot(o),its=o.items.filter(i=>i.ff!=='unavailable'),done=its.filter(i=>FF_DONE.has(i.ff)).length;
  const due=o.status==='awaiting_deposit'&&o.confirm?.deadline&&o.confirm.deadline<new Date().toISOString().slice(0,10);
  const col=COLS.find(c=>c.st.includes(o.status||'new'))||{c:'#9b9a97',card:'#2a2a2a'};
- const tags=[[stName(o.status||'new'),{new:'g',awaiting_deposit:'o',deposit_paid:'b',ordered:'p',awaiting_balance:'gr',shipped:'gr',done:'gr',cancelled:'r'}[o.status||'new']||'g']];
+ const tags=[...(o.confirm?.sent_at?[['Emailed','b']]:[]),[stName(o.status||'new'),{new:'g',awaiting_deposit:'o',deposit_paid:'b',ordered:'p',awaiting_balance:'gr',shipped:'gr',done:'gr',cancelled:'r'}[o.status||'new']||'g']];
  if(o.first_claim&&!o.repeat_customer)tags.push(['Đơn đầu','y']);
  if(o.items.some(i=>i.price_check))tags.push(['Xác nhận giá','r']);
  if(due)tags.push(['Quá hạn cọc','r']);
