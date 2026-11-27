@@ -45,12 +45,16 @@ const CV = (() => {
     return j;
   }
   async function load(base = '') {
-    const files = ['data/products.json', 'data/status.json', 'data/admin/overrides.json', 'data/admin/clips.json', 'data/admin/brands_admin.json', 'data/admin/settings.json', 'data/admin/articles.json', 'data/admin/keywords.json'];
-    const [pd, sd, ov, cl, ba, se, ar, kw] = await Promise.all(files.map(f => jget(base + f)));
+    const files = ['data/products.json', 'data/status.json', 'data/admin/overrides.json', 'data/admin/clips.json', 'data/admin/brands_admin.json', 'data/admin/settings.json', 'data/admin/articles.json', 'data/admin/keywords.json', 'data/rate.json'];
+    const [pd, sd, ov, cl, ba, se, ar, kw, rt] = await Promise.all(files.map(f => jget(base + f)));
     D.products = pd?.products || []; D.gen = pd?.generated_at || ''; D.status = sd?.brands || [];
     D.ov = ov || {}; D.clips = cl || []; D.badm = ba || {}; D.set = { ...D.set, ...(se || {}) };
     if (D.set.site_name === 'Viefs') D.set.site_name = 'VieBuy';
-    if (D.set.eta === '5–7 days') D.set.eta = '10–12 days';   // thời gian giao mới   // tên cũ → tên mới
+    if (D.set.eta === '5–7 days') D.set.eta = '10–12 days';   // thời gian giao mới
+    // tỷ giá tự động theo thị trường (crawler cập nhật mỗi lần đồng bộ), trừ hao rate_margin %
+    D.rateInfo = rt && rt.market > 10000 ? rt : null;
+    D.set.rate_manual = D.set.rate;
+    if ((D.set.rate_mode || 'auto') === 'auto' && D.rateInfo) D.set.rate = Math.round(D.rateInfo.market * (1 - (+D.set.rate_margin || 0) / 100));   // tên cũ → tên mới
     if (D.set.slogan === "Vietnam's new wave, delivered.") D.set.slogan = 'Exploring local brands from Vietnam - Emerging Fashion Capital'; D.articles = ar || []; D.kw = kw || {};
     D.byId = Object.fromEntries(D.products.map(p => [p.id, p]));
     applyCats();

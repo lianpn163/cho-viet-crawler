@@ -230,12 +230,12 @@ def pull_online():
     if site:
         try:
             got = {}
-            for f in ("products", "status", "review", "warnings"):
+            for f in ("products", "status", "review", "warnings", "rate"):
                 r = requests.get(f"{site}/data/{f}.json", timeout=30)
                 if r.ok:
                     got[f] = r.json()
             if "products" in got and got["products"].get("products"):
-                for f in ("products", "status", "review"):
+                for f in ("products", "status", "review", "rate"):
                     if f in got:
                         save(SITE / "data" / f"{f}.json", got[f])
                 if "warnings" in got:

@@ -524,6 +524,27 @@ def save(path, obj):
     tmp.replace(path)   # ghi xong mới thay file, web không bao giờ đọc phải file dở
 
 
+RATE_SOURCES = [   # tỷ giá thị trường miễn phí, không cần key (cập nhật vài lần/ngày)
+    ("open.er-api.com", "https://open.er-api.com/v6/latest/AUD", lambda j: j["rates"]["VND"]),
+    ("fawazahmed0/currency-api", "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/aud.json", lambda j: j["aud"]["vnd"]),
+]
+
+
+def update_rate():
+    """Lấy tỷ giá AUD→VND mới nhất, ghi site/data/rate.json. Lỗi thì giữ file cũ."""
+    for name, url, pick in RATE_SOURCES:
+        try:
+            r = get(url)
+            v = float(pick(r.json())) if r is not None and r.status_code == 200 else 0
+        except Exception:  # noqa: BLE001
+            v = 0
+        if 10000 < v < 40000:   # chặn số vô lý
+            save(DATA / "rate.json", {"market": round(v, 2), "source": name, "updated": now_iso()})
+            return v
+    print("  ⚠ Không lấy được tỷ giá, giữ tỷ giá cũ")
+    return None
+
+
 def run(only=None):
     brands = load(ROOT / "brands.json", [])
     prev_file = load(DATA / "products.json", {"products": []})
@@ -628,6 +649,7 @@ def run(only=None):
             print(f"✕ {b['name']}: {e}")
         status.append(st)
 
+    update_rate()
     retired = {k: v for k, v in retired.items() if age_days(v) < 400}   # quên các mẫu đã gỡ hơn 1 năm
     save(DATA / "products.json", {"generated_at": now_iso(), "products": products, "retired": retired})
     save(DATA / "status.json", {"generated_at": now_iso(), "brands": status})

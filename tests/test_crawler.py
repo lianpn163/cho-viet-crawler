@@ -273,3 +273,14 @@ def test_first_seen_marks_new_products(monkeypatch, tmp_path):
     products, _, _ = crawler.run()
     fs = {p["title"]: p["first_seen"] for p in products}
     assert fs["DICO TEE A"] == crawler.OLD_DATE and fs["DICO TEE B"] > "2026-11"
+
+
+def test_rate_saved_and_kept_on_failure(monkeypatch, tmp_path):
+    setup(monkeypatch, tmp_path, [])
+    monkeypatch.setattr(crawler, "get", lambda u: Resp(200, {"rates": {"VND": 18228.6}}) if "er-api" in u else Resp(404, ""))
+    crawler.run()
+    f = tmp_path / "site" / "data" / "rate.json"
+    assert json.loads(f.read_text())["market"] == 18228.6
+    monkeypatch.setattr(crawler, "get", lambda u: Resp(500, ""))
+    crawler.run()
+    assert json.loads(f.read_text())["market"] == 18228.6     # lỗi thì giữ tỷ giá cũ

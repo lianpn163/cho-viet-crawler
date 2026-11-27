@@ -20,7 +20,8 @@ a{color:var(--blue)}:focus-visible{outline:2px solid var(--blue);outline-offset:
 /* thanh thông tin */
 .bar{background:var(--blue);color:#fff}
 .bar .wrap{display:flex;justify-content:center;gap:clamp(16px,4vw,56px);min-height:38px;align-items:center;flex-wrap:wrap;padding-block:8px}
-.bar span{white-space:nowrap}.bar .rate{font-weight:600;letter-spacing:.06em;padding:2px 10px;border:1px solid rgba(255,255,255,.45);border-radius:99px}
+.bar span{white-space:nowrap}.hrate{white-space:nowrap;font-size:13px;color:var(--ink)}.hrate .live,.bar .live{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;margin-right:7px;vertical-align:1px;animation:pulse 2s infinite}@keyframes pulse{50%{opacity:.35}}
+.bar .rate{font-weight:600;letter-spacing:.06em;padding:2px 10px;border:1px solid rgba(255,255,255,.45);border-radius:99px}
 @media(max-width:720px){.bar .wrap{flex-wrap:nowrap;justify-content:center;position:relative;overflow:hidden}.bar span{display:none}.bar span.on{display:block}}
 /* header */
 .hd{border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:15}
@@ -186,7 +187,7 @@ footer{background:var(--soft);margin-top:32px;scroll-margin-top:80px}
 <header class="hd"><div class="wrap">
  <nav class="nav cap" id="nav"><a href="#shop" data-v="shop">Shop</a><a href="#moodboard" data-v="moodboard">Moodboard</a><a href="#journal" data-v="journal">Journal</a></nav>
  <a class="logo" href="#shop"><b id="siteName">VieBuy</b><i id="slogan"></i></a>
- <div class="right cap"><select class="cur cap" id="cur" aria-label="Currency"><option value="AUD">AUD</option><option value="VND">VND</option></select><button class="bagbtn cap" id="openCart">Bag [<b id="cc">0</b>]</button></div>
+ <div class="right cap"><span class="hrate cap" id="hdRate"></span><button class="bagbtn cap" id="openCart">Bag [<b id="cc">0</b>]</button></div>
 </div></header>
 
 <main><div class="wrap">
@@ -254,7 +255,7 @@ const vnd=v=>(v||0).toLocaleString('en-AU')+' ₫';
 const HT=['vietnamfashion','madeinvietnam','vietnamesebrand','localbrandvietnam','saigonstreetwear'];
 let brandF='',colF='',sel={},cart=[],jTag='',cur='AUD',firstClaim=true,orderRef='',orderTok='';
 try{orderRef=sessionStorage.getItem('vb_ref')||'';orderTok=sessionStorage.getItem('vb_tok')||''}catch(e){}
-try{cur=localStorage.getItem('cv_cur')||'AUD'}catch(e){}
+cur='AUD';   // luôn hiện AUD to, VND nhỏ bên dưới
 try{cart=JSON.parse(localStorage.getItem('cv_cart')||'[]')}catch(e){}
 const saveCart=()=>{try{localStorage.setItem('cv_cart',JSON.stringify(cart))}catch(e){}};
 let tt;const toast=m=>{const e=$('toast');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2400)};
@@ -270,11 +271,11 @@ function renderChrome(){
  const S=D.set,name=S.site_name||'VieBuy';
  document.title=`${name} – Exploring local brands from Vietnam`;
  $('siteName').textContent=name;$('fName').textContent=name;$('slogan').textContent='';$('slogan').hidden=true;   // bỏ slogan
- $('cur').value=cur;
  if(/^[a-z0-9]{5,12}$/.test(S.typekit||'')&&!document.getElementById('tk')){const l=document.createElement('link');l.id='tk';l.rel='stylesheet';l.href=`https://use.typekit.net/${S.typekit}.css`;l.onload=()=>document.documentElement.classList.add('hal');document.head.appendChild(l)}
  const C=CV.content(),F=CV.fill,bar=S.content?.bar?.length?C.bar:[];
  if(!bar.length){if(S.eta)bar.push('Get your order in {eta}');if(S.ship_mode==='flat')bar.push('Flat A${ship_flat} shipping Australia-wide');if(S.free_first)bar.push('Free shipping on your first order');if(S.free_over>0)bar.push(`Free shipping over A$${S.free_over}`)}
- $('bar').innerHTML=`<div class="wrap"><span class="rate">A$1 = ${vnd(S.rate)}</span>${bar.map(t=>`<span>${esc(F(t))}</span>`).join('')}</div>`;
+ $('bar').innerHTML=`<div class="wrap">${bar.map((t,i)=>`<span class="${i?'':'on'}">${esc(F(t))}</span>`).join('')}</div>`;
+ $('hdRate').innerHTML=`${D.rateInfo&&(S.rate_mode||'auto')==='auto'?'<i class="live"></i>':''}A$1 = ${vnd(S.rate)}`;$('hdRate').title=D.rateInfo?'Live exchange rate, updated '+ago(D.rateInfo.updated):'Indicative exchange rate';
  $('procLead').textContent=F(C.lead);
  $('steps').innerHTML=C.steps.map(([t,d])=>`<li><b>${esc(F(t))}</b><span>${esc(F(d))}</span></li>`).join('');
  $('faq').innerHTML=C.faq.map(([q,a])=>`<details><summary>${esc(F(q))}</summary><p>${esc(F(a))}</p></details>`).join('');
@@ -339,8 +340,8 @@ function card(p){
   :`<button class="add" data-add="${esc(p.id)}" ${ready?'':'disabled'}>${old?'Unavailable':!ready?'Select size':'Add to bag'}</button>`;
  return `<article class="card" data-pid="${esc(p.id)}"><a class="ph" href="${esc(link(p))}" target="_blank" rel="noopener">${p.images[0]?`<img src="${esc(p.images[0])}" alt="${esc(T(p))}" loading="lazy" referrerpolicy="no-referrer">`:''}</a>
  <div class="body"><button class="bt cap" data-brand="${esc(p.brand)}">${esc(b.name)}</button><h3>${esc(T(p))}</h3>
- <div class="price">${d?`<s>${fP(p.compare_at)}</s>`:''}<b class="${d?'sale':''}">${fP(price)}</b>${d?`<span class="off">-${d}%</span>`:''}</div>
- <div class="pv">${fP2(price)}</div>
+ <div class="price">${d?`<s>${vnd(p.compare_at)}</s>`:''}<b class="${d?'sale':''}">${vnd(price)}</b>${d?`<span class="off">-${d}%</span>`:''}</div>
+ <div class="pv">≈ A$${(price/D.set.rate).toFixed(2)}</div>
  ${meta?`<div class="meta ${meta[0]}">${meta[1]}</div>`:''}${p.in_stock&&p.size_unverified?'<div class="note2">Size availability confirmed by email</div>':''}
  ${p.in_stock?picker(p):''}${btn}
  ${someOut&&!old?`<button class="lnk" data-notify="${esc(p.id)}">Size sold out? Notify me</button>`:''}

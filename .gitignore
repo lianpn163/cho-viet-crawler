@@ -5,6 +5,7 @@ site/data/products.json
 site/data/status.json
 site/data/review.json
 site/data/warnings.json
+site/data/rate.json
 __pycache__/
 .pytest_cache/
 *.tmp
