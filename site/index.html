@@ -434,7 +434,7 @@ async function checkout(){
  $('cartFoot').innerHTML='';
 }
 async function sendOrder(f){
- const t=totals(),items=cart.map(i=>{const p=byId(i.pid);return {pid:i.pid,title:T(p),title_raw:p.title,variant:en(i.name),variant_raw:i.name,q:i.q,price_vnd:i.price,url:p.url,brand:st(p.brand).name,price_check:!!p.price_check}});
+ const t=totals(),items=cart.map(i=>{const p=byId(i.pid);return {pid:i.pid,title:T(p),title_raw:p.title,variant:en(i.name),variant_raw:i.name,q:i.q,price_vnd:i.price,url:p.url,brand:st(p.brand).name,price_check:!!p.price_check,image:p.images?.[0]||''}});
  const body={name:f.name.value,email:f.email.value,phone:f.phone.value,address:`${f.address.value}, ${f.suburb.value} ${f.state.value} ${f.postcode.value}`,note:f.note.value,first_claim:!!(D.set.free_first&&firstClaim),items,totals:Object.fromEntries(Object.entries(t).filter(([k,v])=>typeof v==='number').map(([k,v])=>[k,+v.toFixed(2)])),rate:D.set.rate,deposit_pct:D.set.deposit,ref:orderRef};
  let res=null;const btn=f.querySelector('button.big');if(btn){btn.disabled=true;btn.textContent='Sending…'}
  try{res=await CV.send('order',body)}catch(e){}
@@ -447,7 +447,7 @@ async function sendOrder(f){
 }
 // Khách sửa giỏ từ link trong email: cập nhật đúng đơn cũ, không hỏi lại thông tin
 async function sendBagUpdate(){
- const t=totals(),items=cart.map(i=>{const p=byId(i.pid);return {pid:i.pid,title:T(p),title_raw:p.title,variant:en(i.name),variant_raw:i.name,q:i.q,price_vnd:i.price,url:p.url,brand:st(p.brand).name,price_check:!!p.price_check}});
+ const t=totals(),items=cart.map(i=>{const p=byId(i.pid);return {pid:i.pid,title:T(p),title_raw:p.title,variant:en(i.name),variant_raw:i.name,q:i.q,price_vnd:i.price,url:p.url,brand:st(p.brand).name,price_check:!!p.price_check,image:p.images?.[0]||''}});
  let res=null,err='';try{res=await CV.send('update',{ref:orderRef,t:orderTok,items,totals:Object.fromEntries(Object.entries(t).filter(([k,v])=>typeof v==='number').map(([k,v])=>[k,+v.toFixed(2)]))})}catch(e){err=e.message}
  if(!res){renderCart();return toast(err&&err!=='send failed'?err:'We couldn’t send your update, please try again')}
  $('cartBody').innerHTML=`<h3 style="font-size:24px;margin:0 0 4px">Order ${esc(res.id)} updated</h3><p>Thank you! I’ll check availability with the brands and email you the revised order summary and payment details shortly.</p><p class="note">Can’t see our email? Check your Spam or Promotions folder.</p><button class="big" data-close>Keep browsing</button>`;

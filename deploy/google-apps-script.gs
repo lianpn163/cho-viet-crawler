@@ -52,7 +52,7 @@ const ORDER_HEADER = ['Mã đơn', 'Thời gian', 'Tên', 'Email', 'SĐT', 'Đ�
 function items_(arr) {
   return (Array.isArray(arr) ? arr.slice(0, 50) : []).map(i => ({ pid: clean_(i.pid, 200), title: clean_(i.title, 200), title_raw: clean_(i.title_raw, 200),
     variant: clean_(i.variant, 80), variant_raw: clean_(i.variant_raw, 80), q: Math.max(1, Math.min(20, parseInt(i.q, 10) || 1)),
-    price_vnd: Number(i.price_vnd) || 0, url: clean_(i.url, 300), brand: clean_(i.brand, 80), price_check: !!i.price_check }));
+    price_vnd: Number(i.price_vnd) || 0, url: clean_(i.url, 300), brand: clean_(i.brand, 80), price_check: !!i.price_check, image: clean_(i.image, 400) }));
 }
 const itemsText_ = items => items.map(i => `${i.q}× ${i.brand} – ${i.title} (${i.variant})`).join('\n');
 
@@ -124,8 +124,15 @@ function mail_(d) {
   if (d.key !== SECRET) return json_({ error: 'forbidden' });
   const to = clean_(d.to, 120).trim();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return json_({ error: 'Email khách không hợp lệ' });
-  MailApp.sendEmail({ to, subject: clean_(d.subject, 200), body: clean_(d.text, 20000), htmlBody: clean_(d.html, 80000),
-    name: SITE_NAME, replyTo: clean_(d.reply_to, 120) || OWNER_EMAIL });
+  // ảnh hàng thật (tải lên từ admin) gắn thẳng vào email
+  const inlineImages = {};
+  (Array.isArray(d.images) ? d.images.slice(0, 10) : []).forEach((im, k) => {
+    try { inlineImages['p' + k] = Utilities.newBlob(Utilities.base64Decode(String(im.data)), String(im.mime || 'image/jpeg'), 'photo' + (k + 1) + '.jpg'); } catch (e) {}
+  });
+  const opt = { to, subject: clean_(d.subject, 200), body: clean_(d.text, 20000), htmlBody: clean_(d.html, 120000),
+    name: SITE_NAME, replyTo: clean_(d.reply_to, 120) || OWNER_EMAIL };
+  if (Object.keys(inlineImages).length) opt.inlineImages = inlineImages;
+  MailApp.sendEmail(opt);
   return json_({ ok: true });
 }
 

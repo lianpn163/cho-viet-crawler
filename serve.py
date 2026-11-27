@@ -412,6 +412,12 @@ class Handler(SimpleHTTPRequestHandler):
                 o["confirm"] = patch["confirm"]
             if isinstance(patch.get("cost"), dict):
                 o["cost"] = {k: patch["cost"][k] for k in ("kg", "route", "extra") if k in patch["cost"]}
+            if isinstance(patch.get("email_log"), dict):   # đã gửi email chặng nào
+                o.setdefault("emails", []).append({"tpl": str(patch["email_log"].get("tpl", ""))[:20],
+                                                   "at": dt.datetime.now().isoformat(timespec="seconds")})
+                o["emails"] = o["emails"][-30:]
+            if isinstance(patch.get("ship"), dict):          # hãng + mã tracking
+                o["ship"] = {k: str(patch["ship"].get(k, ""))[:200] for k in ("carrier", "number", "link")}
             if "admin_note" in patch:
                 o["admin_note"] = str(patch["admin_note"])[:1000]
             save(ORDERS, orders)
@@ -447,6 +453,10 @@ class Handler(SimpleHTTPRequestHandler):
             if not ep or not secret:
                 return self.reply(400, {"error": "Chưa nối Google (Cài đặt → Online: link Apps Script + mã bí mật)"})
             payload = {"kind": "mail", "key": secret, **{k: str(data.get(k, "")) for k in ("to", "subject", "html", "text", "reply_to")}}
+            imgs = data.get("images") or []
+            if isinstance(imgs, list):
+                payload["images"] = [{"mime": str(i.get("mime", "image/jpeg"))[:40], "data": str(i.get("data", ""))}
+                                     for i in imgs[:10] if isinstance(i, dict) and len(str(i.get("data", ""))) < 3_000_000]
             try:
                 r = requests.post(ep, data=json.dumps(payload), headers={"Content-Type": "text/plain"}, timeout=45)
                 j = r.json()
