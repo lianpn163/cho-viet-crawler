@@ -8,7 +8,7 @@
  "free_over": 0,
  "gst": false,
  "acc_cap": 20,
- "soldout_days": 60,
+ "soldout_days": 180,
  "fee": 10,
  "deposit": 70,
  "eta": "10–12 days",
