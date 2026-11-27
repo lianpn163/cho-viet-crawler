@@ -479,6 +479,16 @@ class Handler(SimpleHTTPRequestHandler):
             if oid not in gone:
                 save(DELETED, (gone + [oid])[-5000:])
             return self.reply(200, {"ok": True})
+        if path == "/api/rate-refresh":   # lấy tỷ giá mới nhất từ web online (lúc soạn email có số tiền)
+            site = (load(SITE / "data" / "admin" / "settings.json", {}).get("site_url") or "").strip().rstrip("/")
+            try:
+                r = requests.get(f"{site}/data/rate.json", timeout=15) if site else None
+                if r is not None and r.ok and r.json().get("market"):
+                    save(SITE / "data" / "rate.json", r.json())
+                    return self.reply(200, {"ok": True, "rate": r.json()})
+            except Exception:  # noqa: BLE001
+                pass
+            return self.reply(200, {"ok": False})
         if path == "/api/pull":
             return self.reply(200, pull_online())
         if path == "/api/sync":

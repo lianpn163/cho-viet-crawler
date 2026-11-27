@@ -527,7 +527,7 @@ function startCompose(o,tpl){
  if(tpl&&tpl!=='confirm'&&tpl!=='remind')composing.deadline=plusDays(3);
 }
 function calc(o){
- const rate=o.rate||D.set.rate;let goods=0,kg=0;
+ const rate=D.set.rate;let goods=0,kg=0;   // tỷ giá hôm nay (lúc khách bắt đầu chuyển khoản)
  o.items.forEach((i,k)=>{const c=composing.items[k];if(!c.ok)return;goods+=c.price/rate*i.q;const p=D.byId[i.pid];kg+=(p?(CV.WEIGHT[catOf(p)]||.5):.5)*i.q});
  return CV.quote(goods,kg,!!(o.first_claim&&!o.repeat_customer));
 }
@@ -590,6 +590,10 @@ function suggestStage(o){const st=o.status||'new',sent=new Set((o.emails||[]).ma
  if(st==='awaiting_balance')return sent.has('hub')?'landed':'hub';if(st==='shipped')return 'shipped';return 'confirm'}
 const firstName=o=>(o.name||'').trim().split(/\s+/)[0]||'there';
 const finalTotals=o=>o.confirm?.totals||o.totals||{};
+// Số còn lại khi hàng về hub: tính lại tổng theo tỷ giá hôm nay, trừ phần cọc đã nhận
+function hubTotals(o){const T=finalTotals(o),c=o.confirm;if(!c?.items)return {...T,rate_then:c?.rate||o.rate,rate_now:D.set.rate};let goods=0,kg=0;
+ o.items.forEach((i,k)=>{const ci=c.items[k];if(!ci||ci.ok===false)return;goods+=(ci.price||i.price_vnd)/D.set.rate*i.q;const p=D.byId[i.pid];kg+=(p?(CV.WEIGHT[catOf(p)]||.5):.5)*i.q});
+ const now=CV.quote(goods,kg,!!(o.first_claim&&!o.repeat_customer));return {...T,total:now.total,balance:Math.max(0,now.total-(+T.deposit||0)),rate_then:c.rate||o.rate,rate_now:D.set.rate}}
 const A$=x=>'A$'+(+x||0).toFixed(2);
 function itemLines(o,mark='•'){const okIdx=o.confirm?.items?o.items.map((_,k)=>o.confirm.items[k]?.ok!==false):o.items.map(()=>true);
  return o.items.filter((_,k)=>okIdx[k]).map(i=>`${mark} ${i.brand} – ${i.title} (${i.variant}) × ${i.q}`)}
@@ -615,7 +619,7 @@ function stageEmail(o){
  case 'hub':return end(`${name} order ${o.id}: your pieces have arrived at our Vietnam hub`,
   "Your pieces have arrived at our Vietnam hub, and I've checked each item for you.",'','**1. YOUR ITEMS**','',...itemLines(o,'✓'),'',
   ...(C.photos?.length?['**2. PHOTOS OF YOUR ACTUAL ITEMS**','','{{PHOTOS}}','']:[]),
-  `**${C.photos?.length?3:2}. REMAINING BALANCE**`,'',`To send your order to Australia, please transfer the remaining balance of **${A$(T.balance)}**.`,'',...bankBlock(o),'',
+  `**${C.photos?.length?3:2}. REMAINING BALANCE**`,'',`To send your order to Australia, please transfer the remaining balance of **${A$(hubTotals(o).balance)}** (calculated at today's exchange rate).`,'',...bankBlock(o),'',
   `**Payment deadline:** ${dayLong(C.deadline)}.`,'',
   "Once received, your order will be on the next flight to Australia. If anything doesn't look right in the photos, just reply and let me know before then.");
  case 'landed':return end(`${name} order ${o.id} has landed in Australia`,
@@ -639,7 +643,7 @@ function stageMessage(o,e){
   :`Hi ${f}! Please check your email for your availability confirmation and deposit details to complete your order ${id}. (If you can't see it, check your Spam or Promotions folder.)`;
  case 'remind':return `Hi ${f}, just a gentle reminder that the deposit for order ${id} (${A$(T.deposit)}) is due ${dayLong(C.deadline)}. Payment details are in your email. Thank you!`;
  case 'deposit_ok':return `Hi ${f}! Deposit received, thank you. I'm placing your order ${id} with the brands now and will keep you updated.`;
- case 'hub':return `Hi ${f}! Your pieces have arrived at our Vietnam hub. I've emailed you photos of your items and the remaining balance (${A$(T.balance)}). Once paid, they'll fly to Australia!`;
+ case 'hub':return `Hi ${f}! Your pieces have arrived at our Vietnam hub. I've emailed you photos of your items and the remaining balance (${A$(hubTotals(o).balance)}). Once paid, they'll fly to Australia!`;
  case 'landed':return `Hi ${f}! Your order ${id} has landed in Australia and will be on its way to you within ${C.dispatch}.`;
  case 'shipped':return `Hi ${f}! Your order ${id} is on its way. ${carrierName()} tracking: ${C.ship?.number||''} ${trackLink()}`.trim();
  case 'pickup':return `Hi ${f}! Your order ${id} is ready for pickup in Brisbane. ${C.pickup.replace(/\n/g,' · ')}. Let me know a time that suits you!`;
@@ -681,12 +685,12 @@ function composer(o){
  <input type="number" data-cprice="${k}" value="${C.items[k].price}" step="1000" style="${inp}" aria-label="Giá cuối (VND)"></div>`).join('')}
  <div class="two" style="margin-top:10px"><label style="${lab}">Thời gian giao (ETA)<input data-ceta value="${esc(C.eta)}" style="${inp}"></label>
  <label style="${lab}">Hạn chuyển cọc<input type="date" data-cdead value="${C.deadline}" style="${inp}"></label></div>
- <p style="margin:10px 0 4px;font-size:14px">Tổng mới: <b>A$${e.t.total.toFixed(2)}</b> · cọc <b>A$${e.t.deposit.toFixed(2)}</b> · còn lại A$${e.t.balance.toFixed(2)}</p>`;
+ <p style="margin:10px 0 4px;font-size:14px">Tổng mới: <b>A$${e.t.total.toFixed(2)}</b> · cọc <b>A$${e.t.deposit.toFixed(2)}</b> · còn lại A$${e.t.balance.toFixed(2)}</p><p class="note" style="margin:0">Tính theo tỷ giá hôm nay ${D.set.rate.toLocaleString('vi-VN')}₫${o.rate&&o.rate!==D.set.rate?` (lúc khách đặt: ${(+o.rate).toLocaleString('vi-VN')}₫)`:''}${D.rateInfo?` · cập nhật ${esc(ago(D.rateInfo.updated))}`:''}</p>`;
  else if(C.tpl==='remind')fields=`<label style="${lab}">Hạn chuyển cọc<input type="date" data-cdead value="${C.deadline}" style="${inp}"></label><p class="note">Cọc ${A$(T.deposit)} · tổng ${A$(T.total)}</p>`;
  else if(C.tpl==='deposit_ok')fields=`<label style="${lab}">Thời gian giao (ETA)<input data-ceta value="${esc(C.eta)}" style="${inp}"></label><p class="note">Đã nhận cọc ${A$(T.deposit)} · còn lại ${A$(T.balance)} (thu khi hàng về hub). Gửi xong đơn chuyển sang "Đã cọc".</p>`;
  else if(C.tpl==='hub')fields=`<label style="${lab}">Ảnh hàng thật (tối đa 10 ảnh)<input type="file" accept="image/*" multiple data-chubimg style="font-size:14px"></label>
  <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">${C.photos.map((ph,k)=>`<div style="position:relative"><img src="${ph.url}" alt="" style="width:76px;height:76px;object-fit:cover;border-radius:6px"><button class="x" data-cphdel="${k}" style="position:absolute;top:-6px;right:-6px;width:24px;height:24px;font-size:14px;border-radius:50%" aria-label="Bỏ ảnh">×</button></div>`).join('')}</div>
- <label style="${lab}">Hạn trả phần còn lại<input type="date" data-cdead value="${C.deadline}" style="${inp}"></label><p class="note">Còn lại ${A$(T.balance)}. Gửi xong đơn chuyển sang cột "Hàng về kho".</p>`;
+ <label style="${lab}">Hạn trả phần còn lại<input type="date" data-cdead value="${C.deadline}" style="${inp}"></label>${(()=>{const H=hubTotals(o);return `<p class="note">Còn lại <b>${A$(H.balance)}</b> theo tỷ giá hôm nay ${(+H.rate_now).toLocaleString('vi-VN')}₫${H.rate_then&&H.rate_then!==H.rate_now?` (lúc xác nhận: ${(+H.rate_then).toLocaleString('vi-VN')}₫, còn lại khi đó ${A$(T.balance)})`:''}. Gửi xong đơn chuyển sang cột "Hàng về kho".</p>`})()}`;
  else if(C.tpl==='landed')fields=`<label style="${lab}">Gửi đi trong<input data-cdisp value="${esc(C.dispatch)}" style="${inp}"></label>`;
  else if(C.tpl==='shipped')fields=`<div class="two"><label style="${lab}">Hãng vận chuyển<select data-cship="carrier" style="${inp}">${Object.entries({auspost:'Australia Post',dhl:'DHL',other:'Khác (Sài Cảnh…)'}).map(([k,v])=>`<option value="${k}" ${C.ship.carrier===k?'selected':''}>${v}</option>`).join('')}</select></label>
  <label style="${lab}">Mã tracking<input data-cship="number" value="${esc(C.ship.number)}" style="${inp}"></label></div>
@@ -755,7 +759,8 @@ document.addEventListener('click',async e=>{
  else if(d.refresh!==undefined){await loadOrders();redraw();toast('Đã tải lại')}
  else if(d.advance){const o=orders.find(x=>x.id===d.advance),ci=COLS.findIndex(c=>c.st.includes(o.status||'new'));await setStatus(o.id,COLS[ci+1].to)}
  else if(d.shipped){await setStatus(d.shipped,'shipped')}
- else if(d.compose){const o=orders.find(x=>x.id===d.compose);startCompose(o,$('stagePick')?.value||'confirm');redraw()}
+ else if(d.compose){const o=orders.find(x=>x.id===d.compose),tpl=$('stagePick')?.value||'confirm';t.disabled=true;t.textContent='Đang lấy tỷ giá mới nhất…';
+  try{const r=await api('/api/rate-refresh',{});if(r.j?.ok)await CV.refreshRate('/')}catch(x){}startCompose(o,tpl);redraw()}
  else if(d.ccancel!==undefined){composing=null;redraw()}
  else if(d.cphdel!==undefined&&composing){composing.photos.splice(+d.cphdel,1);composing.edited=null;redraw()}
  else if(d.mcopy!==undefined){try{await navigator.clipboard.writeText($('cMsg').value);toast('Đã copy tin nhắn')}catch(x){$('cMsg').select();toast('Bấm Cmd+C để copy')}}
@@ -769,7 +774,7 @@ document.addEventListener('click',async e=>{
   const e=curEmail(o),body=$('cBody').value,subj=$('cSubj').value;if(composing.tpl==='shipped'&&!composing.ship.number)return toast('Nhập mã tracking trước');t.disabled=true;t.textContent='Đang gửi…';
   const m=await api('/api/send-email',{to:o.email,subject:subj,html:emailHtml(body,o),text:emailPlain(body,o),reply_to:contact.email||'',images:composing.tpl==='hub'?composing.photos.map(p=>({mime:'image/jpeg',data:p.data})):[]});
   if(!m.ok){t.disabled=false;t.dataset.sure='';t.textContent='Gửi email cho khách';return toast(m.j.error||'Không gửi được',9000)}
-  const stg=STAGES.find(x=>x[0]===composing.tpl),patch=composing.tpl==='confirm'?{...(e.mode==='update'?{}:{status:'awaiting_deposit'}),confirm:{mode:e.mode,items:composing.items,eta:composing.eta,deadline:composing.deadline,totals:Object.fromEntries(Object.entries(e.t).map(([k,v])=>[k,+(+v).toFixed(2)])),sent_at:new Date().toISOString()}}:{...(stg[2]?{status:stg[2]}:{}),email_log:{tpl:composing.tpl},...(composing.tpl==='shipped'?{ship:{carrier:composing.ship.carrier==='other'?(composing.ship.other||'other'):composing.ship.carrier,number:composing.ship.number,link:trackLink()}}:{})};
+  const stg=STAGES.find(x=>x[0]===composing.tpl),patch=composing.tpl==='confirm'?{...(e.mode==='update'?{}:{status:'awaiting_deposit'}),confirm:{mode:e.mode,rate:D.set.rate,items:composing.items,eta:composing.eta,deadline:composing.deadline,totals:Object.fromEntries(Object.entries(e.t).map(([k,v])=>[k,+(+v).toFixed(2)])),sent_at:new Date().toISOString()}}:{...(stg[2]?{status:stg[2]}:{}),email_log:{tpl:composing.tpl},...(composing.tpl==='shipped'?{ship:{carrier:composing.ship.carrier==='other'?(composing.ship.other||'other'):composing.ship.carrier,number:composing.ship.number,link:trackLink()}}:{})};
   const r=await api('/api/order-update',{id:o.id,patch});
   if(r.ok){Object.assign(o,r.j.order);composing=null;redraw()}toast('Đã gửi email tới '+o.email+(stg[2]||(composing?.tpl==='confirm'&&e.mode!=='update')?' · đã chuyển cột':''),5000)}
  else if(d.csend){const o=orders.find(x=>x.id===d.csend),e=emailText(o),body=$('cBody').value,subj=$('cSubj').value;

@@ -44,6 +44,7 @@ jobs:
         if: github.event_name != 'push' || hashFiles('site/data/products.json') == ''
         env:
           WARNINGS_FILE: site/data/warnings.json
+          OXR_APP_ID: ${{ secrets.OXR_APP_ID }}
         run: python crawler.py || echo "::warning::Crawler báo lỗi, giữ dữ liệu cũ"
 
       - name: Giữ cảnh báo cũ khi chỉ sửa giao diện

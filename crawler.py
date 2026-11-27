@@ -531,7 +531,24 @@ RATE_SOURCES = [   # tỷ giá thị trường miễn phí, không cần key (c�
 
 
 def update_rate():
-    """Lấy tỷ giá AUD→VND mới nhất, ghi site/data/rate.json. Lỗi thì giữ file cũ."""
+    """Lấy tỷ giá AUD→VND mới nhất, ghi site/data/rate.json. Lỗi thì giữ file cũ.
+    Có OXR_APP_ID (Open Exchange Rates, gói Free cập nhật mỗi giờ) thì dùng trước, tối đa 1 lần/giờ."""
+    key = os.environ.get("OXR_APP_ID", "").strip()
+    old = load(DATA / "rate.json", {})
+    if key:
+        fresh = old.get("source") == "openexchangerates.org" and old.get("updated", "") > (
+            dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=50)).isoformat(timespec="seconds")
+        if fresh:
+            return old.get("market")
+        try:
+            r = get(f"https://openexchangerates.org/api/latest.json?app_id={key}&symbols=AUD,VND")
+            j = r.json() if r is not None and r.status_code == 200 else {}
+            v = float(j["rates"]["VND"]) / float(j["rates"]["AUD"])
+        except Exception:  # noqa: BLE001
+            v = 0
+        if 10000 < v < 40000:
+            save(DATA / "rate.json", {"market": round(v, 2), "source": "openexchangerates.org", "updated": now_iso()})
+            return v
     for name, url, pick in RATE_SOURCES:
         try:
             r = get(url)

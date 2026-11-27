@@ -44,6 +44,12 @@ const CV = (() => {
     if (!r.ok) throw new Error(j.error || 'send failed');
     return j;
   }
+  // Lấy lại tỷ giá mới nhất (lúc checkout / gửi đơn). Trả về true nếu tỷ giá vừa đổi.
+  async function refreshRate(base = '') {
+    const rt = await jget(base + 'data/rate.json'), before = D.set.rate;
+    if (rt && rt.market > 10000) { D.rateInfo = rt; if ((D.set.rate_mode || 'auto') === 'auto') D.set.rate = Math.round(rt.market * (1 - (+D.set.rate_margin || 0) / 100)) }
+    return D.set.rate !== before;
+  }
   async function load(base = '') {
     const files = ['data/products.json', 'data/status.json', 'data/admin/overrides.json', 'data/admin/clips.json', 'data/admin/brands_admin.json', 'data/admin/settings.json', 'data/admin/articles.json', 'data/admin/keywords.json', 'data/rate.json'];
     const [pd, sd, ov, cl, ba, se, ar, kw, rt] = await Promise.all(files.map(f => jget(base + f)));
@@ -162,5 +168,5 @@ const CV = (() => {
     if (s.eta) out.push(`Giao tận nhà ${s.eta}`);
     return out;
   }
-  return { send, isLocal, DEFAULT_CONTENT, content, fill, applyCats, catEN, catHidden, CAT_EN_DEFAULT, BASE_CATS, SKIP, sleeve, L, quote, promos, esc, CATS, WEIGHT, COLOURS, D, load, aud, vnd, ago, hue, st, rec, isLive, stale, catOf, link, vopts, plain, rest, colours, slug, readMin, md, safeUrl };
+  return { refreshRate, send, isLocal, DEFAULT_CONTENT, content, fill, applyCats, catEN, catHidden, CAT_EN_DEFAULT, BASE_CATS, SKIP, sleeve, L, quote, promos, esc, CATS, WEIGHT, COLOURS, D, load, aud, vnd, ago, hue, st, rec, isLive, stale, catOf, link, vopts, plain, rest, colours, slug, readMin, md, safeUrl };
 })();

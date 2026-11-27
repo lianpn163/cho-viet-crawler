@@ -281,7 +281,7 @@ function renderChrome(){
  $('faq').innerHTML=C.faq.map(([q,a])=>`<details><summary>${esc(F(q))}</summary><p>${esc(F(a))}</p></details>`).join('');
  $('about').textContent=F(C.about);
  $('contact').innerHTML=S.contact?`<a href="mailto:${esc(S.contact)}">${esc(S.contact)}</a>`:'';
- $('copy').textContent=`© ${new Date().getFullYear()} ${name} · A$1 ≈ ${D.set.rate.toLocaleString('en-AU')} ₫ (indicative) · updated ${ago(D.gen)}`;
+ $('copy').innerHTML=`© ${new Date().getFullYear()} ${esc(name)} · A$1 ≈ ${D.set.rate.toLocaleString('en-AU')} ₫ · updated ${esc(ago(D.gen))}${D.rateInfo?` · <a href="${D.rateInfo.source==='openexchangerates.org'?'https://openexchangerates.org':'https://www.exchangerate-api.com'}" target="_blank" rel="noopener" style="color:inherit">${D.rateInfo.source==='openexchangerates.org'?'Rates by Open Exchange Rates':'Rates By Exchange Rate API'}</a>`:''}`;
 }
 let barI=0;setInterval(()=>{if(innerWidth>720||matchMedia('(prefers-reduced-motion: reduce)').matches)return;const sp=[...document.querySelectorAll('#bar span')];if(sp.length<2)return;sp.forEach(x=>x.classList.remove('on'));barI=(barI+1)%sp.length;sp[barI].classList.add('on')},3500);
 
@@ -437,6 +437,7 @@ async function checkout(){
  $('cartFoot').innerHTML='';
 }
 async function sendOrder(f){
+ if(await CV.refreshRate()){renderShop(true);await checkout();return toast('The exchange rate was just updated. Please check your new total and send again.')}
  const t=totals(),items=cart.map(i=>{const p=byId(i.pid);return {pid:i.pid,title:T(p),title_raw:p.title,variant:en(i.name),variant_raw:i.name,q:i.q,price_vnd:i.price,url:p.url,brand:st(p.brand).name,price_check:!!p.price_check,image:p.images?.[0]||''}});
  const body={name:f.name.value,email:f.email.value,phone:f.phone.value,address:`${f.address.value}, ${f.suburb.value} ${f.state.value} ${f.postcode.value}`,note:f.note.value,first_claim:!!(D.set.free_first&&firstClaim),items,totals:Object.fromEntries(Object.entries(t).filter(([k,v])=>typeof v==='number').map(([k,v])=>[k,+v.toFixed(2)])),rate:D.set.rate,deposit_pct:D.set.deposit,ref:orderRef};
  let res=null;const btn=f.querySelector('button.big');if(btn){btn.disabled=true;btn.textContent='Sending…'}

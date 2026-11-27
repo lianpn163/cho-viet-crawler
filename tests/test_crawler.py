@@ -284,3 +284,23 @@ def test_rate_saved_and_kept_on_failure(monkeypatch, tmp_path):
     monkeypatch.setattr(crawler, "get", lambda u: Resp(500, ""))
     crawler.run()
     assert json.loads(f.read_text())["market"] == 18228.6     # lỗi thì giữ tỷ giá cũ
+
+
+def test_rate_uses_openexchangerates_hourly(monkeypatch, tmp_path):
+    setup(monkeypatch, tmp_path, [])
+    monkeypatch.setenv("OXR_APP_ID", "k")
+    calls = []
+
+    def fake(u):
+        calls.append(u)
+        if "openexchangerates" in u:
+            return Resp(200, {"rates": {"AUD": 1.5, "VND": 27300}})
+        return Resp(200, {"rates": {"VND": 1}})
+    monkeypatch.setattr(crawler, "get", fake)
+    crawler.run()
+    f = tmp_path / "site" / "data" / "rate.json"
+    d = json.loads(f.read_text())
+    assert d["source"] == "openexchangerates.org" and d["market"] == 18200.0
+    n = len([c for c in calls if "openexchangerates" in c])
+    crawler.run()                                   # chạy lại trong cùng giờ: không gọi thêm
+    assert len([c for c in calls if "openexchangerates" in c]) == n
