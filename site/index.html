@@ -197,6 +197,7 @@ footer{background:var(--soft);margin-top:32px;scroll-margin-top:80px}
 /* ===== giao diện kiểu Human By Nature ===== */
 :root{--sale:#c8332b}
 .bar{background:#111}
+@media(min-width:721px){.bar span.brt{display:none}}
 .burger{display:none}
 .ph1{align-items:flex-end;padding:clamp(22px,4vw,48px) 0 clamp(14px,2vw,22px)}
 .ttl{border:0;background:none;padding:0;display:inline-flex;align-items:flex-start;gap:6px;color:#111;cursor:pointer;text-align:left}
@@ -357,7 +358,7 @@ function renderChrome(){
  if(/^[a-z0-9]{5,12}$/.test(S.typekit||'')&&!document.getElementById('tk')){const l=document.createElement('link');l.id='tk';l.rel='stylesheet';l.href=`https://use.typekit.net/${S.typekit}.css`;l.onload=()=>document.documentElement.classList.add('hal');document.head.appendChild(l)}
  const C=CV.content(),F=CV.fill,bar=S.content?.bar?.length?C.bar:[];
  if(!bar.length){if(S.eta)bar.push('Get your order in {eta}');if(S.ship_mode==='flat')bar.push('Flat A${ship_flat} shipping Australia-wide');if(S.free_first)bar.push('Free shipping on your first order');if(S.free_over>0)bar.push(`Free shipping over A$${S.free_over}`)}
- $('bar').innerHTML=`<div class="wrap">${bar.map((t,i)=>`<span class="${i?'':'on'}">${esc(F(t))}</span>`).join('')}</div>`;
+ $('bar').innerHTML=`<div class="wrap">${bar.map((t,i)=>`<span class="${i?'':'on'}">${esc(F(t))}</span>`).join('')}<span class="brt">${D.rateInfo&&(S.rate_mode||'auto')==='auto'?'<i class="live"></i>':''}A$1 = ${vnd(S.rate)}</span></div>`;   // tỷ giá chạy chung với các dòng trên thanh (điện thoại)
  $('hdRate').innerHTML=`<span class="flag" aria-hidden="true">🇦🇺</span>${D.rateInfo&&(S.rate_mode||'auto')==='auto'?'<i class="live"></i>':''}A$1 = ${vnd(S.rate)}`;$('hdRate').title=D.rateInfo?'Live exchange rate, updated '+ago(D.rateInfo.updated):'Indicative exchange rate';
  $('procLead').textContent=F(C.lead);
  $('steps').innerHTML=C.steps.map(([t,d])=>`<li><b>${esc(F(t))}</b><span>${esc(F(d))}</span></li>`).join('');
@@ -377,7 +378,11 @@ function renderShop(keep){
  if(!keep)shown=PAGE;
  const live=D.status.filter(b=>isLive(b.id)),ids=new Set(live.map(b=>b.id));
  const all=D.products.filter(p=>ids.has(p.brand)&&p.sellable!==false&&catOf(p)!==SKIP&&!D.ov[p.id]?.hidden&&!CV.catHidden(catOf(p)));
- $('brands').innerHTML=`<button class="${brandF?'':'on'}" data-bf="">All brands</button>`+live.map(b=>`<button class="${brandF===b.id?'on':''}" data-bf="${esc(b.id)}">${esc(b.name)}</button>`).join('');
+ // hàng brand: khi đang xem 1 danh mục thì chỉ hiện brand có hàng trong danh mục đó
+ const inCat=p=>!catF||(catF==='sale'?p.compare_at:catOf(p)===catF);
+ const bl=live.filter(b=>all.some(p=>p.brand===b.id&&inCat(p)));
+ if(brandF&&catF&&!bl.some(b=>b.id===brandF))brandF='';
+ $('brands').innerHTML=`<button class="${brandF?'':'on'}" data-bf="">All brands</button>`+bl.map(b=>`<button class="${brandF===b.id?'on':''}" data-bf="${esc(b.id)}">${esc(b.name)}</button>`).join('');
  const scope=all.filter(p=>!brandF||p.brand===brandF);
  const cats=[...new Set(scope.map(catOf))].sort((a,b)=>CATS.indexOf(a)-CATS.indexOf(b));
  if(catF&&catF!=='sale'&&!cats.includes(catF))catF='';
@@ -624,7 +629,8 @@ document.addEventListener('click',e=>{
  const t=e.target.closest('button');if(!t)return;const d=t.dataset;
  if(d.close!==undefined){closeD();if(d.bf===undefined)return}
  if(d.closemodal!==undefined)closeModal();
- else if(d.bf!==undefined){if(d.close!==undefined){}brandF=d.bf;colF='';catF='';if(location.hash.startsWith('#p/')||location.hash==='#moodboard'||location.hash.startsWith('#journal'))location.hash='#shop';renderShop()}
+ else if(d.bf!==undefined){brandF=d.bf;colF='';if(d.close!==undefined)catF='';   // bấm brand trong hàng tab: giữ danh mục; chọn brand từ menu: xem toàn bộ brand
+  if(location.hash.startsWith('#p/')||location.hash==='#moodboard'||location.hash.startsWith('#journal'))location.hash='#shop';renderShop()}
  else if(d.cf!==undefined){catF=d.cf;slvF='';renderShop()}
  else if(d.slv!==undefined){slvF=d.slv;renderShop()}
  else if(t.id==='loadMore'){shown+=PAGE;renderShop(true)}
@@ -635,7 +641,7 @@ document.addEventListener('click',e=>{
  else if(d.gv){gview=+d.gv;try{localStorage.setItem('vb_gv',gview)}catch(x){}renderShop(true)}
  else if(t.id==='filterBtn'||t.id==='catBtn')openD('filterD');
  else if(t.id==='openMenu'){renderMenu();openD('menuD')}
- else if(d.mcat){closeD();catF=d.mcat;slvF='';location.hash='#shop';renderShop();scrollTo(0,0)}
+ else if(d.mcat){closeD();catF=d.mcat;slvF='';brandF='';colF='';location.hash='#shop';renderShop();scrollTo(0,0)}
  else if(t.id==='fReset'){catF='';colF='';slvF='';$('instock').checked=false;$('q').value='';$('sort').value='rel';renderShop()}
  else if(d.grp){const s=sel[d.grp]||{};sel[d.grp]=s.g===d.g?{}:{g:d.g};redrawCard(d.grp)}
  else if(d.pick){sel[d.pick]={vi:+d.vi};redrawCard(d.pick)}

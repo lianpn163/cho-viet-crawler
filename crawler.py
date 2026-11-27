@@ -112,12 +112,25 @@ def note_unsure(title, brand_words=()):
             u["samples"].append(title)
 
 
+# từ chỉ chất liệu/kiểu dệt: chỉ dùng khi tên không có từ nào nói rõ loại áo/quần
+# (vd "Knit Polo" là polo, "Denim Jacket" là áo khoác, "Knit Vest" mới là áo len)
+WEAK = {"knit", "len", "nỉ", "denim", "jersey", "cargo"}
+
+
 def categorize(title, ptype="", tags=()):
-    text = " ".join([title or "", ptype or "", " ".join(tags or [])]).lower()
-    for cat, words in CUSTOM + CATEGORIES:
-        for w in words:
-            if re.search(r"(?<!\w)" + re.escape(w) + r"(?!\w)", text):
-                return cat
+    def find(text, weak):
+        for cat, words in CUSTOM + CATEGORIES:
+            for w in words:
+                if (w in WEAK) == weak and re.search(r"(?<!\w)" + re.escape(w) + r"(?!\w)", text):
+                    return cat
+        return None
+    # ưu tiên tên sản phẩm, rồi loại sản phẩm, cuối cùng mới tới tag (tag của shop hay gắn bừa theo bộ sưu tập)
+    parts = [(title or "").lower(), (ptype or "").lower(), " ".join(tags or []).lower()]
+    for weak in (False, True):
+        for text in parts:
+            c = find(text, weak) if text else None
+            if c:
+                return c
     return "Khác"   # sẽ hiện trong review.json để người duyệt xếp tay
 
 
