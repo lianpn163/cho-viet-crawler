@@ -53,5 +53,23 @@
    "ig": 1,
    "biz": 1
   }
+ },
+ "lider": {
+  "status": "live",
+  "instagram": "lider.closet",
+  "ver": {
+   "web": 1,
+   "ig": 1,
+   "biz": 1
+  }
+ },
+ "gamble": {
+  "status": "live",
+  "instagram": "gamble.worldwide",
+  "ver": {
+   "web": 1,
+   "ig": 1,
+   "biz": 1
+  }
  }
 }

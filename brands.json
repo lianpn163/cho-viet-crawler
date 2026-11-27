@@ -26,5 +26,19 @@
   "domain": "whenever.vn",
   "platform": "haravan",
   "instagram": ""
+ },
+ {
+  "id": "lider",
+  "name": "LIDER",
+  "domain": "lider.vn",
+  "platform": "haravan",
+  "instagram": "lider.closet"
+ },
+ {
+  "id": "gamble",
+  "name": "GAMBLE",
+  "domain": "gambleworldwide.vn",
+  "platform": "haravan",
+  "instagram": "gamble.worldwide"
  }
 ]
