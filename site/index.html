@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap" rel="stylesheet">
 <style>
 /* Trắng sạch, chữ xanh dương đậm. Bố cục tham khảo RVB: thanh thông tin mỏng, logo giữa, tiêu đề lớn, hàng brand, hàng danh mục. */
-:root{--sans:"Be Vietnam Pro",system-ui,sans-serif;--display:"Be Vietnam Pro",system-ui,sans-serif;--script:"Be Vietnam Pro",system-ui,sans-serif;color-scheme:light;--bg:#fff;--ink:#10142e;--blue:#00007F;--deep:#00005c;--mute:#6b6f85;--line:#e6e7ef;--soft:#f5f6fb;--tint:#ececfa;--yel:#ffd34d;--ok:#0f7a4a;--warn:#a35a00;--bad:#c42b1c;--card:#fff;--red:#00007F;--ind:#00007F;--serif:"Be Vietnam Pro",system-ui,sans-serif}
+:root{--sans:"Be Vietnam Pro",system-ui,sans-serif;--display:"Be Vietnam Pro",system-ui,sans-serif;--script:"Be Vietnam Pro",system-ui,sans-serif;color-scheme:light;--bg:#fff;--ink:#111;--blue:#111;--deep:#00005c;--mute:#6b6f85;--line:#e6e7ef;--soft:#f5f6fb;--tint:#ececfa;--yel:#ffd34d;--ok:#0f7a4a;--warn:#a35a00;--bad:#c42b1c;--card:#fff;--red:#111;--ind:#111;--serif:"Be Vietnam Pro",system-ui,sans-serif}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:#fff;color:var(--ink);font:15px/1.5 var(--sans);overflow-x:clip}
 html.hal{--sans:"halyard-text","Be Vietnam Pro",system-ui,sans-serif;--display:"halyard-display","halyard-text","Be Vietnam Pro",sans-serif}
@@ -193,11 +193,71 @@ footer{background:var(--soft);margin-top:32px;scroll-margin-top:80px}
 .toast.on{transform:translate(-50%,0)}
 @media(max-width:480px){.toast{bottom:auto;top:14px;transform:translate(-50%,-140px)}.toast.on{transform:translate(-50%,0)}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===== giao diện kiểu Human By Nature ===== */
+:root{--sale:#c8332b}
+.bar{background:#111}
+.burger{display:none}
+.ph1{align-items:flex-end;padding:clamp(22px,4vw,48px) 0 clamp(14px,2vw,22px)}
+.ttl{border:0;background:none;padding:0;display:inline-flex;align-items:flex-start;gap:6px;color:#111;cursor:pointer;text-align:left}
+.ph1 h1{color:#111;font-size:clamp(26px,4.2vw,46px);letter-spacing:.005em;line-height:1}
+.ttl sup{font-size:clamp(13px,1.4vw,16px);color:#777;font-weight:500;top:-.2em;position:relative}
+.howlink{color:#111}
+.tabs button.on{color:#111;border-color:#111}
+.fbar{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:10px;min-height:54px}
+.fbtn{border:0;background:none;display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#111;padding:8px 0}
+.fbtn i{font-style:normal;font-weight:500}
+.gv{display:flex;gap:10px}.gv button{border:0;background:none;display:flex;gap:3px;padding:6px;opacity:.3}.gv button.on{opacity:1}
+.gv i{display:block;width:9px;height:18px;background:#111}.gv button[data-gv="1"] i{width:18px}
+.tools{display:none}
+.grid{gap:0;padding:0;border-left:1px solid var(--line)}
+.grid .card{border-right:1px solid var(--line);border-bottom:1px solid var(--line);text-align:left}
+.card .ph{aspect-ratio:3/4}
+.bdg{position:absolute;left:12px;top:12px;background:#f4f1ea;color:var(--sale);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:5px 9px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.bdg.nw{background:#111;color:#fff}.bdg.so{background:#fff;color:#777}.bdg.low{top:auto;bottom:12px;background:#fff;color:#111}
+.bdg.inl{position:static;margin-left:6px}
+.qadd{position:absolute;right:0;bottom:0;width:46px;height:46px;border:0;background:#fff;color:#111;font-size:26px;font-weight:300;line-height:1;cursor:pointer}
+.qadd:hover{background:#111;color:#fff}
+.card .body{display:block;padding:14px 14px 18px;text-decoration:none;color:inherit;align-items:flex-start}
+.card .bt{display:block;color:#8a8a94;font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px}
+.card h3{font-size:14px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;line-height:1.25;margin:0 0 8px;color:#111}
+.card .price{justify-content:flex-start;font-size:14px}.card .pv{text-align:left}
+.price b.sale{color:var(--sale)}.price b{font-weight:500}
+.off{background:var(--sale)}
+.grid.g1{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:700px){.wrap.full,.grid{margin-inline:calc(-1*max(4vw,16px))}.grid.g1{grid-template-columns:1fr}.card .body{padding:12px 12px 16px}.card h3{font-size:13px}.qadd{width:40px;height:40px;font-size:24px}.bdg{left:8px;top:8px;font-size:10px;padding:4px 7px}}
+/* sheets & menu */
+.drawer.sheet{width:min(440px,100%)}
+@media(max-width:700px){.drawer.sheet{top:auto;bottom:0;height:auto;max-height:86vh;width:100%;transform:translateY(100%);border-radius:14px 14px 0 0}.drawer.sheet.on{transform:none}}
+.drawer.left{left:0;right:auto;transform:translateX(-100%)}.drawer.left.on{transform:none}
+.fgrp{display:grid;gap:8px;padding:12px 0;border-bottom:1px solid var(--line)}.fgrp b{font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.fgrp input[type=search],.fgrp select{min-height:44px;border:1px solid var(--line);padding:0 12px;font-size:16px;background:#fff;width:100%}
+.fchips{display:flex;flex-wrap:wrap;gap:8px}.fchips button{min-height:38px;border:1px solid var(--line);background:#fff;padding:0 14px;font-size:13px}.fchips button.on{background:#111;color:#fff;border-color:#111}
+.qahd{display:grid;grid-template-columns:84px 1fr;gap:14px;margin-bottom:14px}.qahd img,.qahd span{width:84px;height:112px;object-fit:cover;background:var(--soft)}.qahd small{color:#8a8a94;text-transform:uppercase;letter-spacing:.12em;font-size:10px}.qahd b{display:block;text-transform:uppercase;font-size:14px;margin:4px 0 6px}
+.bblinks{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.lnk2{display:block;text-align:center;margin-top:14px;color:#111;font-size:13px}
+.mnav{display:grid}.mnav a{font-size:22px;font-weight:800;text-transform:uppercase;color:#111;text-decoration:none;padding:10px 0}
+.mh{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8a94;margin:22px 0 6px}
+.mlist{display:grid}.mlist button{border:0;background:none;text-align:left;padding:10px 0;font-size:15px;border-bottom:1px solid var(--line);color:#111}
+.mrate{margin-top:24px;font-size:13px;color:#55555f;display:flex;gap:8px;align-items:center}
+/* trang sản phẩm */
+.back{display:inline-block;margin:18px 0;color:#111;text-decoration:none;font-size:12px}
+.pd{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(20px,4vw,56px);align-items:start}
+.gal{display:grid;grid-template-columns:1fr 1fr;gap:6px}.gal img,.gal span{width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--soft)}.gal img:first-child{grid-column:1/-1}
+.pinfo{position:sticky;top:96px}.pinfo h1{font-size:clamp(22px,2.6vw,30px);text-transform:uppercase;line-height:1.15;margin:6px 0 12px;color:#111}
+.pinfo .price{justify-content:flex-start;font-size:18px}.pinfo .opts{justify-content:flex-start;margin:18px 0 6px}.pinfo .subsel{max-width:none;border-color:#111}
+.pmeta{list-style:none;padding:0;margin:22px 0 0;border-top:1px solid var(--line)}.pmeta li{padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;color:#55555f}
+.mfrom{font-size:16px;text-transform:uppercase;letter-spacing:.08em;margin:48px 0 14px}
+@media(max-width:820px){.pd{grid-template-columns:1fr}.pinfo{position:static}
+ .gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin-inline:calc(-1*max(4vw,16px));gap:0;scrollbar-width:none}.gal img,.gal span{flex:0 0 100%;scroll-snap-align:start}}
+@media(max-width:820px){.burger{display:inline-flex}.hd .wrap{grid-template-columns:auto 1fr auto;min-height:58px}.logo{justify-self:center}.nav{display:none}.hrate{display:none}.right{grid-column:auto}.desk{display:none}}
+.subsel{border-color:#111}.opt.on{border-color:#111}
 </style>
 </head>
 <body>
 <div class="bar cap" id="bar"></div>
 <header class="hd"><div class="wrap">
+ <button class="ibtn burger" id="openMenu" aria-label="Menu"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 6.5h18M3 12h18M3 17.5h18"/></svg></button>
  <a class="logo" href="#shop"><b id="siteName">VieBuy</b><i id="slogan"></i></a>
  <nav class="nav" id="nav"><a href="#shop" data-v="shop">Shop</a><a href="#moodboard" data-v="moodboard">Moodboard</a><a href="#journal" data-v="journal">Journal</a></nav>
  <div class="right"><span class="hrate" id="hdRate"></span>
@@ -207,19 +267,17 @@ footer{background:var(--soft);margin-top:32px;scroll-margin-top:80px}
 
 <main><div class="wrap">
  <section class="view" id="v-shop">
-  <div class="ph1"><div><h1 id="pageTitle">All items</h1><span class="n cap" id="count"></span></div>
+  <div class="ph1"><button class="ttl" id="catBtn" aria-label="Choose category"><h1 id="pageTitle">All items</h1><sup id="count"></sup></button>
    <button class="howlink cap" id="howBtn">How we process your order <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1v11M2 7.5 7 12.5 12 7.5" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button></div>
   <div class="tabs cap" id="brands" role="tablist" aria-label="Brands"></div>
-  <div class="tabs sub cap" id="cats" role="tablist" aria-label="Categories"></div>
-  <div class="tools">
-   <input class="sp" id="q" type="search" placeholder="Search" aria-label="Search products">
-   <label>Colour <select id="col" aria-label="Colour"></select></label>
-   <label><input type="checkbox" id="instock"> In stock only</label>
-   <label>Sort <select id="sort" aria-label="Sort"><option value="rel">Featured</option><option value="new">Newest</option><option value="asc">Price: low to high</option><option value="desc">Price: high to low</option></select></label>
-  </div>
+  <div class="tabs sub cap desk" id="cats" role="tablist" aria-label="Categories"></div>
+  <div class="fbar"><button class="fbtn" id="filterBtn"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 5h14M5.5 10h9M8 15h4"/></svg>Filter / Sort<i id="fcount"></i></button>
+   <span class="gv" role="group" aria-label="Grid view"><button data-gv="1" aria-label="Large view"><i></i></button><button data-gv="2" aria-label="Grid view"><i></i><i></i></button></span></div>
   <div class="grid" id="grid"></div>
   <div class="more" id="more"></div>
  </section>
+
+ <section class="view" id="v-p"><div id="pdBox"></div></section>
 
  <section class="view" id="v-moodboard" style="padding-top:clamp(28px,5vw,56px)">
   <h2>Moodboard</h2>
@@ -243,6 +301,15 @@ footer{background:var(--soft);margin-top:32px;scroll-margin-top:80px}
 <div class="toast" id="toast" role="status"></div>
 <div class="veil" id="veil"></div>
 <aside class="drawer" id="cart" aria-label="Shopping bag"><div class="dh"><h2 id="cartTitle">Your bag</h2><button class="x" data-close aria-label="Close">×</button></div><div class="db" id="cartBody"></div><div class="df" id="cartFoot"></div></aside>
+<aside class="drawer sheet" id="filterD" aria-label="Filter and sort"><div class="dh"><h2>Filter / Sort</h2><button class="x" data-close aria-label="Close">×</button></div><div class="db">
+ <div class="fgrp"><b>Search</b><input class="sp" id="q" type="search" placeholder="Search products" aria-label="Search products"></div>
+ <div class="fgrp"><b>Category</b><div class="fchips" id="fcats"></div></div>
+ <div class="fgrp"><b>Colour</b><select id="col" aria-label="Colour"></select></div>
+ <div class="fgrp"><label class="ck"><input type="checkbox" id="instock"> In stock only</label></div>
+ <div class="fgrp"><b>Sort by</b><select id="sort" aria-label="Sort"><option value="rel">Featured</option><option value="new">Newest</option><option value="asc">Price: low to high</option><option value="desc">Price: high to low</option></select></div>
+</div><div class="df"><div class="r2"><button class="btn alt" id="fReset">Clear all</button><button class="btn" data-close id="fShow">Show results</button></div></div></aside>
+<aside class="drawer sheet" id="qaD" aria-label="Quick add"><div class="dh"><h2>Choose your size</h2><button class="x" data-close aria-label="Close">×</button></div><div class="db" id="qaBody"></div></aside>
+<aside class="drawer left" id="menuD" aria-label="Menu"><div class="dh"><h2 id="menuName">Menu</h2><button class="x" data-close aria-label="Close">×</button></div><div class="db" id="menuBody"></div></aside>
 <aside class="drawer" id="brandD" aria-label="Brand details"><div class="dh"><h2>Brand</h2><button class="x" data-close aria-label="Close">×</button></div><div class="db" id="brandBody"></div></aside>
 <div class="modal" id="modal"><div class="mbox" id="mbox"></div></div>
 
@@ -268,6 +335,7 @@ const GARMENT=/\b(t-?shirt|tee|shirt|jacket|pants?|shorts|hoodie|polo|sweater|sw
 const T=p=>{if(D.ov[p.id]?.title)return D.ov[p.id].title;const t=p.title,vn=hasVN(t),r=t.replace(VN_PREFIX,'');return en(vn&&GARMENT.test(r)?r:t,vn)};
 const vnd=v=>(v||0).toLocaleString('en-AU')+' ₫';
 const HT=['vietnamfashion','madeinvietnam','vietnamesebrand','localbrandvietnam','saigonstreetwear'];
+let gview=2;try{gview=+localStorage.getItem('vb_gv')||2}catch(e){}
 let brandF='',colF='',sel={},cart=[],jTag='',cur='AUD',firstClaim=true,orderRef='',orderTok='';
 try{orderRef=sessionStorage.getItem('vb_ref')||'';orderTok=sessionStorage.getItem('vb_tok')||''}catch(e){}
 cur='AUD';   // luôn hiện AUD to, VND nhỏ bên dưới
@@ -313,6 +381,8 @@ function renderShop(keep){
  const scope=all.filter(p=>!brandF||p.brand===brandF);
  const cats=[...new Set(scope.map(catOf))].sort((a,b)=>CATS.indexOf(a)-CATS.indexOf(b));
  if(catF&&catF!=='sale'&&!cats.includes(catF))catF='';
+ const catBtns=`<button class="${catF?'':'on'}" data-cf="">All items</button>${scope.some(p=>p.compare_at)?`<button class="${catF==='sale'?'on':''}" data-cf="sale">Sale</button>`:''}`+cats.map(c=>`<button class="${catF===c?'on':''}" data-cf="${esc(c)}">${esc(catEN(c))}</button>`).join('');
+ $('fcats').innerHTML=catBtns;
  $('cats').innerHTML=`<button class="${catF?'':'on'}" data-cf="">All items</button>${scope.some(p=>p.compare_at)?`<button class="${catF==='sale'?'on':''}" data-cf="sale">Sale</button>`:''}`+cats.map(c=>`<button class="${catF===c?'on':''}" data-cf="${esc(c)}">${esc(catEN(c))}</button>`).join('')
   +(catF==='Áo thun & polo'?`<span style="flex:none;width:1px;background:var(--line);margin:10px 0"></span>`+[['','All sleeves'],['short','Short sleeve'],['long','Long sleeve']].map(([v,l])=>`<button class="${slvF===v?'on':''}" data-slv="${v}">${l}</button>`).join(''):'');
  const cols=COLOURS.filter(([n])=>scope.some(p=>colours(p).includes(n)));
@@ -329,7 +399,9 @@ function renderShop(keep){
   list=[...pinned,...rest.filter(isNew).sort((a,b)=>b.first_seen.localeCompare(a.first_seen)),...interleave(rest.filter(p=>!isNew(p)).sort((a,b)=>(b.in_stock-a.in_stock)))]}
  list=[...list.filter(p=>p.in_stock),...list.filter(p=>!p.in_stock)];   // hết hàng luôn xếp cuối, mọi kiểu sắp xếp
  $('pageTitle').textContent=catF==='sale'?'Sale':catF?(catF==='Áo thun & polo'&&slvF?(slvF==='long'?'Long sleeve tees':'Short sleeve tees'):catEN(catF)):brandF?st(brandF).name:'All items';
- $('count').textContent=`${list.length} item${list.length===1?'':'s'}`;
+ $('count').textContent=list.length;
+ {const n=[catF,colF,$('instock').checked,$('q').value.trim(),$('sort').value!=='rel'].filter(Boolean).length;$('fcount').textContent=n?` (${n})`:''}
+ $('grid').classList.toggle('g1',gview===1);document.querySelectorAll('[data-gv]').forEach(b=>b.classList.toggle('on',+b.dataset.gv===gview));
  $('grid').innerHTML=list.length?list.slice(0,shown).map(card).join(''):`<p class="empty">${!live.length?'Brands are coming soon.':'No products match these filters.'}</p>`;
  const left=list.length-Math.min(shown,list.length);
  $('more').innerHTML=left>0?`<button class="cap" id="loadMore">Load more</button><span>Showing ${Math.min(shown,list.length)} of ${list.length}</span>`:'';
@@ -345,24 +417,50 @@ function picker(p){
   h+=`<select class="subsel" data-sub="${esc(p.id)}" aria-label="Choose ${esc(nm)}"><option value="">Choose size…</option>${V.map((v,i)=>vopts(v)[0]!==s.g?'':`<option value="${i}" ${v.available?'':'disabled'} ${s.vi===i?'selected':''}>${esc(en(rest(v)))}${v.available?(v.qty!=null?' · '+v.qty+' left':''):' · sold out'}</option>`).join('')}</select>`}
  return h;
 }
+const isNewP=p=>p.first_seen&&Date.now()-new Date(p.first_seen)<14*864e5;
 function card(p){
- const b=st(p.brand),old=stale(p.brand),d=p.compare_at?Math.round((1-p.price/p.compare_at)*100):0,s=sel[p.id]||{};
- const vi=plain(p)?0:s.vi,v=p.variants[vi],price=v&&v.price?v.price:p.price;
- const av=p.variants.filter(x=>x.available),tot=av.reduce((a,x)=>a+(x.qty??0),0),hasQ=av.length&&av.every(x=>x.qty!=null);
- const meta=old?['wa','Checking stock with the brand']:!p.in_stock?['outc','Sold out']:hasQ&&tot<=3?['wa',`Only ${tot} left`]:null;
- const ready=!old&&v&&v.available,someOut=p.in_stock&&p.variants.some(x=>!x.available);
- const btn=!p.in_stock&&!old?`<button class="add alt" data-notify="${esc(p.id)}">Notify me</button>`
-  :`<button class="add" data-add="${esc(p.id)}" ${ready?'':'disabled'}>${old?'Unavailable':!ready?'Select size':'Add to bag'}</button>`;
- return `<article class="card" data-pid="${esc(p.id)}"><a class="ph" href="${esc(link(p))}" target="_blank" rel="noopener">${p.images[0]?`<img src="${esc(p.images[0])}" alt="${esc(T(p))}" loading="lazy" referrerpolicy="no-referrer">`:''}</a>
- <div class="body"><button class="bt cap" data-brand="${esc(p.brand)}">${esc(b.name)}</button><h3>${esc(T(p))}</h3>
- <div class="price">${d?`<s>A$${(p.compare_at/D.set.rate).toFixed(2)}</s>`:''}<b class="${d?'sale':''}">A$${(price/D.set.rate).toFixed(2)}</b>${d?`<span class="off">-${d}%</span>`:''}</div>
- <div class="pv">${vnd(price)}</div>
- ${meta?`<div class="meta ${meta[0]}">${meta[1]}</div>`:''}${p.in_stock&&p.size_unverified?'<div class="note2">Size availability confirmed by email</div>':''}
- ${p.in_stock?picker(p):''}${btn}
- ${someOut&&!old?`<button class="lnk" data-notify="${esc(p.id)}">Size sold out? Notify me</button>`:''}
- <a class="go" href="${esc(link(p))}" target="_blank" rel="noopener">Size guide on ${esc(b.name)} ↗</a></div></article>`;
+ const b=st(p.brand),old=stale(p.brand),d=p.compare_at?Math.round((1-p.price/p.compare_at)*100):0,price=p.price;
+ const badge=!p.in_stock?'<span class="bdg so">Sold out</span>':d?`<span class="bdg off2">${d}% off</span>`:isNewP(p)?'<span class="bdg nw">New</span>':'';
+ const av=p.variants.filter(x=>x.available),tot=av.reduce((a,x)=>a+(x.qty??0),0),low=av.length&&av.every(x=>x.qty!=null)&&tot<=3;
+ return `<article class="card" data-pid="${esc(p.id)}"><div class="ph"><a href="#p/${encodeURIComponent(p.id)}" aria-label="${esc(T(p))}">${p.images[0]?`<img src="${esc(p.images[0])}" alt="${esc(T(p))}" loading="lazy" referrerpolicy="no-referrer">`:''}</a>
+ ${badge}${low&&p.in_stock?`<span class="bdg low">Only ${tot} left</span>`:''}
+ ${p.in_stock&&!old?`<button class="qadd" data-qadd="${esc(p.id)}" aria-label="Quick add ${esc(T(p))}">+</button>`:''}</div>
+ <a class="body" href="#p/${encodeURIComponent(p.id)}"><span class="bt">${esc(b.name)}</span><h3>${esc(T(p))}</h3>
+ <div class="price">${d?`<s>A$${(p.compare_at/D.set.rate).toFixed(2)}</s>`:''}<b class="${d?'sale':''}">A$${(price/D.set.rate).toFixed(2)}</b></div>
+ <div class="pv">${vnd(price)}</div></a></article>`;
 }
-function redrawCard(pid){const el=[...document.querySelectorAll('article[data-pid]')].find(a=>a.dataset.pid===pid);if(el&&byId(pid))el.outerHTML=card(byId(pid))}
+// chọn size + thêm giỏ (dùng chung cho bảng thêm nhanh và trang sản phẩm)
+function buyBox(p){
+ const b=st(p.brand),old=stale(p.brand),s=sel[p.id]||{},vi=plain(p)?0:s.vi,v=p.variants[vi],ready=!old&&v&&v.available,someOut=p.in_stock&&p.variants.some(x=>!x.available);
+ const btn=!p.in_stock&&!old?`<button class="big" data-notify="${esc(p.id)}">Notify me when it's back</button>`
+  :`<button class="big" data-add="${esc(p.id)}" ${ready?'':'disabled'}>${old?'Unavailable right now':!ready?'Select size':'Add to bag · A$'+(((v&&v.price)||p.price)/D.set.rate).toFixed(2)}</button>`;
+ return `${p.in_stock&&!old?picker(p):''}${p.in_stock&&p.size_unverified?'<p class="note2">Size availability confirmed by email</p>':''}${btn}
+ <div class="bblinks">${someOut&&!old?`<button class="lnk" data-notify="${esc(p.id)}">Size sold out? Notify me</button>`:''}<a class="go" href="${esc(link(p))}" target="_blank" rel="noopener">Size guide & details on ${esc(b.name)} ↗</a></div>`;
+}
+let qaPid='';
+function renderQA(){const p=byId(qaPid);if(!p)return;const d=p.compare_at?Math.round((1-p.price/p.compare_at)*100):0;
+ $('qaBody').innerHTML=`<div class="qahd">${p.images[0]?`<img src="${esc(p.images[0])}" alt="" referrerpolicy="no-referrer">`:'<span></span>'}<div><small>${esc(st(p.brand).name)}</small><b>${esc(T(p))}</b>
+ <div class="price" style="justify-content:flex-start">${d?`<s>A$${(p.compare_at/D.set.rate).toFixed(2)}</s>`:''}<b class="${d?'sale':''}">A$${(p.price/D.set.rate).toFixed(2)}</b></div><div class="pv" style="text-align:left">${vnd(p.price)}</div></div></div>${buyBox(p)}
+ <a class="lnk2" href="#p/${encodeURIComponent(p.id)}" data-close>View full details</a>`}
+function openQA(pid){qaPid=pid;renderQA();openD('qaD')}
+function renderProduct(id){
+ const p=byId(id),box=$('pdBox');if(!p){box.innerHTML='<p class="empty" style="margin:40px 0">This product is no longer available. <a href="#shop">Back to shop</a></p>';return}
+ const b=st(p.brand),d=p.compare_at?Math.round((1-p.price/p.compare_at)*100):0,more=D.products.filter(x=>x.brand===p.brand&&x.id!==p.id&&x.in_stock&&!D.ov[x.id]?.hidden).slice(0,4);
+ box.innerHTML=`<a class="back cap" href="#shop">← Back to shop</a><div class="pd"><div class="gal">${(p.images.length?p.images:['']).slice(0,8).map(u=>u?`<img src="${esc(u)}" alt="${esc(T(p))}" loading="lazy" referrerpolicy="no-referrer">`:'<span></span>').join('')}</div>
+ <div class="pinfo"><button class="bt cap" data-brand="${esc(p.brand)}">${esc(b.name)}</button><h1>${esc(T(p))}</h1>
+ <div class="price">${d?`<s>A$${(p.compare_at/D.set.rate).toFixed(2)}</s>`:''}<b class="${d?'sale':''}">A$${(p.price/D.set.rate).toFixed(2)}</b>${d?`<span class="bdg off2 inl">${d}% off</span>`:''}</div>
+ <div class="pv" style="text-align:left">${vnd(p.price)} · converted at A$1 = ${vnd(D.set.rate)}</div>
+ ${buyBox(p)}<ul class="pmeta"><li>Ships to Australia in ${esc(D.set.eta||'10–12 days')}</li><li>Only a ${D.set.deposit}% deposit after we confirm stock</li><li>Bought directly from ${esc(b.name)}, authentic guaranteed</li></ul></div></div>
+ ${more.length?`<h2 class="mfrom">More from ${esc(b.name)}</h2><div class="grid">${more.map(card).join('')}</div>`:''}`;
+}
+function refreshPick(pid){if(qaPid===pid&&$('qaD').classList.contains('on'))renderQA();if(location.hash.startsWith('#p/'))renderProduct(decodeURIComponent(location.hash.slice(3)))}
+function renderMenu(){$('menuName').textContent=D.set.site_name||'VieBuy';
+ const live=D.status.filter(b=>isLive(b.id)),cats=[...new Set(D.products.filter(p=>live.some(b=>b.id===p.brand)).map(catOf))].filter(c=>c!==SKIP&&!CV.catHidden(c)).sort((a,b)=>CATS.indexOf(a)-CATS.indexOf(b));
+ $('menuBody').innerHTML=`<nav class="mnav"><a href="#shop" data-close>Shop all</a><a href="#moodboard" data-close>Moodboard</a><a href="#journal" data-close>Journal</a></nav>
+ <p class="mh">Categories</p><div class="mlist">${cats.map(c=>`<button data-mcat="${esc(c)}">${esc(catEN(c))}</button>`).join('')}</div>
+ <p class="mh">Brands</p><div class="mlist">${live.map(b=>`<button data-bf="${esc(b.id)}" data-close>${esc(b.name)}</button>`).join('')}</div>
+ <p class="mrate">${$('hdRate').innerHTML}</p>`}
+function redrawCard(pid){refreshPick(pid)}
 function openBrand(id){
  const b=st(id),r=rec(id),h=hue(id),lk=(u,t)=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)} ↗</a>`;
  $('brandBody').innerHTML=`<div class="bhero" style="background:hsl(${h} 45% 32%)"><small>${esc(b.platform||'')}</small><h3>${esc(b.name)}</h3>
@@ -379,7 +477,7 @@ function addToCart(pid){
  const ex=cart.find(i=>i.pid===pid&&i.vi===vi);
  if(v.qty!=null&&(ex?.q||0)>=v.qty)return toast(`Only ${v.qty} left`);
  ex?ex.q++:cart.push({pid,vi,q:1,price:v.price||p.price,name:v.name});
- saveCart();renderCart();toast(`Added: ${T(p)}${plain(p)?'':' · '+en(v.name)}`);
+ saveCart();renderCart();toast(`Added: ${T(p)}${plain(p)?'':' · '+en(v.name)}`);if($('qaD').classList.contains('on'))closeD();
 }
 /* --- báo khi có hàng --- */
 function openNotify(pid){
@@ -514,23 +612,31 @@ function renderArticle(slug){
 
 /* ===== ĐIỀU HƯỚNG ===== */
 function route(){
- const h=decodeURIComponent(location.hash.slice(1));let v=h.split('/')[0];if(v==='cho')v='shop';if(!['shop','moodboard','journal'].includes(v))v='shop';
- document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
+ closeD();
+ const h=decodeURIComponent(location.hash.slice(1));let v=h.split('/')[0];if(v==='cho')v='shop';if(!['shop','moodboard','journal','p'].includes(v))v='shop';
+ if(v==='p'){renderProduct(h.slice(2));scrollTo(0,0)}
+ document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.v===(v==='p'?'shop':v)));
  document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));
  if(v==='journal'){h.startsWith('journal/')?renderArticle(h.slice(8)):renderJournalList();scrollTo(0,0)}
 }
-function renderAll(){renderChrome();renderShop();renderMood();renderCart();route()}
+function renderAll(){renderChrome();renderShop();renderMood();renderCart();renderMenu();route()}
 document.addEventListener('click',e=>{
  const t=e.target.closest('button');if(!t)return;const d=t.dataset;
- if(d.close!==undefined)closeD();
- else if(d.closemodal!==undefined)closeModal();
- else if(d.bf!==undefined){brandF=d.bf;colF='';catF='';renderShop()}
+ if(d.close!==undefined){closeD();if(d.bf===undefined)return}
+ if(d.closemodal!==undefined)closeModal();
+ else if(d.bf!==undefined){if(d.close!==undefined){}brandF=d.bf;colF='';catF='';if(location.hash.startsWith('#p/')||location.hash==='#moodboard'||location.hash.startsWith('#journal'))location.hash='#shop';renderShop()}
  else if(d.cf!==undefined){catF=d.cf;slvF='';renderShop()}
  else if(d.slv!==undefined){slvF=d.slv;renderShop()}
  else if(t.id==='loadMore'){shown+=PAGE;renderShop(true)}
  else if(t.id==='howBtn')$('process').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
  else if(d.brand)openBrand(d.brand);
  else if(d.showbrand){closeD();closeModal();brandF=d.showbrand;colF='';catF='';location.hash='#shop';renderShop();scrollTo(0,0)}
+ else if(d.qadd)openQA(d.qadd);
+ else if(d.gv){gview=+d.gv;try{localStorage.setItem('vb_gv',gview)}catch(x){}renderShop(true)}
+ else if(t.id==='filterBtn'||t.id==='catBtn')openD('filterD');
+ else if(t.id==='openMenu'){renderMenu();openD('menuD')}
+ else if(d.mcat){closeD();catF=d.mcat;slvF='';location.hash='#shop';renderShop();scrollTo(0,0)}
+ else if(t.id==='fReset'){catF='';colF='';slvF='';$('instock').checked=false;$('q').value='';$('sort').value='rel';renderShop()}
  else if(d.grp){const s=sel[d.grp]||{};sel[d.grp]=s.g===d.g?{}:{g:d.g};redrawCard(d.grp)}
  else if(d.pick){sel[d.pick]={vi:+d.vi};redrawCard(d.pick)}
  else if(d.add)addToCart(d.add);
@@ -547,7 +653,7 @@ document.addEventListener('change',e=>{const t=e.target,d=t.dataset;
  if(t.id==='instock'){renderShop();return}
  if(t.id==='firstChk'){firstClaim=t.checked;renderCart();return}
  if(d.sub){sel[d.sub]={...sel[d.sub],vi:t.value===''?null:+t.value};redrawCard(d.sub)}});
-document.getElementById('openSearch').addEventListener('click',()=>{if(location.hash&&location.hash!=='#shop')location.hash='#shop';setTimeout(()=>{const q=$('q');q.scrollIntoView({block:'center',behavior:'smooth'});q.focus()},80)});
+document.getElementById('openSearch').addEventListener('click',()=>{if(location.hash&&location.hash!=='#shop')location.hash='#shop';openD('filterD');setTimeout(()=>$('q').focus(),250)});
 document.addEventListener('submit',e=>{e.preventDefault();const f=e.target;if(f.id==='orderForm')sendOrder(f);if(f.id==='notifyForm')sendNotify(f)});
 $('openCart').addEventListener('click',()=>{renderCart();openD('cart')});
 $('veil').addEventListener('click',closeD);

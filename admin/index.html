@@ -657,7 +657,7 @@ function phoneIntl(p){let d=String(p||'').replace(/[^\d+]/g,'');if(d.startsWith(
 const BAG_TOKEN='{{UPDATE_BAG_BUTTON}}';
 const mdB=x=>esc(x).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
 function emailHtml(text,o,preview){
- const url=bagLink(o),blue='#00007F',lines=text.split('\n'),out=[];
+ const url=bagLink(o),blue='#111',lines=text.split('\n'),out=[];
  for(let n=0;n<lines.length;n++){const l=lines[n],tl=l.trim();
   if(tl.startsWith('|')){   // bảng tổng tiền
    const rows=[];while(n<lines.length&&lines[n].trim().startsWith('|')){const c=lines[n].trim().replace(/^\||\|$/g,'').split('|').map(x=>x.trim());if(!c.every(x=>/^:?-+:?$/.test(x)))rows.push(c);n++}n--;
