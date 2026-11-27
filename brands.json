@@ -1,0 +1,6 @@
+[
+  {"id": "rvb", "name": "RVB", "domain": "rvb.vn", "platform": "jsonld", "instagram": ""},
+  {"id": "dico", "name": "DICO", "domain": "dico.vn", "platform": "haravan", "instagram": ""},
+  {"id": "goldie", "name": "Goldie", "domain": "goldievietnam.com", "platform": "haravan", "instagram": ""},
+  {"id": "whenever", "name": "Whenever Atelier", "domain": "whenever.vn", "platform": "haravan", "instagram": ""}
+]
