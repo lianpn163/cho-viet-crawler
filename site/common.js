@@ -23,7 +23,7 @@ const CV = (() => {
     ['Nhiều màu', 'conic-gradient(red,orange,yellow,green,blue,purple,red)', ['multi', 'multicolor', 'camo', 'rainbow', 'nhiều màu']]];
   const COLOUR_RE = COLOURS.map(([n, , ws]) => [n, new RegExp('(?<![\\p{L}\\p{N}])(' + ws.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')(?![\\p{L}\\p{N}])', 'iu')]);
 
-  const D = { products: [], status: [], gen: '', ov: {}, clips: [], badm: {}, articles: [], kw: {}, set: { rate: 18400, ship_mode: 'flat', ship_flat: 15, ship: 14, ship_off: 0, free_first: true, free_over: 0, gst: false, acc_cap: 20, soldout_days: 60, fee: 10, deposit: 70, eta: '10–12 days', stale_hours: 6, site_name: 'VieBuy', typekit: '', order_endpoint: '', site_url: '',
+  const D = { products: [], status: [], gen: '', ov: {}, clips: [], badm: {}, articles: [], kw: {}, set: { rate: 18400, ship_mode: 'flat', ship_flat: 15, ship: 14, ship_off: 0, free_first: true, free_over: 0, gst: false, acc_cap: 20, soldout_days: 180, fee: 10, deposit: 70, eta: '10–12 days', stale_hours: 6, site_name: 'VieBuy', typekit: '', order_endpoint: '', site_url: '',
     dep1: '{pct}% deposit once we confirm stock: {deposit}',
     dep2: 'Keep an eye on your inbox for our confirmation email, and pay your deposit as soon as possible to secure your pieces.',
     dep3: 'The remaining balance of {balance} is due before your parcel ships to Australia.', slogan: 'Exploring local brands from Vietnam - Emerging Fashion Capital', contact: '' } };
@@ -57,6 +57,7 @@ const CV = (() => {
     D.ov = ov || {}; D.clips = cl || []; D.badm = ba || {}; D.set = { ...D.set, ...(se || {}) };
     if (D.set.site_name === 'Viefs') D.set.site_name = 'VieBuy';
     if (D.set.eta === '5–7 days') D.set.eta = '10–12 days';   // thời gian giao mới
+    if (D.set.soldout_days === 60) D.set.soldout_days = 180;   // hết hàng: nay giữ 6 tháng mới gỡ
     // tỷ giá tự động theo thị trường (crawler cập nhật mỗi lần đồng bộ), trừ hao rate_margin %
     D.rateInfo = rt && rt.market > 10000 ? rt : null;
     D.set.rate_manual = D.set.rate;

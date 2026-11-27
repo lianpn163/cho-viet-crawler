@@ -81,15 +81,15 @@ CATEGORIES = [  # thứ tự quan trọng: cái nào khớp trước thì nhận
     ("Túi", ["balo", "ba lô", "backpack", "túi", "bag", "tote", "ví", "wallet", "crossbody", "duffle"]),
     ("Mũ", ["mũ", "nón", "cap", "hat", "beanie", "bucket", "snapback"]),
     ("Áo khoác", ["áo khoác", "khoác", "jacket", "bomber", "varsity", "windbreaker", "blazer", "parka", "puffer",
-                  "outerwear", "coat", "gilet"]),
+                  "outerwear", "coat", "gilet", "outer", "outers"]),
     ("Áo len & hoodie", ["hoodie", "áo len", "len", "nỉ", "sweater", "sweatshirt", "pullover", "cardigan", "knit",
-                         "crewneck", "zip-up", "zip up"]),
+                         "crewneck", "zip-up", "zip up", "knits"]),
     ("Áo thun & polo", ["áo thun", "t-shirt", "tshirt", "tee", "polo", "tank", "tanktop", "ba lỗ", "baby tee", "sleeveless"]),
     ("Sơ mi", ["sơ mi", "shirt", "overshirt", "blouse"]),
     ("Áo thun & polo", ["long sleeve", "longsleeve", "jersey"]),   # "long sleeve" đứng một mình = áo thun tay dài
-    ("Quần", ["quần", "pants", "pant", "jeans", "jean", "shorts", "short", "trousers", "jogger", "denim", "cargo"]),
+    ("Quần", ["quần", "pants", "pant", "jeans", "jean", "shorts", "short", "trousers", "trouser", "bottoms", "bottom", "jogger", "denim", "cargo"]),
     ("Phụ kiện", ["tất", "vớ", "socks", "belt", "thắt lưng", "móc khoá", "móc khóa", "keychain", "key chain",
-                  "lanyard", "dây đeo", "strap", "vòng", "dây chuyền", "necklace", "bracelet", "ring", "sticker",
+                  "lanyard", "dây đeo", "accs", "accessories", "accessory", "strap", "vòng", "dây chuyền", "necklace", "bracelet", "ring", "sticker",
                   "khẩu trang", "bandana", "scarf", "khăn", "pin", "badge", "patch", "card holder"]),
     ("Váy & đầm", ["váy", "đầm", "dress", "skirt"]),
 ]
@@ -114,7 +114,7 @@ def note_unsure(title, brand_words=()):
 
 # từ chỉ chất liệu/kiểu dệt: chỉ dùng khi tên không có từ nào nói rõ loại áo/quần
 # (vd "Knit Polo" là polo, "Denim Jacket" là áo khoác, "Knit Vest" mới là áo len)
-WEAK = {"knit", "len", "nỉ", "denim", "jersey", "cargo"}
+WEAK = {"knit", "knits", "len", "nỉ", "denim", "jersey", "cargo"}
 
 
 def categorize(title, ptype="", tags=()):
@@ -134,7 +134,19 @@ def categorize(title, ptype="", tags=()):
     return "Khác"   # sẽ hiện trong review.json để người duyệt xếp tay
 
 
+CTRL = re.compile(r"[\x00-\x1f\x7f]")   # ký tự ẩn (vd Lider ghi size là "\bS") -> bỏ
+
+
+def clean_variants(variants):
+    for v in variants:
+        v["name"] = CTRL.sub("", str(v.get("name") or "")).strip() or "Mặc định"
+        v["options"] = [CTRL.sub("", o).strip() for o in v.get("options") or []]
+    return variants
+
+
 def make_product(brand, domain, handle, title, ptype, tags, images, variants, opt_names=(), created=""):
+    variants = clean_variants(variants)
+    title = CTRL.sub("", title or "")
     if isinstance(tags, str):
         tags = [t.strip() for t in tags.split(",") if t.strip()]
     prices = [v["price"] for v in variants if v["price"]] or [0]
@@ -591,7 +603,9 @@ def run(only=None):
     CUSTOM.extend(by_cat.items())
     cfg = load(DATA / "admin" / "settings.json", {})
     acc_cap = int(cfg.get("acc_cap", 20))
-    soldout_days = float(cfg.get("soldout_days", 60))   # hết hàng quá số ngày này thì gỡ khỏi sàn
+    soldout_days = float(cfg.get("soldout_days", 180))
+    if soldout_days == 60:   # mức cũ 2 tháng → nay giữ 6 tháng
+        soldout_days = 180   # hết hàng quá số ngày này thì gỡ khỏi sàn
     now = dt.datetime.now(dt.timezone.utc)
 
     def age_days(iso):

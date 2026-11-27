@@ -34,11 +34,14 @@ PRIVATE = ROOT / "private"               # không bao giờ được phục vụ
 CONFIG = PRIVATE / "admin_config.json"
 ORDERS = PRIVATE / "orders.json"
 NOTIFY = PRIVATE / "notify.json"
+INQ = PRIVATE / "inquiries.json"
+INQ_DELETED = PRIVATE / "deleted_inquiries.json"      # khách gửi ảnh nhờ tìm hàng
+SCANS = PRIVATE / "scans.json"        # số lượt quét từng QR code (kéo từ Google)
 DELETED = PRIVATE / "deleted_orders.json"   # đơn đã xoá: không kéo lại từ Google
 ADMIN_PAGE = ROOT / "admin" / "index.html"   # trang admin nằm NGOÀI thư mục site: không bao giờ bị đưa lên web
 MEDIA = ADMIN / "media"
 SAVABLE = {"overrides.json", "clips.json", "brands_admin.json", "settings.json", "articles.json", "keywords.json"}
-PRIVATE_SAVABLE = {"payment.json", "remote.json"}   # thông tin chuyển khoản: chỉ admin đọc được, không bao giờ lên web
+PRIVATE_SAVABLE = {"payment.json", "remote.json", "qr.json", "scans.json"}   # thông tin chuyển khoản: chỉ admin đọc được, không bao giờ lên web
 ORDER_STATUS = {"new", "awaiting_deposit", "deposit_paid", "ordered", "awaiting_balance", "shipped", "done", "cancelled"}
 IMG_MAGIC = {b"\xff\xd8\xff": "jpg", b"\x89PNG": "png", b"RIFF": "webp", b"GIF8": "gif"}
 PORT = int(os.environ.get("PORT", "8000"))
@@ -221,6 +224,14 @@ def pull_online():
                 if newn:
                     save(NOTIFY, newn[::-1] + notes)
                 out.update(orders=len(new), notify=len(newn))
+                inq = load(INQ, [])
+                have = {x.get("id") for x in inq} | set(load(INQ_DELETED, []))
+                newi = [x for x in j.get("inquiries", []) if isinstance(x, dict) and x.get("id") and x["id"] not in have]
+                if newi:
+                    save(INQ, newi[::-1] + inq)
+                out["inquiries"] = len(newi)
+                if isinstance(j.get("scans"), dict):   # lượt quét QR: Google giữ số tổng, máy lấy về ghi đè
+                    save(SCANS, j["scans"])
         except Exception as e:  # noqa: BLE001
             out["msgs"].append(f"Không lấy được đơn từ Google: {e}")
     elif ep or secret:
@@ -297,6 +308,14 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         path = urlparse(self.path).path
+        if path == "/admin/qrcode.js":   # thư viện vẽ QR (MIT, Kazuhiko Arase) cho trang admin
+            body = (ROOT / "admin" / "qrcode.js").read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/javascript; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if path in ("/admin", "/admin/"):
             body = ADMIN_PAGE.read_bytes()
             self.send_response(200)
@@ -324,6 +343,10 @@ class Handler(SimpleHTTPRequestHandler):
             if self.is_admin():
                 self.reply(200, load(NOTIFY, []))
             return
+        if path == "/api/inquiries":
+            if self.is_admin():
+                self.reply(200, load(INQ, []))
+            return
         if path == "/api/orders":
             if self.is_admin():
                 self.reply(200, load(ORDERS, []))
@@ -337,6 +360,20 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
+        if path == "/api/upload-video":   # clip trang chủ: gửi thẳng file, không qua JSON
+            if not self.is_admin():
+                return
+            n = int(self.headers.get("Content-Length") or 0)
+            if n <= 0 or n > 40_000_000:
+                return self.reply(400, {"error": "Clip phải dưới 40MB"})
+            raw = self.rfile.read(n)
+            ext = "webm" if raw[:4] == b"\x1aE\xdf\xa3" else "mov" if raw[4:12] == b"ftypqt  " else "mp4" if raw[4:8] == b"ftyp" else None
+            if not ext:
+                return self.reply(400, {"error": "Chỉ nhận clip MP4, MOV hoặc WEBM"})
+            MEDIA.mkdir(parents=True, exist_ok=True)
+            name = f"hero-{dt.datetime.now():%Y%m%d}-{secrets.token_hex(3)}.{ext}"
+            (MEDIA / name).write_bytes(raw)
+            return self.reply(200, {"path": f"data/admin/media/{name}"})
         try:
             data = self.read_json()
         except ValueError:
@@ -358,6 +395,17 @@ class Handler(SimpleHTTPRequestHandler):
             return self.reply(200, {"id": oid})
         if path == "/api/notify":
             return self.notify(data)
+        if path == "/api/inquiry":   # (chạy thử trên máy) khách gửi ảnh + link nhờ tìm hàng
+            return self.inquiry(data)
+        if path == "/api/visit":   # (chạy thử trên máy) khách vào web bằng QR code
+            src = re.sub(r"[^a-z0-9-]", "", str(data.get("src", "")).lower())[:24]
+            if src:
+                sc = load(SCANS, {})
+                row = sc.setdefault(src, {"count": 0, "last": ""})
+                row["count"] += 1
+                row["last"] = dt.datetime.now().isoformat(timespec="seconds")
+                save(SCANS, sc)
+            return self.reply(200, {"ok": True})
         if not self.is_admin():
             return
         if path == "/api/login":
@@ -469,6 +517,18 @@ class Handler(SimpleHTTPRequestHandler):
             if j.get("error"):
                 return self.reply(400, {"error": "Google: " + str(j["error"])})
             return self.reply(200, {"ok": True})
+        if path in ("/api/inquiry-done", "/api/inquiry-del"):
+            items = load(INQ, [])
+            if path == "/api/inquiry-del":
+                items = [x for x in items if x.get("id") != data.get("id")]
+                gone = load(INQ_DELETED, [])
+                save(INQ_DELETED, (gone + [data.get("id")])[-2000:])
+            else:
+                for x in items:
+                    if x.get("id") == data.get("id"):
+                        x["done"] = bool(data.get("done"))
+            save(INQ, items)
+            return self.reply(200, {"ok": True})
         if path == "/api/order-delete":
             oid = str(data.get("id", ""))
             orders = load(ORDERS, [])
@@ -516,6 +576,22 @@ class Handler(SimpleHTTPRequestHandler):
         save(NOTIFY, items)
         return self.reply(200, {"ok": True})
 
+    def inquiry(self, d):
+        email = str(d.get("email", "")).strip().lower()[:120]
+        photos = [p for p in (d.get("photos") or [])[:3] if isinstance(p, dict)]
+        if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email) or not str(d.get("name", "")).strip() or not photos:
+            return self.reply(400, {"error": "Please add a photo, your name and email"})
+        code = "RQ-" + secrets.token_hex(3).upper()
+        items = load(INQ, [])
+        items.insert(0, {"id": code, "created": dt.datetime.now().isoformat(timespec="seconds"),
+                         "name": str(d.get("name"))[:120], "email": email, "phone": str(d.get("phone", ""))[:30],
+                         "brand": str(d.get("brand", ""))[:80], "source": str(d.get("source", ""))[:500],
+                         "variant": str(d.get("variant", ""))[:80], "q": max(1, min(20, int(d.get("q") or 1))),
+                         "note": str(d.get("note", ""))[:800], "src": re.sub(r"[^a-z0-9-]", "", str(d.get("src", "")).lower())[:24],
+                         "thumbs": [str(p.get("thumb", ""))[:60000] for p in photos], "done": False})
+        save(INQ, items)
+        return self.reply(200, {"id": code})
+
     def order(self, d):
         items = d.get("items") or []
         need = [d.get("name"), d.get("email"), d.get("address")]
@@ -530,6 +606,7 @@ class Handler(SimpleHTTPRequestHandler):
                           "address": d["address"][:300], "note": str(d.get("note", ""))[:500], "items": items[:50],
                           "totals": d.get("totals", {}), "rate": d.get("rate"), "deposit_pct": d.get("deposit_pct"),
                           "source": "manual" if d.get("source") == "manual" else "web",
+                          "src": re.sub(r"[^a-z0-9-]", "", str(d.get("src", "")).lower())[:24],
                           "first_claim": bool(d.get("first_claim")), "repeat_customer": repeat, "status": "new"})
         save(ORDERS, orders)
         return self.reply(200, {"id": code})

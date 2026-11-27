@@ -74,6 +74,13 @@ pre.out{background:var(--soft);padding:10px;border-radius:8px;font-size:12px;whi
 .jh{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
 .jn{font-weight:600;font-size:16px}.jid{font-size:12px;color:var(--mute)}
 .jic{display:flex;gap:6px;flex-wrap:wrap}
+.inqp summary{cursor:pointer;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.inqp .n{background:var(--r-bg);color:var(--r-t);border-radius:99px;padding:0 8px;font-size:12px;font-weight:600}
+.inql{display:grid;gap:12px;margin:14px 0 10px}.inqi{display:grid;grid-template-columns:auto 1fr;gap:14px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fff}.inqi.dn{opacity:.55}
+.inqt{display:flex;gap:6px}.inqt img{width:84px;height:84px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+@media(max-width:600px){.inqi{grid-template-columns:1fr}}
+.qrgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:14px;margin-top:14px}.qrc{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:start;margin:0}.qri svg{display:block;border:1px solid var(--line);border-radius:6px}
+.qrs{display:flex;gap:18px;flex-wrap:wrap}.qrs span{font-size:12px;color:var(--mut,#787774);display:flex;flex-direction:column}.qrs b{font-size:18px;color:var(--ink)}
+@media(max-width:600px){.qrgrid{grid-template-columns:1fr}.qrc{grid-template-columns:110px 1fr}.qri svg{width:110px;height:110px}#qrForm{grid-template-columns:1fr!important}}
 .tg{font-style:normal;font-size:12px;font-weight:500;border-radius:4px;padding:1px 7px;color:var(--ink)}
 .tg.g{background:var(--g-bg);color:var(--g-t)}.tg.b{background:var(--b-bg);color:var(--b-t)}.tg.gr{background:var(--gr-bg);color:var(--gr-t)}.tg.o{background:var(--o-bg);color:var(--o-t)}.tg.r{background:var(--r-bg);color:var(--r-t)}.tg.y{background:var(--y-bg);color:var(--y-t)}.tg.p{background:var(--p-bg);color:var(--p-t)}
 .jt{font-size:13px;color:var(--mute)}
@@ -106,6 +113,7 @@ table.mini{border-collapse:collapse;font-size:14px}table.mini td{padding:3px 16p
 <aside class="odr" id="odr" aria-label="Chi tiết đơn"><div id="odrBody"></div></aside>
 <div class="toast" id="toast" role="status"></div>
 <script src="common.js"></script>
+<script src="/admin/qrcode.js"></script>
 <script>
 {
 const {SKIP,esc,CATS,D,vnd,ago,st,rec,catOf,slug,md}=CV;
@@ -130,10 +138,10 @@ function render(){
  const newO=orders.filter(o=>(o.status||'new')==='new').length;
  $('pages').innerHTML=`<button class="${page==='orders'?'on':''}" data-page="orders">Quản lý đơn hàng${newO?`<span class="n">${newO}</span>`:''}</button><button class="${page==='shop'?'on':''}" data-page="shop">Quản lý sàn${hi?`<span class="n">${hi}</span>`:''}</button><button data-logout>Thoát</button>`;
  if(page==='orders')return pageOrders();
- const T=[['warn','Cảnh báo',hi],['cat','Sản phẩm',left],['cats','Danh mục'],['content','Nội dung web'],['brand','Brand',rv],['notify','Chờ hàng',back],['journal','Journal'],['clip','Moodboard'],['set','Cài đặt & đồng bộ']];
+ const T=[['warn','Cảnh báo',hi],['cat','Sản phẩm',left],['cats','Danh mục'],['content','Nội dung web'],['brand','Brand',rv],['notify','Chờ hàng',back],['journal','Journal'],['clip','Moodboard'],['qr','QR code'],['set','Cài đặt & đồng bộ']];
  if(tab==='order')tab='warn';
  $('box').innerHTML=`<div class="atabs">${T.map(([k,l,n])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${l}${n?`<span class="n">${n}</span>`:''}</button>`).join('')}</div><div id="aBody"></div>`;
- ({cats:tCats,content:tContent,warn:tWarn,cat:tCat,brand:tBrand,notify:tNotify,journal:tJournal,clip:tClip,set:tSet})[tab]();
+ ({cats:tCats,content:tContent,warn:tWarn,cat:tCat,brand:tBrand,notify:tNotify,journal:tJournal,clip:tClip,qr:tQr,set:tSet})[tab]();
 }
 const ovOf=p=>D.ov[p.id]||{};
 const pins=()=>D.products.filter(p=>ovOf(p).pin).sort((a,b)=>ovOf(a).pin-ovOf(b).pin);
@@ -160,6 +168,13 @@ function tContent(){
  if(!draftC){const C=CV.content();draftC=JSON.parse(JSON.stringify({...C,bar:D.set.content?.bar?.length?C.bar:[]}))}
  const c=draftC;
  $('aBody').innerHTML=`<div class="panel"><h3>Nội dung chữ trên web khách</h3><p class="note">Viết tiếng Anh. Ô thay thế tự điền theo Cài đặt: <b>{eta}</b> thời gian giao · <b>{deposit}</b> % cọc · <b>{ship_flat}</b> giá ship đồng giá · <b>{fee}</b> % phí dịch vụ · <b>{shipping}</b> câu mô tả phí ship · <b>{first_free}</b> ", and your first order ships free" (nếu bật).</p></div>
+ <div class="panel"><h3>Trang chủ</h3><p class="note">Clip động ở đầu trang chủ. Chưa có clip thì web tự trình chiếu ảnh bìa các brand. Clip nên là MP4 ngang, 10–20 giây, dưới 15MB, không cần tiếng (web luôn tắt tiếng).</p>
+ <div class="mrow" style="align-items:center;margin:8px 0 12px">${D.set.hero_video?`<video src="/${esc(D.set.hero_video)}" muted autoplay loop playsinline style="width:220px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:#111"></video><button class="btn sm alt" data-herorm style="color:var(--bad)">Bỏ clip</button>`:''}
+ <label class="btn alt" style="display:grid;place-items:center;font-weight:600;cursor:pointer">${D.set.hero_video?'Đổi clip':'Tải clip lên'}<input type="file" accept="video/mp4,video/webm,video/quicktime" id="heroVid" hidden></label></div>
+ <label style="display:grid;gap:4px;font-size:14px;font-weight:600">Tiêu đề lớn<input data-hero="hero_title" value="${esc(D.set.hero_title||'')}" placeholder="Vietnamese labels, delivered" style="${inpS}"></label>
+ <label style="display:grid;gap:4px;font-size:14px;font-weight:600;margin-top:8px">Dòng nhỏ bên dưới<input data-hero="hero_sub" value="${esc(D.set.hero_sub||'')}" placeholder="Authentic pieces from independent Vietnamese brands, at your door in Australia in {eta}." style="${inpS}"></label>
+ <label style="display:grid;gap:4px;font-size:14px;font-weight:600;margin-top:8px">Chữ trên nút<input data-hero="hero_cta" value="${esc(D.set.hero_cta||'')}" placeholder="Shop all" style="${inpS}"></label>
+ <p class="note">Ảnh từng ô brand: vào tab Brand → "Ảnh bìa trang chủ".</p></div>
  <div class="panel"><h3>Thanh thông tin trên cùng</h3><p class="note">Mỗi dòng là một thông tin. Để trống = tự tạo theo Cài đặt (thời gian giao, ship đồng giá, free ship đơn đầu).</p>
  <textarea data-cbar style="${inpS};min-height:90px">${esc(c.bar.join('\n'))}</textarea></div>
  <div class="panel"><h3>Quy trình đặt hàng (cuối trang)</h3>
@@ -243,6 +258,7 @@ async function tBrand(){
   <div class="two" style="margin-top:8px"><label class="f" style="display:grid;gap:4px;font-size:14px;font-weight:600">Tên hiển thị<input data-bname="${i}" value="${esc(c.name)}"></label>
   <label class="f" style="display:grid;gap:4px;font-size:14px;font-weight:600">Instagram<input data-ig="${esc(c.id)}" value="${esc(r.instagram||c.instagram||'')}" placeholder="tenbrand"></label>
   <label class="f" style="display:grid;gap:4px;font-size:14px;font-weight:600">Nền tảng<select data-bplat="${i}">${PLAT.map(([v,l])=>`<option value="${v}"${(c.platform||'')===v?' selected':''}>${l}</option>`).join('')}</select></label></div>
+  <div class="mrow" style="align-items:center;margin-top:10px"><b style="font-size:14px">Ảnh bìa trang chủ</b>${r.cover?`<img src="/${esc(r.cover)}" alt="" style="width:56px;height:70px;object-fit:cover;border-radius:4px;border:1px solid var(--line)">`:'<span class="note">chưa có, đang dùng ảnh sản phẩm</span>'}<label class="btn sm alt" style="display:grid;place-items:center;font-weight:600;cursor:pointer">${r.cover?'Đổi ảnh':'Tải ảnh'}<input type="file" accept="image/*" data-bcover="${esc(c.id)}" hidden></label>${r.cover?`<button class="btn sm alt" data-bcoverrm="${esc(c.id)}">Bỏ ảnh</button>`:''}</div>
   <div class="chk">${VER.map(([k,l])=>`<label><input type="checkbox" data-ver="${esc(c.id)}:${k}" ${r.ver[k]?'checked':''}><span>${l}</span></label>`).join('')}
   <label><input type="checkbox" data-tr="${esc(c.id)}" ${r.translate?'checked':''}><span>Web chỉ có tiếng Việt: link sản phẩm mở qua Google Dịch sang tiếng Anh</span></label></div>
   <div class="mrow">${r.status!=='live'?`<button class="btn" data-bact="approve" data-id="${esc(c.id)}" ${ok?'':'disabled'}>Duyệt & đưa lên chợ</button>`:`<button class="btn alt" data-bact="hide" data-id="${esc(c.id)}">Tạm ẩn khỏi chợ</button>`}
@@ -326,7 +342,7 @@ function tSet(){
  <label>Cách tính tỷ giá<select name="rate_mode"><option value="auto" ${(s.rate_mode||'auto')==='auto'?'selected':''}>Tự động theo thị trường</option><option value="manual" ${s.rate_mode==='manual'?'selected':''}>Tự đặt tay</option></select><span class="note">${D.rateInfo?`Thị trường: ${Math.round(D.rateInfo.market).toLocaleString('vi-VN')}₫ (${esc(D.rateInfo.source)}, ${esc(ago(D.rateInfo.updated))}) → web đang dùng ${s.rate.toLocaleString('vi-VN')}₫`:'Chưa có tỷ giá thị trường: bấm "Lấy đơn mới" hoặc đợi lần đồng bộ tới'}</span></label><label>Trừ hao tỷ giá (%)<input name="rate_margin" type="number" value="${s.rate_margin??0}" step="0.5" min="0" max="10"><span class="note">Chỉ dùng khi tự động. VD 1% → tỷ giá thấp hơn thị trường 1%, giá AUD cao hơn chút để bù phí chuyển tiền.</span></label><label>Tỷ giá tay (₫ cho 1 AUD)<input name="rate" type="number" value="${s.rate_manual??s.rate}" step="50"><span class="note">Dùng khi chọn "Tự đặt tay", hoặc khi chưa lấy được tỷ giá thị trường.</span></label><label>Phí dịch vụ (%)<input name="fee" type="number" value="${s.fee}" step="1"></label>
  <label class="ck" style="align-self:end;display:flex;gap:10px;font-weight:500"><input type="checkbox" name="gst" ${s.gst?'checked':''} style="width:20px;min-height:0"> Cộng GST 10% (chỉ bật khi đã đăng ký GST)</label>
  <label>Số phụ kiện tối đa mỗi brand<input name="acc_cap" type="number" value="${s.acc_cap??20}" min="0"></label>
- <label>Gỡ mẫu hết hàng sau (ngày)<input name="soldout_days" type="number" min="0" step="1" value="${s.soldout_days??60}"><span class="note">Hết hàng thì vẫn hiện, xếp cuối trang. Hết liên tục quá số ngày này thì tự gỡ; có hàng lại thì tự lên lại. Gõ 0 để gỡ ngay khi hết.</span></label>
+ <label>Gỡ mẫu hết hàng sau (ngày)<input name="soldout_days" type="number" min="0" step="1" value="${s.soldout_days??180}"><span class="note">Hết hàng thì vẫn hiện, xếp cuối trang. Hết liên tục quá số ngày này thì tự gỡ; có hàng lại thì tự lên lại. Gõ 0 để gỡ ngay khi hết.</span></label>
  <label>Tiền cọc (%)<input name="deposit" type="number" value="${s.deposit}" min="0" max="100"></label><label>Khoá mua khi dữ liệu cũ hơn (giờ)<input name="stale_hours" type="number" value="${s.stale_hours}" min="1"></label></div></div>
  <button class="btn">Lưu cài đặt</button></form>
  <div class="panel" style="margin-top:14px"><h3>Chi phí vận chuyển (để tính lời/lỗ từng đơn)</h3><p class="note">Bảng cước quốc tế lấy theo Sài Cảnh Express (áp dụng từ 25/11/2026). Giao nội địa Úc theo Australia Post Parcel Post (từ 1/7/2026). Các số dưới là giả định của bạn, sửa cho đúng thực tế.</p>
@@ -382,6 +398,7 @@ function cardHTML(o){
  if(o.admin_note)tags.push(['Có ghi chú','g']);
  if(o.confirm?.mode==='confirm')tags.unshift(['In stock','gr']);else if(o.confirm?.mode==='update')tags.unshift(['Stockout','r']);else if(o.avail?.some(v=>v===false))tags.unshift(['Stockout','r']);else if(o.avail&&o.avail.length&&o.avail.every(v=>v===true))tags.unshift(['In stock','gr']);else if(o.updated_at)tags.unshift(['Bag updated','p']);
  if(o.source==='manual')tags.push(['Đơn tự tạo','g']);
+ if(o.src)tags.push(['QR: '+qrName(o.src),'y']);
  {const last=(o.emails||[]).filter(e=>STAGE_TAG[e.tpl]).slice(-1)[0];if(last)tags.push([STAGE_TAG[last.tpl],'b'])}
  {const r=costCalc(o,+(o.cost?.kg||estKg(o)),o.cost?.route||'air');if(!r.invalid)tags.push([(r.profit>=0?'Lãi A$':'Lỗ A$')+Math.abs(r.profit).toFixed(0),r.profit>=0?'gr':'r'])}
  return `<button class="jc${openId===o.id?' sel':''}" data-openo="${esc(o.id)}" draggable="true" data-drag="${esc(o.id)}" style="--cardc:${col.card};--dot:${col.c}">
@@ -467,10 +484,29 @@ function renderNew(){
 }
 const redraw=()=>{renderBoard();const y=$('odrBody')?.querySelector('.dsc')?.scrollTop||0;renderDetail();const sc=$('odrBody')?.querySelector('.dsc');if(sc)sc.scrollTop=y};
 async function setStatus(id,status){const r=await api('/api/order-update',{id,patch:{status}});if(r.ok){Object.assign(orders.find(x=>x.id===id),r.j.order);redraw();toast('Đã chuyển: '+stName(status))}else toast(r.j.error||'Không cập nhật được')}
+/* --- khách nhờ tìm hàng (gửi ảnh + link từ brand) --- */
+let inqs=[],showInqDone=false;
+async function loadInq(){const r=await api('/api/inquiries',null,'GET');inqs=r.ok&&Array.isArray(r.j)?r.j:[]}
+function renderInq(){const box=$('inqBox');if(!box)return;const open=inqs.filter(x=>!x.done),list=showInqDone?inqs:open;
+ if(!inqs.length){box.innerHTML='';return}
+ box.innerHTML=`<details class="panel inqp"${open.length?' open':''}><summary><b>🔎 Khách nhờ tìm hàng</b>${open.length?`<span class="n">${open.length}</span>`:''}<span class="note" style="margin-left:8px">Khách gửi ảnh + link món chưa có trên web. Email đầy đủ ảnh lớn cũng đã gửi về hộp thư của bạn.</span></summary>
+ <div class="inql">${list.map(x=>{const mail=`mailto:${encodeURIComponent(x.email)}?subject=${encodeURIComponent(`Re: your request ${x.id} – ${x.brand}`)}&body=${encodeURIComponent(`Hi ${x.name},\n\nThanks for your request. `)}`,src=/^https?:\/\//.test(x.source||'')?`<a href="${esc(x.source)}" target="_blank" rel="noopener">${esc(x.source)}</a>`:esc(x.source||'–');
+  return `<div class="inqi${x.done?' dn':''}"><div class="inqt">${(x.thumbs||[]).map(t=>/^data:image\//.test(t)?`<img src="${t}" alt="">`:'').join('')||'<span class="note">không có ảnh</span>'}</div>
+  <div><div class="mrow" style="justify-content:space-between;align-items:baseline"><b>${esc(x.brand||'?')}</b><span class="note">${esc(x.id)} · ${esc(new Date(x.created).toLocaleString('vi-VN'))}</span></div>
+  <p class="note" style="margin:4px 0;word-break:break-all">Thấy ở: ${src}</p>
+  <p style="margin:4px 0;font-size:14px">${esc(x.variant||'Chưa ghi size')} · SL ${x.q||1}${x.note?` · <i>${esc(x.note)}</i>`:''}</p>
+  <p style="margin:4px 0;font-size:14px">${esc(x.name)} · ${esc(x.email)}${x.phone?' · '+esc(x.phone):''}${x.src?` <i class="tg y">QR: ${esc(qrName(x.src))}</i>`:''}</p>
+  <div class="mrow" style="margin-top:6px"><a class="btn sm" href="${mail}" style="text-decoration:none;display:inline-grid;place-items:center">Trả lời khách</a><button class="btn sm alt" data-inqdone="${esc(x.id)}">${x.done?'Mở lại':'Đã xử lý'}</button><button class="btn sm alt" data-inqdel="${esc(x.id)}" style="color:var(--bad)">Xoá</button></div></div></div>`}).join('')||'<p class="note">Không còn yêu cầu nào chờ xử lý.</p>'}</div>
+ ${inqs.length>open.length?`<button class="btn sm alt" data-inqall>${showInqDone?'Ẩn yêu cầu đã xử lý':`Xem cả yêu cầu đã xử lý (${inqs.length-open.length})`}</button>`:''}</details>`;
+ box.onclick=async e=>{const t=e.target.closest('button');if(!t)return;const d=t.dataset;
+  if(d.inqall!==undefined){showInqDone=!showInqDone;renderInq()}
+  else if(d.inqdone){const x=inqs.find(i=>i.id===d.inqdone);const r=await api('/api/inquiry-done',{id:x.id,done:!x.done});if(r.ok){x.done=!x.done;renderInq()}}
+  else if(d.inqdel){if(!confirm('Xoá yêu cầu này?'))return;const r=await api('/api/inquiry-del',{id:d.inqdel});if(r.ok){inqs=inqs.filter(i=>i.id!==d.inqdel);renderInq();toast('Đã xoá')}}}}
 async function pageOrders(){
  $('box').innerHTML=`<div class="mrow" style="justify-content:space-between;align-items:center;margin-bottom:16px"><h2 style="margin:0;font-size:30px;font-weight:700">📦 Đơn hàng</h2><div class="mrow"><button class="btn alt sm" data-newo>+ Tạo đơn</button><button class="btn sm" data-pull>⇣ Lấy đơn mới</button><button class="btn alt sm" data-refresh>↻ Tải lại</button></div></div>
  ${payInfo?'':'<p class="lead"><b class="warn">Chưa có thông tin chuyển khoản.</b> Vào Quản lý sàn → Cài đặt & đồng bộ để điền, email xác nhận sẽ tự chèn vào.</p>'}
- <div id="board"><p class="note">Đang tải…</p></div>`;
+ <div id="inqBox"></div><div id="board"><p class="note">Đang tải…</p></div>`;
+ loadInq().then(renderInq);
  const r=await loadOrders();if(!r.ok){$('board').innerHTML=`<p class="empty">${esc(r.j.error||'Không tải được')}</p>`;return}
  renderBoard();renderDetail();
 }
@@ -722,6 +758,8 @@ document.addEventListener('click',async e=>{
  else if(d.fadd!==undefined){draftC.faq.push(['New question','Answer']);render()}
  else if(d.fdel!==undefined){draftC.faq.splice(+d.fdel,1);render()}
  else if(d.fup!==undefined||d.fdown!==undefined){const i=+(d.fup??d.fdown),j=d.fup!==undefined?i-1:i+1,f=draftC.faq;[f[i],f[j]]=[f[j],f[i]];render()}
+ else if(d.bcoverrm){const r=rec(d.bcoverrm);delete r.cover;D.badm[d.bcoverrm]=r;if(await saveFile('brands_admin.json',D.badm))render()}
+ else if(d.herorm!==undefined){if(!confirm('Bỏ clip trang chủ?'))return;const s={...D.set,hero_video:''};if(await saveFile('settings.json',s)){D.set=s;render()}}
  else if(d.csave!==undefined){const c=draftC,s={...D.set,content:{bar:c.bar.filter(Boolean),lead:c.lead,steps:c.steps,faq:c.faq.filter(([q])=>q.trim()),about:c.about}};if(await saveFile('settings.json',s)){D.set=s;draftC=null;render()}}
  else if(d.creset2!==undefined){if(t.dataset.sure!=='1'){t.dataset.sure='1';t.textContent='Bấm lần nữa để khôi phục';return}const s={...D.set};delete s.content;if(await saveFile('settings.json',s)){D.set=s;draftC=null;render()}}
  else if(d.cup!==undefined||d.cdown!==undefined){const r=catRows(),i=+(d.cup??d.cdown),j=d.cup!==undefined?i-1:i+1;[r[i],r[j]]=[r[j],r[i]];await saveCats(r)}
@@ -829,6 +867,11 @@ document.addEventListener('change',async e=>{const t=e.target,d=t.dataset;
  else if(d.tr){const r=rec(d.tr);r.translate=t.checked;D.badm[d.tr]=r;await saveFile('brands_admin.json',D.badm)}
  else if(d.bname!==undefined){const l=brandsCfg.map((c,k)=>k===+d.bname?{...c,name:t.value.trim()||c.name}:c);if(await saveBrands(l))toast('Đã lưu tên. Tên mới hiện sau lần đồng bộ tới.')}
  else if(d.bplat!==undefined){const l=brandsCfg.map((c,k)=>k===+d.bplat?{...c,platform:t.value}:c);if(await saveBrands(l))toast('Đã lưu')}
+ else if(d.hero){const s={...D.set,[d.hero]:t.value.trim()};if(await saveFile('settings.json',s))D.set=s}
+ else if(t.id==='heroVid'&&t.files[0]){const fl=t.files[0];if(fl.size>40e6)return toast('Clip quá nặng (trên 40MB). Nên nén dưới 15MB cho web nhẹ.',6000);toast('Đang tải clip…',60000);
+  const r=await fetch('/api/upload-video',{method:'POST',headers:{'X-Admin-Password':pw,'Content-Type':fl.type||'video/mp4'},body:fl}).then(x=>x.json().then(j=>({ok:x.ok,j}))).catch(()=>({ok:false,j:{}}));
+  if(!r.ok)return toast(r.j.error||'Tải clip lỗi');const s={...D.set,hero_video:r.j.path};if(await saveFile('settings.json',s)){D.set=s;render();if(fl.size>15e6)toast('Đã lưu. Clip hơi nặng, khách mạng yếu sẽ chờ lâu: nên nén dưới 15MB.',7000)}}
+ else if(d.bcover&&t.files[0]){const p=await upload(t.files[0]);if(p){const r=rec(d.bcover);r.cover=p;D.badm[d.bcover]=r;if(await saveFile('brands_admin.json',D.badm))render()}}
  else if(d.ig){const r=rec(d.ig);r.instagram=t.value.trim().replace(/^@/,'');D.badm[d.ig]=r;await saveFile('brands_admin.json',D.badm)}
  else if(d.clipimg!==undefined&&t.files[0]){const p=await upload(t.files[0]);if(p){const cl=D.clips.map((x,i)=>i===+d.clipimg?{...x,thumb:p}:x);if(await saveFile('clips.json',cl)){D.clips=cl;render()}}}
  else if(t.id==='coverFile'&&t.files[0]){syncForm();const p=await upload(t.files[0]);if(p){editing.cover=p;render()}}
@@ -859,7 +902,7 @@ document.addEventListener('submit',async e=>{e.preventDefault();const f=e.target
   if(await saveFile('settings.json',s)){D.set=s;render();toast('Đã lưu. Nhớ chạy publish để web online nhận link mới')}return}
  if(f.id==='payForm'){const data={text:f.text.value.trim(),sign_name:f.sign_name.value.trim(),phone:f.phone.value.trim(),email:f.email.value.trim()};const r=await api('/api/private-save',{file:'payment.json',data});if(r.ok){payInfo=data.text;contact={name:data.sign_name,phone:data.phone,email:data.email};toast('Đã lưu')}else toast(r.j.error||'Lưu không được');return}
  if(f.id==='setForm'){const n=(k,dv)=>{const v=parseFloat(f[k].value);return isNaN(v)?dv:v};
-  const s={...D.set,site_name:f.site_name.value.trim()||'VieBuy',typekit:f.typekit.value.trim().toLowerCase(),slogan:f.slogan.value.trim(),contact:f.contact.value.trim(),eta:f.eta.value.trim(),ship_mode:f.ship_mode.value,ship_flat:n('ship_flat',15),ship:n('ship',14),ship_off:Math.min(100,Math.max(0,n('ship_off',0))),free_over:Math.max(0,n('free_over',0)),free_first:f.free_first.checked,gst:f.gst.checked,acc_cap:Math.max(0,n('acc_cap',20)),soldout_days:Math.max(0,Math.round(n('soldout_days',60))),rate:n('rate',18400),rate_mode:f.rate_mode.value,rate_margin:Math.min(10,Math.max(0,n('rate_margin',0))),fee:n('fee',10),deposit:Math.min(100,Math.max(0,n('deposit',70))),stale_hours:Math.max(1,n('stale_hours',6))};
+  const s={...D.set,site_name:f.site_name.value.trim()||'VieBuy',typekit:f.typekit.value.trim().toLowerCase(),slogan:f.slogan.value.trim(),contact:f.contact.value.trim(),eta:f.eta.value.trim(),ship_mode:f.ship_mode.value,ship_flat:n('ship_flat',15),ship:n('ship',14),ship_off:Math.min(100,Math.max(0,n('ship_off',0))),free_over:Math.max(0,n('free_over',0)),free_first:f.free_first.checked,gst:f.gst.checked,acc_cap:Math.max(0,n('acc_cap',20)),soldout_days:Math.max(0,Math.round(n('soldout_days',180))),rate:n('rate',18400),rate_mode:f.rate_mode.value,rate_margin:Math.min(10,Math.max(0,n('rate_margin',0))),fee:n('fee',10),deposit:Math.min(100,Math.max(0,n('deposit',70))),stale_hours:Math.max(1,n('stale_hours',6))};
   const {rate_manual,...clean}=s;if(await saveFile('settings.json',clean)){await CV.load('/');render()}}
  if(f.id==='clipForm'){const b=$('clipBtn');b.disabled=true;b.textContent='Đang lấy thông tin clip…';
   const r=await api('/api/clip',{url:f.url.value.trim()});b.disabled=false;b.textContent='Lấy thumbnail & thêm';
@@ -871,10 +914,61 @@ document.addEventListener('submit',async e=>{e.preventDefault();const f=e.target
   let s=a.slug||slug(a.title);while(D.articles.some(x=>x.slug===s&&x.id!==a.id))s+='-2';a.slug=s;
   const list=[a,...D.articles.filter(x=>x.id!==a.id)];if(await saveFile('articles.json',list)){D.articles=list;toast(a.status==='published'?'Đã lưu và đăng':'Đã lưu bản nháp')}}
 });
+/* --- QR code: mỗi chỗ đặt một mã riêng (?src=...) để biết khách đến từ đâu --- */
+let qrList=null,scans={};
+const QR_DEST=[['','Trang Shop'],['#moodboard','Moodboard'],['#journal','Journal']];
+const qrName=s=>(qrList||[]).find(q=>q.slug===s)?.name||s;
+const qrUrl=q=>{const base=(D.set.site_url||'').replace(/\/+$/,'');return base?`${base}/?src=${q.slug}${q.dest||''}`:''};
+async function loadQr(){const a=await api('/api/private?file=qr.json',null,'GET'),b=await api('/api/private?file=scans.json',null,'GET');qrList=a.ok&&Array.isArray(a.j.codes)?a.j.codes:[];scans=b.ok&&b.j&&!b.j.error?b.j:{}}
+async function saveQr(list){const r=await api('/api/private-save',{file:'qr.json',data:{codes:list}});if(r.ok){qrList=list;return true}toast(r.j.error||'Lưu không được');return false}
+function qrMake(text){const q=qrcode(0,'M');q.addData(text);q.make();return q}
+function qrSvg(text,px){const q=qrMake(text),n=q.getModuleCount(),m=4,t=n+m*2;let d='';for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))d+=`M${c+m} ${r+m}h1v1h-1z`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${t} ${t}" width="${px}" height="${px}" shape-rendering="crispEdges"><rect width="${t}" height="${t}" fill="#fff"/><path d="${d}" fill="#111"/></svg>`}
+function qrStats(slug){const os=orders.filter(o=>o.src===slug&&o.status!=='cancelled');return {scan:scans[slug]?.count||0,last:scans[slug]?.last||'',n:os.length,rev:os.reduce((a,o)=>a+Number(o.totals?.total||0),0)}}
+function qrPng(q){   // ảnh in: mã QR + chữ VIEBUY + dòng mời quét
+ const url=qrUrl(q),qq=qrMake(url),n=qq.getModuleCount(),W=1200,cell=Math.floor(W/(n+8)),size=cell*n,off=(W-size)/2,H=W+260;
+ const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);x.fillStyle='#111';
+ for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(qq.isDark(r,c))x.fillRect(off+c*cell,off+r*cell,cell,cell);
+ x.textAlign='center';x.font='800 96px "Be Vietnam Pro",Helvetica,Arial,sans-serif';x.fillText((D.set.site_name||'VieBuy').toUpperCase(),W/2,W+70);
+ x.font='500 42px "Be Vietnam Pro",Helvetica,Arial,sans-serif';x.fillStyle='#555';x.fillText(q.caption||'Scan to shop Vietnamese brands',W/2,W+150);
+ const a=document.createElement('a');a.download=`qr-${q.slug}.png`;a.href=cv.toDataURL('image/png');a.click()}
+function qrDl(name,text,type){const a=document.createElement('a');a.download=name;a.href=URL.createObjectURL(new Blob([text],{type}));a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+async function tQr(){
+ if(qrList===null){$('aBody').innerHTML='<div class="panel"><p class="note">Đang tải…</p></div>';await loadQr()}
+ const base=(D.set.site_url||'').trim(),known=new Set(qrList.map(q=>q.slug));
+ const extra=[...new Set([...Object.keys(scans),...orders.map(o=>o.src).filter(Boolean)])].filter(s=>!known.has(s));
+ const tot=qrList.concat(extra.map(s=>({slug:s}))).map(q=>qrStats(q.slug)).reduce((a,b)=>({scan:a.scan+b.scan,n:a.n+b.n,rev:a.rev+b.rev}),{scan:0,n:0,rev:0});
+ $('aBody').innerHTML=`<div class="panel"><h3>QR code</h3><p class="note">Mỗi chỗ đặt mã (poster, card trong gói hàng, Instagram…) nên có một mã riêng. Khách quét mã nào thì đơn của họ sẽ có tag <i class="tg y">QR: tên chỗ đặt</i>, và bảng dưới đếm lượt quét, số đơn, doanh thu cho từng mã. Lượt quét cập nhật khi bấm "Lấy đơn mới".</p>
+ ${base?'':'<p class="note" style="color:var(--r-t)">Chưa có "Link web online" (Cài đặt → Online) nên chưa tạo được link cho mã.</p>'}
+ <form class="f" id="qrForm" style="display:grid;grid-template-columns:2fr 1.3fr 1fr auto;gap:10px;align-items:end;margin-top:12px">
+  <label>Chỗ đặt mã<input name="name" required placeholder="vd: Poster thư viện UQ" maxlength="60"></label>
+  <label>Mã ngắn (trong link)<input name="slug" placeholder="tự tạo từ tên" maxlength="24" pattern="[a-z0-9-]*"></label>
+  <label>Mở ra trang<select name="dest">${QR_DEST.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select></label>
+  <button class="btn">+ Tạo mã</button></form>
+ <p class="note" style="margin-top:14px">Tổng: <b>${tot.scan}</b> lượt quét · <b>${tot.n}</b> đơn · <b>A$${tot.rev.toFixed(2)}</b>${tot.scan?` · ${(tot.n/tot.scan*100).toFixed(1)}% quét thành đơn`:''}</p></div>
+ <div class="qrgrid">${qrList.map((q,i)=>{const st=qrStats(q.slug),url=qrUrl(q);return `<div class="panel qrc">
+  <div class="qri">${url?qrSvg(url,150):''}</div>
+  <div><h3 style="margin:0">${esc(q.name)}</h3><p class="note" style="margin:2px 0 8px;word-break:break-all">${esc(url||'?src='+q.slug)}</p>
+  <div class="qrs"><span><b>${st.scan}</b>lượt quét</span><span><b>${st.n}</b>đơn</span><span><b>A$${st.rev.toFixed(0)}</b>doanh thu</span><span><b>${st.scan?(st.n/st.scan*100).toFixed(0)+'%':'–'}</b>quét → đơn</span></div>
+  ${st.last?`<p class="note" style="margin:6px 0 0">Quét gần nhất: ${esc(new Date(st.last+(st.last.endsWith('Z')?'':'Z')).toLocaleString('vi-VN'))}</p>`:''}
+  <label class="note" style="display:block;margin-top:8px">Dòng chữ dưới mã khi tải PNG<input data-qrcap="${i}" value="${esc(q.caption||'Scan to shop Vietnamese brands')}" maxlength="50" style="width:100%;min-height:34px;border:1px solid var(--line);border-radius:6px;padding:0 8px;margin-top:4px"></label>
+  <div class="mrow" style="margin-top:10px;flex-wrap:wrap">${url?`<button class="btn" data-qrpng="${i}">Tải PNG (in)</button><button class="btn alt" data-qrsvg="${i}">Tải SVG</button><button class="btn alt" data-qrcopy="${i}">Copy link</button>`:''}<button class="btn alt" data-qrdel="${i}" style="margin-left:auto">Xoá</button></div></div></div>`}).join('')}</div>
+ ${extra.length?`<div class="panel"><h3>Nguồn khác</h3><p class="note">Có lượt quét hoặc đơn nhưng chưa có trong danh sách (mã đã xoá, hoặc link ?src= bà tự gõ).</p>${extra.map(s=>{const st=qrStats(s);return `<p class="note" style="margin:4px 0"><b>${esc(s)}</b> · ${st.scan} lượt quét · ${st.n} đơn · A$${st.rev.toFixed(0)}</p>`}).join('')}</div>`:''}`;
+ const f=$('qrForm');f.name.oninput=()=>{if(!f.slug.dataset.touched)f.slug.value=slug(f.name.value).slice(0,24)};f.slug.oninput=()=>{f.slug.dataset.touched=1;f.slug.value=f.slug.value.toLowerCase().replace(/[^a-z0-9-]/g,'')};
+ f.onsubmit=async e=>{e.preventDefault();const s=(f.slug.value||slug(f.name.value)).toLowerCase().replace(/[^a-z0-9-]/g,'').slice(0,24);if(!s)return toast('Cần tên chỗ đặt');if(qrList.some(q=>q.slug===s))return toast('Mã "'+s+'" đã có, đặt mã ngắn khác nhé');
+  if(await saveQr([{slug:s,name:f.name.value.trim(),dest:f.dest.value,caption:'Scan to shop Vietnamese brands',created:new Date().toISOString().slice(0,10)},...qrList])){toast('Đã tạo mã');tQr()}};
+ $('aBody').onclick=async e=>{const t=e.target.closest('button');if(!t)return;const d=t.dataset;
+  if(d.qrpng!==undefined)qrPng(qrList[+d.qrpng]);
+  else if(d.qrsvg!==undefined){const q=qrList[+d.qrsvg];qrDl(`qr-${q.slug}.svg`,qrSvg(qrUrl(q),1000),'image/svg+xml')}
+  else if(d.qrcopy!==undefined){try{await navigator.clipboard.writeText(qrUrl(qrList[+d.qrcopy]));toast('Đã copy link')}catch(x){toast('Không copy được')}}
+  else if(d.qrdel!==undefined){const q=qrList[+d.qrdel];if(!confirm(`Xoá mã "${q.name}"? Mã đã in ra vẫn dẫn vào web bình thường, chỉ là không còn hiện trong danh sách này.`))return;if(await saveQr(qrList.filter((_,i)=>i!==+d.qrdel))){toast('Đã xoá');tQr()}}};
+ $('aBody').onchange=async e=>{const i=e.target.dataset.qrcap;if(i===undefined)return;const list=qrList.map((q,k)=>k===+i?{...q,caption:e.target.value.trim()}:q);if(await saveQr(list))toast('Đã lưu dòng chữ')};
+}
 async function loadRemote(){const q=await api('/api/private?file=remote.json',null,'GET');remote=q.ok?q.j:{}}
 async function pullOnline(quiet){if(!quiet)toast('Đang lấy đơn…');
- const r=await api('/api/pull',{});if(!r.ok)return toast(r.j.error||'Không lấy được');const j=r.j;await loadOrders();if(j.data){await CV.load('/');await loadWarns()}
- const m=[j.orders?j.orders+' đơn mới':'',j.updated?j.updated+' đơn khách đã đổi món':'',j.notify?j.notify+' đăng ký báo hàng':'',j.data?'dữ liệu sản phẩm mới':''].filter(Boolean).join(', ');
+ const r=await api('/api/pull',{});if(!r.ok)return toast(r.j.error||'Không lấy được');const j=r.j;await loadOrders();await loadQr();if(j.data){await CV.load('/');await loadWarns()}
+ await loadInq();renderInq();
+ const m=[j.orders?j.orders+' đơn mới':'',j.inquiries?j.inquiries+' yêu cầu tìm hàng':'',j.updated?j.updated+' đơn khách đã đổi món':'',j.notify?j.notify+' đăng ký báo hàng':'',j.data?'dữ liệu sản phẩm mới':''].filter(Boolean).join(', ');
  const msg=[m?'Đã lấy: '+m:'',...j.msgs].filter(Boolean).join(' · ')||'Không có đơn mới';
  if(m||j.msgs.length||!quiet)toast(msg,j.msgs.length?9000:undefined);render()}
 async function loadPay(){const q=await api('/api/private?file=payment.json',null,'GET');payInfo=q.ok?(q.j.text||''):'';contact=q.ok?{name:q.j.sign_name||'',phone:q.j.phone||'',email:q.j.email||''}:{}}
@@ -883,7 +977,7 @@ document.addEventListener('dragstart',e=>{const c=e.target.closest?.('[data-drag
 document.addEventListener('dragover',e=>{const col=e.target.closest?.('[data-drop]');if(!col)return;e.preventDefault();document.querySelectorAll('.kcol.over').forEach(x=>x!==col&&x.classList.remove('over'));col.classList.add('over')});
 document.addEventListener('dragleave',e=>{const col=e.target.closest?.('[data-drop]');if(col&&!col.contains(e.relatedTarget))col.classList.remove('over')});
 document.addEventListener('drop',async e=>{const col=e.target.closest?.('[data-drop]');if(!col)return;e.preventDefault();col.classList.remove('over');const id=e.dataTransfer.getData('text/plain'),o=orders.find(x=>x.id===id),C=COLS.find(c=>c.k===col.dataset.drop);if(!o||!C||C.st.includes(o.status||'new'))return;await setStatus(id,C.k==='c1'&&!o.confirm?'new':C.to)});
-CV.load('/').then(async()=>{if(pw){await loadNotes();await loadWarns();await loadPay();await loadRemote();await loadOrders()}render();if(pw)pullOnline(true)});
+CV.load('/').then(async()=>{if(pw){await loadNotes();await loadWarns();await loadPay();await loadRemote();await loadOrders();await loadQr()}render();if(pw)pullOnline(true)});
 }
 </script>
 </body>

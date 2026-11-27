@@ -41,6 +41,8 @@ function doPost(e) {
     if (d.kind === 'order') return order_(d);
     if (d.kind === 'mail') return mail_(d);
     if (d.kind === 'update') return update_(d);
+    if (d.kind === 'visit') return visit_(d);
+    if (d.kind === 'inquiry') return inquiry_(d);
     return json_({ error: 'Unknown request' });
   } finally {
     lock.releaseLock();
@@ -98,7 +100,7 @@ function order_(d) {
     id, created: new Date().toISOString().slice(0, 19), name: clean_(d.name, 120), email, phone: clean_(d.phone, 30),
     address: clean_(d.address, 300), note: clean_(d.note, 500),
     items: items_(items),
-    ref: clean_(d.ref, 20).replace(/[^A-Za-z0-9-]/g, ''), totals: d.totals || {}, rate: d.rate, deposit_pct: d.deposit_pct, first_claim: !!d.first_claim, repeat_customer: repeat, status: 'new'
+    ref: clean_(d.ref, 20).replace(/[^A-Za-z0-9-]/g, ''), src: clean_(d.src, 24).toLowerCase().replace(/[^a-z0-9-]/g, ''), totals: d.totals || {}, rate: d.rate, deposit_pct: d.deposit_pct, first_claim: !!d.first_claim, repeat_customer: repeat, status: 'new'
   };
   const t = o.totals;
   sh.appendRow([id, o.created, o.name, email, o.phone, o.address, o.note,
@@ -110,13 +112,62 @@ function order_(d) {
   const html = `<div style="font-family:Arial,sans-serif;font-size:15px;max-width:560px">
     <h2 style="margin:0 0 6px">${o.ref ? `Khách cập nhật giỏ: ${id} (thay đơn ${esc_(o.ref)})` : `Đơn mới ${id}`}</h2>
     <p style="margin:0 0 12px">${esc_(o.name)} · <a href="mailto:${esc_(email)}">${esc_(email)}</a> ${o.phone ? '· ' + esc_(o.phone) : ''}<br>${esc_(o.address)}
-    ${repeat ? '<br><b>Khách cũ</b>' : ''}${o.first_claim ? '<br>Khách chọn free ship đơn đầu' : ''}</p>
+    ${repeat ? '<br><b>Khách cũ</b>' : ''}${o.src ? '<br>Đến từ QR: <b>' + esc_(o.src) + '</b>' : ''}${o.first_claim ? '<br>Khách chọn free ship đơn đầu' : ''}</p>
     <table style="width:100%;border-collapse:collapse">${rows}</table>
     <p style="margin:12px 0 0">Tổng: <b>A$${t.total || '?'}</b> · Cọc ${o.deposit_pct || ''}%: <b>A$${t.deposit || '?'}</b></p>
     ${o.note ? `<p>Ghi chú: ${esc_(o.note)}</p>` : ''}
     <p style="color:#777;font-size:13px">Về laptop: mở admin → Đơn hàng → "Lấy đơn mới" để cập nhật tiến độ.</p></div>`;
   MailApp.sendEmail({ to: OWNER_EMAIL, subject: `${SITE_NAME}: ${o.ref ? `cập nhật giỏ ${id} (đơn cũ ${o.ref})` : `đơn mới ${id}`} – ${o.name} – A$${t.total || '?'}`, htmlBody: html, replyTo: email, name: SITE_NAME });
   return json_({ id });
+}
+
+// Khách gửi ảnh + link nhờ tìm một món chưa có trên web
+// Sheet "Inquiries": ảnh nhỏ (thumb) nằm ở 3 cột riêng vì mỗi ô Google Sheet chỉ chứa được 50.000 ký tự; ảnh lớn gửi kèm email cho bạn.
+const INQ_HEADER = ['Thời gian', 'Mã', 'Tên', 'Email', 'SĐT', 'Brand', 'Link', 'Size/màu', 'SL', 'Ghi chú', 'Ảnh 1', 'Ảnh 2', 'Ảnh 3', 'Dữ liệu (đừng sửa)'];
+function inquiry_(d) {
+  const email = clean_(d.email, 120).trim().toLowerCase();
+  const photos = (Array.isArray(d.photos) ? d.photos : []).slice(0, 3).filter(p => p && p.full);
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || !clean_(d.name, 120).trim() || !photos.length)
+    return json_({ error: 'Please add a photo, your name and email' });
+  const sh = sheet_('Inquiries', INQ_HEADER);
+  if (sh.getLastRow() > 3000) return json_({ error: "We're busy right now, please try again later" });
+  const id = 'RQ-' + Utilities.getUuid().replace(/-/g, '').slice(0, 6).toUpperCase();
+  const n = { id, created: new Date().toISOString().slice(0, 19), name: clean_(d.name, 120), email, phone: clean_(d.phone, 30),
+    brand: clean_(d.brand, 80), source: clean_(d.source, 500), variant: clean_(d.variant, 80), q: Math.max(1, Math.min(20, parseInt(d.q) || 1)),
+    note: clean_(d.note, 800), src: clean_(d.src, 24).toLowerCase().replace(/[^a-z0-9-]/g, ''), done: false };
+  const thumbs = [0, 1, 2].map(i => photos[i] && String(photos[i].thumb || '').length < 49000 ? String(photos[i].thumb || '') : '');
+  sh.appendRow([n.created, id, n.name, email, n.phone, n.brand, n.source, n.variant, n.q, n.note, ...thumbs, JSON.stringify(n)]);
+  const blobs = photos.map((p, i) => { const m = String(p.full).match(/^data:(image\/[a-z]+);base64,(.+)$/); return m ? Utilities.newBlob(Utilities.base64Decode(m[2]), m[1], `${id}-${i + 1}.jpg`) : null; }).filter(Boolean);
+  const inl = {}; blobs.forEach((b, i) => inl['p' + i] = b);
+  const link = /^https?:\/\//.test(n.source) ? `<a href="${esc_(n.source)}">${esc_(n.source)}</a>` : esc_(n.source);
+  MailApp.sendEmail({ to: OWNER_EMAIL, replyTo: email, name: SITE_NAME, subject: `${SITE_NAME}: nhờ tìm hàng ${id} – ${n.brand} – ${n.name}`, attachments: blobs, inlineImages: inl,
+    htmlBody: `<div style="font-family:Arial,sans-serif;font-size:15px;max-width:560px"><h2 style="margin:0 0 6px">Khách nhờ tìm hàng ${id}</h2>
+      <p>${esc_(n.name)} · <a href="mailto:${esc_(email)}">${esc_(email)}</a>${n.phone ? ' · ' + esc_(n.phone) : ''}</p>
+      <p><b>Brand:</b> ${esc_(n.brand)}<br><b>Thấy ở:</b> ${link}<br><b>Size/màu:</b> ${esc_(n.variant || '–')} · <b>SL:</b> ${n.q}${n.note ? '<br><b>Ghi chú:</b> ' + esc_(n.note) : ''}${n.src ? '<br>Đến từ QR: <b>' + esc_(n.src) + '</b>' : ''}</p>
+      ${blobs.map((b, i) => `<img src="cid:p${i}" style="max-width:100%;margin:0 0 8px;display:block">`).join('')}
+      <p style="color:#777;font-size:13px">Trả lời email này là trả lời thẳng cho khách.</p></div>` });
+  MailApp.sendEmail({ to: email, replyTo: OWNER_EMAIL, name: SITE_NAME, subject: `We received your request ${id}`,
+    htmlBody: `<div style="font-family:Arial,sans-serif;font-size:15px;max-width:560px;color:#111"><p>Hi ${esc_(n.name)},</p>
+      <p>Thanks for sending us this piece from <b>${esc_(n.brand)}</b>. I'll check availability and price with the brand and get back to you within 24 hours with a quote in AUD.</p>
+      <p>No payment is needed until you confirm.</p><p>${SITE_NAME}</p></div>` });
+  return json_({ id });
+}
+
+// Khách vào web bằng QR code (?src=...): cộng 1 lượt quét cho nguồn đó
+function visit_(d) {
+  const src = clean_(d.src, 24).toLowerCase().replace(/[^a-z0-9-]/g, '');
+  if (!src) return json_({ ok: true });
+  const lock = LockService.getScriptLock();
+  try { lock.waitLock(5000); } catch (x) { return json_({ ok: true }); }
+  try {
+    const sh = sheet_('Scans', ['Nguồn', 'Lượt quét', 'Lần cuối']);
+    const n = sh.getLastRow();
+    const keys = n > 1 ? sh.getRange(2, 1, n - 1, 1).getValues().flat().map(String) : [];
+    const i = keys.indexOf(src), now = new Date().toISOString().slice(0, 19);
+    if (i < 0) { if (keys.length < 300) sh.appendRow([src, 1, now]); }
+    else { const r = sh.getRange(i + 2, 2, 1, 2); r.setValues([[Number(r.getValues()[0][0] || 0) + 1, now]]); }
+  } finally { lock.releaseLock(); }
+  return json_({ ok: true });
 }
 
 // Admin trên laptop gửi email xác nhận cho khách (từ Gmail của bạn). Cần đúng SECRET.
@@ -158,7 +209,16 @@ function doGet(e) {
     return sh.getRange(2, col, sh.getLastRow() - 1, 1).getValues().flat()
       .map(v => { try { return JSON.parse(v); } catch (x) { return null; } }).filter(Boolean);
   };
-  return json_({ orders: read('Orders'), notify: read('Notify') });
+  const scans = {};
+  const ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Scans');
+  if (ss && ss.getLastRow() > 1) ss.getRange(2, 1, ss.getLastRow() - 1, 3).getValues()
+    .forEach(([k, c, t]) => { if (k) scans[String(k)] = { count: Number(c) || 0, last: t instanceof Date ? t.toISOString().slice(0, 19) : String(t) }; });
+  const inquiries = [];
+  const iq = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Inquiries');
+  if (iq && iq.getLastRow() > 1) iq.getRange(2, 1, iq.getLastRow() - 1, INQ_HEADER.length).getValues().forEach(r => {
+    try { const n = JSON.parse(r[INQ_HEADER.length - 1]); n.thumbs = r.slice(10, 13).filter(Boolean).map(String); inquiries.push(n); } catch (x) {}
+  });
+  return json_({ orders: read('Orders'), notify: read('Notify'), scans, inquiries });
 }
 
 // Chạy hàm này 1 lần trong trình soạn script để cấp quyền gửi email + thử email
