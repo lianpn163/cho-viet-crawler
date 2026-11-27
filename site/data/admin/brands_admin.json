@@ -1,0 +1,46 @@
+{
+ "rvb": {
+  "status": "live",
+  "instagram": "",
+  "translate": false,
+  "verified_at": "2026-11-27T13:41:10.543Z",
+  "ver": {
+   "web": 1,
+   "ig": 1,
+   "biz": 1
+  }
+ },
+ "dico": {
+  "status": "live",
+  "instagram": "",
+  "translate": false,
+  "verified_at": "2026-11-27T13:41:14.009Z",
+  "ver": {
+   "web": 1,
+   "ig": 1,
+   "biz": 1
+  }
+ },
+ "goldie": {
+  "status": "live",
+  "instagram": "",
+  "translate": false,
+  "verified_at": "2026-11-27T13:41:17.276Z",
+  "ver": {
+   "web": 1,
+   "ig": 1,
+   "biz": 1
+  }
+ },
+ "whenever": {
+  "status": "live",
+  "instagram": "",
+  "translate": false,
+  "verified_at": "2026-11-27T13:41:20.226Z",
+  "ver": {
+   "web": 1,
+   "ig": 1,
+   "biz": 1
+  }
+ }
+}
