@@ -106,10 +106,22 @@ table.mini{border-collapse:collapse;font-size:14px}table.mini td{padding:3px 16p
 .costbox table.mini td:last-child{text-align:right}
 .toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,90px);background:#16181d;color:#fff;padding:10px 16px;border-radius:10px;z-index:50;transition:transform .2s;font-size:15px;max-width:90vw}
 .toast.on{transform:translate(-50%,0)}
+/* ===== giao diện tối giản: đen trắng, ít chữ ===== */
+:root{--ink:#1a1a1a;--mute:#8c8c8c;--line:#ededed;--soft:#f7f7f7;--acc:#111;
+ --g-bg:#f1f1f1;--g-t:#444;--g-c:#fafafa;--b-bg:#f1f1f1;--b-t:#444;--b-c:#fafafa;--gr-bg:#f1f1f1;--gr-t:#444;--gr-c:#fafafa;--o-bg:#f1f1f1;--o-t:#444;--o-c:#fafafa;--y-bg:#f1f1f1;--y-t:#444;--p-bg:#f1f1f1;--p-t:#444;--r-bg:#fbecec;--r-t:#a32a2a}
+body{font-size:14px}header{background:#fff;padding:12px max(4vw,16px)}header b{font-size:16px;letter-spacing:.08em;text-transform:uppercase}
+.pages{display:flex;gap:2px;flex-wrap:wrap}.pages button{border:0;background:none;padding:8px 12px;border-radius:6px;color:var(--mute);font-weight:600}.pages button.on{color:var(--ink);background:var(--soft)}.pages .lo{color:var(--mute);font-weight:400}
+.pages .n,.atabs .n{background:#111;color:#fff;border-radius:99px;padding:0 6px;font-size:11px;margin-left:5px}
+.atabs{border-bottom:1px solid var(--line);gap:0;margin-bottom:18px}.atabs button{border-radius:0;border:0;border-bottom:2px solid transparent;padding:0 14px;min-height:40px}.atabs button.on{background:none;border-color:#111;color:var(--ink)}.atabs button:hover{background:none;color:var(--ink)}
+.panel{border-radius:8px;padding:18px;border-color:var(--line)}h2{font-size:20px;font-weight:700}h3{font-size:15px;font-weight:700}
+.btn{border-radius:6px}a{color:var(--ink)}
+.kcol{background:#fafafa!important}.kcol .kh .cnt{color:var(--mute)!important}.kcol .pill{background:none!important;color:var(--ink)!important;padding-left:0!important;font-weight:700}
+.hlp{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--mute);font-weight:700;padding:0}.hlp[aria-pressed=true]{background:#111;color:#fff;border-color:#111}
+body:not(.help) .panel>h3+p.note,body:not(.help) .panel>h3+.note,body:not(.help) .lead,body:not(.help) .kcol .desc,body:not(.help) .note.hint,body:not(.help) .hintp{display:none}
 </style>
 </head>
 <body>
-<header><div><b>Admin</b> <small>chỉ chạy trên máy của bạn</small></div><nav class="pages" id="pages"></nav><div class="mrow"><a href="/" target="_blank" rel="noopener">Mở website khách ↗</a></div></header>
+<header><b>VieBuy</b><nav class="pages" id="pages"></nav><div class="mrow" style="align-items:center;gap:16px"><button class="hlp" id="helpBtn" aria-pressed="false" title="Hiện / ẩn chữ hướng dẫn">?</button><a href="/" target="_blank" rel="noopener">Xem web ↗</a></div></header>
 <div class="wrap" id="box"></div>
 <div class="oveil" id="oveil" data-closeo></div>
 <aside class="odr" id="odr" aria-label="Chi tiết đơn"><div id="odrBody"></div></aside>
@@ -138,11 +150,14 @@ function render(){
  const left=D.products.filter(p=>catOf(p)==='Khác'&&!D.ov[p.id]?.category).length,back=notes.filter(n=>!n.done&&isBack(n)).length,rv=D.status.filter(b=>rec(b.id).status==='review').length;
  const hi=warns.filter(w=>w.level!=='low').length;
  const newO=orders.filter(o=>(o.status||'new')==='new').length;
- $('pages').innerHTML=`<button class="${page==='orders'?'on':''}" data-page="orders">Quản lý đơn hàng${newO?`<span class="n">${newO}</span>`:''}</button><button class="${page==='shop'?'on':''}" data-page="shop">Quản lý sàn${hi?`<span class="n">${hi}</span>`:''}</button><button data-logout>Thoát</button>`;
- if(page==='orders')return pageOrders();
- const T=[['warn','Cảnh báo',hi],['cat','Sản phẩm',left],['cats','Danh mục'],['content','Nội dung web'],['brand','Brand',rv],['notify','Chờ hàng',back],['journal','Journal'],['clip','Moodboard'],['qr','QR code'],['set','Cài đặt & đồng bộ']];
- if(tab==='order')tab='warn';
- $('box').innerHTML=`<div class="atabs">${T.map(([k,l,n])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${l}${n?`<span class="n">${n}</span>`:''}</button>`).join('')}</div><div id="aBody"></div>`;
+ // 5 mục chính, mỗi mục có vài tab con
+ const G=[['orders','Đơn hàng',newO,[['orders','Đơn hàng'],['notify','Chờ hàng',back]]],['products','Sản phẩm',hi+left,[['cat','Sản phẩm',left],['cats','Danh mục'],['warn','Cảnh báo',hi]]],
+  ['brand','Brand',rv,[['brand','Brand']]],['web','Trang web',0,[['content','Trang chủ & chữ'],['clip','Moodboard'],['journal','Journal']]],['settings','Cài đặt',0,[['set','Cài đặt'],['qr','QR code']]]];
+ if(page==='shop')page='products';if(!G.some(g=>g[0]===page))page='orders';
+ const g=G.find(x=>x[0]===page);if(!g[3].some(([k])=>k===tab))tab=g[3][0][0];
+ $('pages').innerHTML=G.map(([k,l,n])=>`<button class="${page===k?'on':''}" data-page="${k}">${l}${n?`<span class="n">${n}</span>`:''}</button>`).join('')+`<button data-logout class="lo">Thoát</button>`;
+ $('box').innerHTML=(g[3].length>1?`<div class="atabs">${g[3].map(([k,l,n])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${l}${n?`<span class="n">${n}</span>`:''}</button>`).join('')}</div>`:'')+`<div id="aBody"></div>`;
+ if(tab==='orders'){$('box').innerHTML=$('box').innerHTML.replace('<div id="aBody"></div>','');const sub=$('box').innerHTML;return pageOrders(sub)}
  ({cats:tCats,content:tContent,warn:tWarn,cat:tCat,brand:tBrand,notify:tNotify,journal:tJournal,clip:tClip,qr:tQr,set:tSet})[tab]();
 }
 const ovOf=p=>D.ov[p.id]||{};
@@ -173,11 +188,11 @@ const inpS='width:100%;min-height:40px;border:1px solid var(--line);border-radiu
 function tContent(){
  if(!draftC){const C=CV.content();draftC=JSON.parse(JSON.stringify({...C,bar:D.set.content?.bar?.length?C.bar:[]}))}
  const c=draftC;
- $('aBody').innerHTML=`<div class="panel"><h3>Nội dung chữ trên web khách</h3><p class="note">Viết tiếng Anh. Ô thay thế tự điền theo Cài đặt: <b>{eta}</b> thời gian giao · <b>{deposit}</b> % cọc · <b>{ship_flat}</b> giá ship đồng giá · <b>{fee}</b> % phí dịch vụ · <b>{shipping}</b> câu mô tả phí ship · <b>{first_free}</b> ", and your first order ships free" (nếu bật).</p></div>
+ $('aBody').innerHTML=`<div class="panel hintp"><h3>Nội dung chữ trên web khách</h3><p class="note">Viết tiếng Anh. Ô thay thế tự điền theo Cài đặt: <b>{eta}</b> thời gian giao · <b>{deposit}</b> % cọc · <b>{ship_flat}</b> giá ship đồng giá · <b>{fee}</b> % phí dịch vụ · <b>{shipping}</b> câu mô tả phí ship · <b>{first_free}</b> ", and your first order ships free" (nếu bật).</p></div>
  <div class="panel"><h3>Trang chủ</h3><p class="note">Phần đầu trang chủ. Mỗi ảnh/clip chọn được hiện ở <b>điện thoại</b>, <b>máy tính</b> hay <b>cả hai</b>: ảnh/clip dọc hợp điện thoại, ngang hợp máy tính.</p>
  <div class="mrow" style="margin:10px 0 4px;gap:18px;flex-wrap:wrap"><label style="display:flex;gap:6px;align-items:center;font-weight:600"><input type="radio" name="hmode" data-hmode="images"${D.set.hero_mode==='video'?'':' checked'}> Chiếu ảnh</label>
   <label style="display:flex;gap:6px;align-items:center;font-weight:600"><input type="radio" name="hmode" data-hmode="video"${D.set.hero_mode==='video'?' checked':''}> Chạy clip</label>
-  <label class="note" style="display:flex;gap:6px;align-items:center">Mỗi ảnh hiện<input type="number" min="3" max="15" data-hero="hero_secs" value="${esc(D.set.hero_secs||5)}" style="width:64px;${inpS}">giây</label></div>
+  <label class="note" style="display:flex;gap:6px;align-items:center;white-space:nowrap">Mỗi ảnh hiện<input type="number" min="3" max="15" data-hero="hero_secs" value="${esc(D.set.hero_secs||5)}" style="width:64px;${inpS}">giây</label></div>
  <p class="note" style="margin:0 0 12px">${D.set.hero_mode==='video'?'Đang chạy clip. Thiết bị nào không có clip thì tự chuyển sang chiếu ảnh.':'Đang chiếu ảnh. Chưa có ảnh nào cho thiết bị đó thì web dùng ảnh bìa các brand.'}</p>
  <h4 style="margin:14px 0 4px">Ảnh trình chiếu</h4>${heroBox('imgs')}
  <label class="btn alt" style="display:inline-grid;place-items:center;font-weight:600;cursor:pointer;margin:10px 0 14px">+ Thêm ảnh (chọn được nhiều ảnh)<input type="file" accept="image/*" id="heroImg" multiple hidden></label>
@@ -216,7 +231,7 @@ function tWarn(){
 function tCat(){
  const left=D.products.filter(p=>catOf(p)==='Khác'&&!D.ov[p.id]?.category).length,hid=D.products.filter(p=>ovOf(p).hidden).length;
  const kws=kwList.filter(k=>!D.kw[k.word]),nk=Object.keys(pendKw).length;
- const kwPanel=`<div class="panel"><h3>Từ khoá chưa rõ danh mục</h3><p class="note">Lấy từ tên các sản phẩm đang ở "Khác" trong lần đồng bộ gần nhất. Gán một từ khoá là mọi sản phẩm có từ đó tự vào đúng danh mục, cả bây giờ lẫn các lần sau.</p>
+ const kwPanel=!kws.length&&!nk?'':`<div class="panel"><h3>Từ khoá chưa rõ danh mục</h3><p class="note">Lấy từ tên các sản phẩm đang ở "Khác" trong lần đồng bộ gần nhất. Gán một từ khoá là mọi sản phẩm có từ đó tự vào đúng danh mục, cả bây giờ lẫn các lần sau.</p>
  ${kws.length?kws.map(k=>`<div class="crow" style="grid-template-columns:1fr"><div><b>${esc(k.word)}</b> <span class="note">${k.count} sản phẩm · vd: ${esc(k.samples.slice(0,2).join(' | '))}</span>
   <select data-kw="${esc(k.word)}"><option value="">Chưa gán</option>${CATS.map(c=>`<option${pendKw[k.word]===c?' selected':''}>${c}</option>`).join('')}<option value="${SKIP}"${pendKw[k.word]===SKIP?' selected':''}>Không bán (ẩn khỏi sàn)</option></select></div></div>`).join(''):'<p class="note">Không có từ khoá nào cần gán.</p>'}
  ${Object.keys(D.kw).length?`<p class="note" style="margin-top:12px">Đã gán: ${Object.entries(D.kw).map(([k,c])=>`<span class="tag" style="margin:2px">${esc(k)} → ${esc(c)} <button class="btn sm alt" style="min-height:22px;padding:0 6px" data-delkw="${esc(k)}" aria-label="Bỏ">×</button></span>`).join(' ')}</p>`:''}
@@ -320,7 +335,7 @@ function editor(){
 function syncForm(){const f=$('artForm');if(!f)return;const a=editing;a.title=f.title.value;a.tag=f.tag.value;a.date=f.date.value;a.dek=f.dek.value;if(f.body)a.body=f.body.value;a.status=f.status.value;a.brands=[...f.querySelectorAll('[name=brands]:checked')].map(x=>x.value)}
 async function shrink(file,max=2400){   // giữ ảnh gốc nếu dưới 4MB (nét nhất); ảnh quá nặng mới thu nhỏ, có làm mịn để không bị răng cưa
  const url=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(file)});
- if(file.size<4e6||file.type==='image/gif')return url;
+ if(file.type==='image/gif'||(file.size<4e6&&!(file.type==='image/png'&&file.size>6e5)))return url;   // ảnh chụp màn hình PNG nặng: đổi sang JPG chất lượng cao cho web nhẹ
  try{const img=await createImageBitmap(file);let src=img,w=img.width,h=img.height;const k=Math.min(1,max/Math.max(w,h)),W=Math.round(w*k),H=Math.round(h*k);
   while(w/2>W){const c=document.createElement('canvas');c.width=w=Math.round(w/2);c.height=h=Math.round(h/2);const x=c.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(src,0,0,w,h);src=c}   // thu nhỏ từng nấc một nửa
   const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(src,0,0,W,H);return c.toDataURL('image/jpeg',.92)}catch(e){return url}
@@ -348,11 +363,7 @@ function tClip(){
   <a class="note" href="${esc(x.url)}" target="_blank" rel="noopener" style="word-break:break-all">${esc(x.url)}</a>
   <select data-igbrand="${i}" style="${inpS}"><option value="">Không gắn brand</option>${live.map(b=>`<option value="${esc(b.id)}"${x.brand===b.id?' selected':''}>${esc(b.name)}</option>`).join('')}</select>
   <div class="mrow"><button class="btn sm alt" data-igmv="${i},-1"${i?'':' disabled'}>↑</button><button class="btn sm alt" data-igmv="${i},1"${i<ig.length-1?'':' disabled'}>↓</button><label class="btn sm alt" style="display:grid;place-items:center;font-weight:600;cursor:pointer">Đổi ảnh<input type="file" accept="image/*" data-igimg="${i}" hidden></label><button class="btn sm alt" data-igdel="${i}" style="color:var(--bad)">Xoá</button></div></div></div>`).join('')||'<p class="note">Chưa có bài nào.</p>'}</div></div>
- <div class="panel"><h3>Thêm clip TikTok</h3><form class="f" id="clipForm" style="margin-top:10px"><label>Link clip<input name="url" required placeholder="https://www.tiktok.com/@ten/video/123…"></label>
- <div class="two"><label>Gắn với brand<select name="brand"><option value="">Không gắn</option>${opts}</select></label><label>Creator đến từ<input name="country" placeholder="Úc, Mỹ, Hàn…"></label></div>
- <label>Mô tả ngắn<input name="cap" maxlength="140"></label><button class="btn" id="clipBtn">Lấy thumbnail & thêm</button></form></div>
- <div class="panel">${D.clips.map((c,i)=>`<div class="crow"><img src="${esc(c.thumb||'')}" alt="" referrerpolicy="no-referrer"><div><b>@${esc(c.handle)}</b> <span class="note">${esc(c.brand?st(c.brand).name:'')} ${esc(c.country||'')}</span><div class="note" style="margin:0">${esc(c.cap||c.title||'')}</div>
- <div class="mrow" style="margin-top:6px"><button class="btn sm alt" data-refetch="${i}">Lấy lại thumbnail</button><label class="btn sm alt" style="display:grid;place-items:center;font-weight:600;cursor:pointer">Tự tải ảnh lên<input type="file" accept="image/*" data-clipimg="${i}" hidden></label><button class="btn sm alt" data-delclip="${i}">Xoá</button></div></div></div>`).join('')||'<p class="note">Chưa có clip.</p>'}</div>`;
+ `;
 }
 async function browserThumb(url){   // dự phòng: để trình duyệt tự hỏi TikTok
  try{const r=await fetch('https://www.tiktok.com/oembed?url='+encodeURIComponent(url));if(!r.ok)return '';const j=await r.json();return j.thumbnail_url||''}catch(e){return ''}}
@@ -436,7 +447,7 @@ function cardHTML(o){
  {const last=(o.emails||[]).filter(e=>STAGE_TAG[e.tpl]).slice(-1)[0];if(last)tags.push([STAGE_TAG[last.tpl],'b'])}
  {const r=costCalc(o,+(o.cost?.kg||estKg(o)),o.cost?.route||'air');if(!r.invalid)tags.push([(r.profit>=0?'Lãi A$':'Lỗ A$')+Math.abs(r.profit).toFixed(0),r.profit>=0?'gr':'r'])}
  return `<button class="jc${openId===o.id?' sel':''}" data-openo="${esc(o.id)}" draggable="true" data-drag="${esc(o.id)}" style="--cardc:${col.card};--dot:${col.c}">
- <span class="jh"><span class="jn">📦 ${esc(o.name)}</span><span class="jid">${esc(o.id)}</span></span>
+ <span class="jh"><span class="jn">${esc(o.name)}</span><span class="jid">${esc(o.id)}</span></span>
  <span class="jt">A$${Number(T.total||0).toFixed(2)} · ${o.items.length} món · ${esc(new Date(o.created).toLocaleDateString('vi-VN'))}</span>
  <span class="jic">${tags.map(([l,c])=>`<i class="tg ${c}">${esc(l)}</i>`).join('')}</span>
  ${o.status!=='new'&&o.status!=='awaiting_deposit'?`<span class="jp"><span style="width:${its.length?Math.round(done/its.length*100):0}%"></span></span><span class="jt">${done}/${its.length} món đã về kho</span>`:o.confirm?.deadline?`<span class="jt">Hạn cọc ${esc(new Date(o.confirm.deadline+'T12:00').toLocaleDateString('vi-VN'))}</span>`:''}
@@ -523,7 +534,7 @@ let inqs=[],showInqDone=false;
 async function loadInq(){const r=await api('/api/inquiries',null,'GET');inqs=r.ok&&Array.isArray(r.j)?r.j:[]}
 function renderInq(){const box=$('inqBox');if(!box)return;const open=inqs.filter(x=>!x.done),list=showInqDone?inqs:open;
  if(!inqs.length){box.innerHTML='';return}
- box.innerHTML=`<details class="panel inqp"${open.length?' open':''}><summary><b>🔎 Khách nhờ tìm hàng</b>${open.length?`<span class="n">${open.length}</span>`:''}<span class="note" style="margin-left:8px">Khách gửi ảnh + link món chưa có trên web. Email đầy đủ ảnh lớn cũng đã gửi về hộp thư của bạn.</span></summary>
+ box.innerHTML=`<details class="panel inqp"${open.length?' open':''}><summary><b>Khách nhờ tìm hàng</b>${open.length?`<span class="n">${open.length}</span>`:''}<span class="note hint" style="margin-left:8px">Khách gửi ảnh + link món chưa có trên web. Email đầy đủ ảnh lớn cũng đã gửi về hộp thư của bạn.</span></summary>
  <div class="inql">${list.map(x=>{const mail=`mailto:${encodeURIComponent(x.email)}?subject=${encodeURIComponent(`Re: your request ${x.id} – ${x.brand}`)}&body=${encodeURIComponent(`Hi ${x.name},\n\nThanks for your request. `)}`,src=/^https?:\/\//.test(x.source||'')?`<a href="${esc(x.source)}" target="_blank" rel="noopener">${esc(x.source)}</a>`:esc(x.source||'–');
   return `<div class="inqi${x.done?' dn':''}"><div class="inqt">${(x.thumbs||[]).map(t=>/^data:image\//.test(t)?`<img src="${t}" alt="">`:'').join('')||'<span class="note">không có ảnh</span>'}</div>
   <div><div class="mrow" style="justify-content:space-between;align-items:baseline"><b>${esc(x.brand||'?')}</b><span class="note">${esc(x.id)} · ${esc(new Date(x.created).toLocaleString('vi-VN'))}</span></div>
@@ -536,9 +547,9 @@ function renderInq(){const box=$('inqBox');if(!box)return;const open=inqs.filter
   if(d.inqall!==undefined){showInqDone=!showInqDone;renderInq()}
   else if(d.inqdone){const x=inqs.find(i=>i.id===d.inqdone);const r=await api('/api/inquiry-done',{id:x.id,done:!x.done});if(r.ok){x.done=!x.done;renderInq()}}
   else if(d.inqdel){if(!confirm('Xoá yêu cầu này?'))return;const r=await api('/api/inquiry-del',{id:d.inqdel});if(r.ok){inqs=inqs.filter(i=>i.id!==d.inqdel);renderInq();toast('Đã xoá')}}}}
-async function pageOrders(){
- $('box').innerHTML=`<div class="mrow" style="justify-content:space-between;align-items:center;margin-bottom:16px"><h2 style="margin:0;font-size:30px;font-weight:700">📦 Đơn hàng</h2><div class="mrow"><button class="btn alt sm" data-newo>+ Tạo đơn</button><button class="btn sm" data-pull>⇣ Lấy đơn mới</button><button class="btn alt sm" data-refresh>↻ Tải lại</button></div></div>
- ${payInfo?'':'<p class="lead"><b class="warn">Chưa có thông tin chuyển khoản.</b> Vào Quản lý sàn → Cài đặt & đồng bộ để điền, email xác nhận sẽ tự chèn vào.</p>'}
+async function pageOrders(sub=''){
+ $('box').innerHTML=sub+`<div class="mrow" style="justify-content:space-between;align-items:center;margin-bottom:16px"><h2 style="margin:0">Đơn hàng</h2><div class="mrow"><button class="btn alt sm" data-newo>+ Tạo đơn</button><button class="btn sm" data-pull>⇣ Lấy đơn mới</button><button class="btn alt sm" data-refresh>↻ Tải lại</button></div></div>
+ ${payInfo?'':'<p class="lead"><b class="warn">Chưa có thông tin chuyển khoản.</b> Vào Cài đặt để điền, email xác nhận sẽ tự chèn vào.</p>'}
  <div id="inqBox"></div><div id="board"><p class="note">Đang tải…</p></div>`;
  loadInq().then(renderInq);
  const r=await loadOrders();if(!r.ok){$('board').innerHTML=`<p class="empty">${esc(r.j.error||'Không tải được')}</p>`;return}
@@ -806,7 +817,7 @@ document.addEventListener('click',async e=>{
  else if(d.unpin){if(await saveOv(ov=>{delete ov[d.unpin].pin;renum(ov)}))render()}
  else if(t.id==='moreP'){limitP+=60;render()}
  else if(d.bact){const r=rec(d.id);r.status=d.bact==='approve'?'live':'hidden';if(d.bact==='approve')r.verified_at=new Date().toISOString();D.badm[d.id]=r;if(await saveFile('brands_admin.json',D.badm))render()}
- else if(d.page){page=d.page;try{sessionStorage.setItem('cv_page',page)}catch(x){}openId=null;render()}
+ else if(d.page){page=d.page;tab='';try{sessionStorage.setItem('cv_page',page)}catch(x){}openId=null;render()}
  else if(d.openo&&!t.closest('[data-drag]')?.dataset.dragging){openId=d.openo;composing=composing?.id===openId?composing:null;redraw()}
  else if(d.closeo!==undefined){openId=null;composing=null;newOrd=null;redraw()}
  else if(d.arch!==undefined){showArchive=!showArchive;renderBoard()}
@@ -1033,6 +1044,8 @@ async function pullOnline(quiet){if(!quiet)toast('Đang lấy đơn…');
 async function loadPay(){const q=await api('/api/private?file=payment.json',null,'GET');payInfo=q.ok?(q.j.text||''):'';contact=q.ok?{name:q.j.sign_name||'',phone:q.j.phone||'',email:q.j.email||''}:{}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&openId){openId=null;composing=null;redraw()}});
 document.addEventListener('dragstart',e=>{const c=e.target.closest?.('[data-drag]');if(!c)return;e.dataTransfer.setData('text/plain',c.dataset.drag);e.dataTransfer.effectAllowed='move'});
+try{if(localStorage.getItem('vb_help')==='1'){document.body.classList.add('help');document.getElementById('helpBtn')?.setAttribute('aria-pressed','true')}}catch(e){}
+document.addEventListener('click',e=>{if(e.target.id!=='helpBtn')return;const on=document.body.classList.toggle('help');e.target.setAttribute('aria-pressed',on);try{localStorage.setItem('vb_help',on?'1':'0')}catch(x){}});
 document.addEventListener('dragover',e=>{const col=e.target.closest?.('[data-drop]');if(!col)return;e.preventDefault();document.querySelectorAll('.kcol.over').forEach(x=>x!==col&&x.classList.remove('over'));col.classList.add('over')});
 document.addEventListener('dragleave',e=>{const col=e.target.closest?.('[data-drop]');if(col&&!col.contains(e.relatedTarget))col.classList.remove('over')});
 document.addEventListener('drop',async e=>{const col=e.target.closest?.('[data-drop]');if(!col)return;e.preventDefault();col.classList.remove('over');const id=e.dataTransfer.getData('text/plain'),o=orders.find(x=>x.id===id),C=COLS.find(c=>c.k===col.dataset.drop);if(!o||!C||C.st.includes(o.status||'new'))return;await setStatus(id,C.k==='c1'&&!o.confirm?'new':C.to)});

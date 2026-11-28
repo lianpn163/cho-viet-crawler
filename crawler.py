@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "site" / "data"
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/124.0 Safari/537.36")
-MAX_PRODUCTS = int(os.environ.get("MAX_PRODUCTS", "500"))  # tối đa mỗi brand; đặt MAX_PRODUCTS=50 để chạy thử nhanh
+MAX_PRODUCTS = int(os.environ.get("MAX_PRODUCTS", "1500"))  # tối đa mỗi brand; đặt MAX_PRODUCTS=50 để chạy thử nhanh
 DELAY = (0.5, 1.2)            # nghỉ giữa các request để không làm phiền web brand
 PRICE_MIN, PRICE_MAX = 10_000, 50_000_000   # VND, ngoài khoảng này coi là lỗi
 JUMP = 0.40                   # giá đổi quá 40% (không phải sale) thì giữ giá cũ, chờ duyệt
@@ -81,16 +81,16 @@ CATEGORIES = [  # thứ tự quan trọng: cái nào khớp trước thì nhận
     ("Túi", ["balo", "ba lô", "backpack", "túi", "bag", "tote", "ví", "wallet", "crossbody", "duffle"]),
     ("Mũ", ["mũ", "nón", "cap", "hat", "beanie", "bucket", "snapback"]),
     ("Áo khoác", ["áo khoác", "khoác", "jacket", "bomber", "varsity", "windbreaker", "blazer", "parka", "puffer",
-                  "outerwear", "coat", "gilet", "outer", "outers"]),
+                  "outerwear", "coat", "gilet", "outer", "outers", "running vest", "puffer vest"]),
     ("Áo len & hoodie", ["hoodie", "áo len", "len", "nỉ", "sweater", "sweatshirt", "pullover", "cardigan", "knit",
                          "crewneck", "zip-up", "zip up", "knits"]),
     ("Áo thun & polo", ["áo thun", "t-shirt", "tshirt", "tee", "polo", "tank", "tanktop", "ba lỗ", "baby tee", "sleeveless"]),
     ("Sơ mi", ["sơ mi", "shirt", "overshirt", "blouse"]),
-    ("Áo thun & polo", ["long sleeve", "longsleeve", "jersey"]),   # "long sleeve" đứng một mình = áo thun tay dài
-    ("Quần", ["quần", "pants", "pant", "jeans", "jean", "shorts", "short", "trousers", "trouser", "bottoms", "bottom", "jogger", "denim", "cargo"]),
+    ("Áo thun & polo", ["long sleeve", "long sleeves", "longsleeve", "longsleeves", "l/s", "jersey"]),   # "long sleeve" đứng một mình = áo thun tay dài
+    ("Quần", ["quần", "pants", "pant", "jeans", "jean", "shorts", "short", "trousers", "trouser", "bottoms", "bottom", "jogger", "denim", "cargo", "sweatshorts", "sweatpants"]),
     ("Phụ kiện", ["tất", "vớ", "socks", "belt", "thắt lưng", "móc khoá", "móc khóa", "keychain", "key chain",
                   "lanyard", "dây đeo", "accs", "accessories", "accessory", "strap", "vòng", "dây chuyền", "necklace", "bracelet", "ring", "sticker",
-                  "khẩu trang", "bandana", "scarf", "khăn", "pin", "badge", "patch", "card holder"]),
+                  "khẩu trang", "bandana", "scarf", "khăn", "pin", "badge", "patch", "card holder", "tie", "money clip", "money clipper", "umbrella", "ô dù"]),
     ("Váy & đầm", ["váy", "đầm", "dress", "skirt"]),
 ]
 LEGACY = {"Balo": "Túi", "Túi & ví": "Túi", "Áo khoác & hoodie": "Áo khoác", "Giày dép": SKIP, "Đồ bơi": SKIP}
