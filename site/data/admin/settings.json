@@ -72,6 +72,21 @@
   ],
   "about": "We buy authentic pieces from independent Vietnamese fashion labels on your behalf, consolidate them in Vietnam and deliver to your door in Australia. Prices are converted at an indicative exchange rate; product images and details belong to each brand."
  },
- "hero_clips": [],
- "hero_credit": ""
+ "hero_clips": [
+  {
+   "src": "data/admin/media/hero-20261128-e09d7f.mov",
+   "credit": "",
+   "w": 720,
+   "h": 1280
+  }
+ ],
+ "hero_credit": "",
+ "hero_imgs": [
+  {
+   "src": "data/admin/media/20261128-612fd317.jpg",
+   "credit": "",
+   "w": 2400,
+   "h": 1920
+  }
+ ]
 }
