@@ -9,7 +9,7 @@
  "gst": false,
  "acc_cap": 20,
  "soldout_days": 180,
- "fee": 10,
+ "fee": 0,
  "deposit": 70,
  "eta": "10–12 days",
  "stale_hours": 6,
@@ -70,7 +70,7 @@
     "Tap \"Notify me\" and we’ll let you know as soon as the brand restocks."
    ]
   ],
-  "about": "We buy authentic pieces from independent Vietnamese fashion labels on your behalf, consolidate them in Vietnam and deliver to your door in Australia. Prices are converted at an indicative exchange rate; product images and details belong to each brand."
+  "about": "VieBuy as logistics partner bringing Vietnam's world-class quality and creative local labels to Australia. The brand's own prices, synced live. No service fee, just flat A$15 shipping Australia-wide. Every piece is bought direct, checked in Vietnam and delivered to your door."
  },
  "hero_clips": [],
  "hero_credit": "",
@@ -175,5 +175,9 @@
    "w": 1630,
    "h": 2048
   }
- ]
+ ],
+ "rate_mode": "auto",
+ "rate_margin": 0,
+ "hero_title": "Vietnam's emerging labels, at your door",
+ "hero_sub": "Explore your favourite labels. We'll handle the journey."
 }
