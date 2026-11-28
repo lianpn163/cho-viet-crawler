@@ -22,7 +22,7 @@
  "dep3": "The remaining balance of {balance} is due before your parcel ships to Australia.",
  "slogan": "Exploring local brands from Vietnam - Emerging Fashion Capital",
  "contact": "",
- "hero_video": "data/admin/media/hero-20261128-50fc9f.mov",
+ "hero_video": "",
  "content": {
   "bar": [],
   "lead": "No payment until we confirm your items are in stock. Most orders arrive in {eta}.",
@@ -71,5 +71,7 @@
    ]
   ],
   "about": "We buy authentic pieces from independent Vietnamese fashion labels on your behalf, consolidate them in Vietnam and deliver to your door in Australia. Prices are converted at an indicative exchange rate; product images and details belong to each brand."
- }
+ },
+ "hero_clips": [],
+ "hero_credit": ""
 }

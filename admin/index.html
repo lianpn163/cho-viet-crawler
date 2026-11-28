@@ -78,6 +78,7 @@ pre.out{background:var(--soft);padding:10px;border-radius:8px;font-size:12px;whi
 .inql{display:grid;gap:12px;margin:14px 0 10px}.inqi{display:grid;grid-template-columns:auto 1fr;gap:14px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fff}.inqi.dn{opacity:.55}
 .inqt{display:flex;gap:6px}.inqt img{width:84px;height:84px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
 @media(max-width:600px){.inqi{grid-template-columns:1fr}}
+.hclips{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin:10px 0 0}.hclip{display:grid;grid-template-columns:110px 1fr;gap:12px;padding:10px;border:1px solid var(--line);border-radius:8px}.hclip video,.hclip img{width:110px;height:140px;object-fit:cover;border-radius:6px;background:#111}
 .qrgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:14px;margin-top:14px}.qrc{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:start;margin:0}.qri svg{display:block;border:1px solid var(--line);border-radius:6px}
 .qrs{display:flex;gap:18px;flex-wrap:wrap}.qrs span{font-size:12px;color:var(--mut,#787774);display:flex;flex-direction:column}.qrs b{font-size:18px;color:var(--ink)}
 @media(max-width:600px){.qrgrid{grid-template-columns:1fr}.qrc{grid-template-columns:110px 1fr}.qri svg{width:110px;height:110px}#qrForm{grid-template-columns:1fr!important}}
@@ -168,9 +169,15 @@ function tContent(){
  if(!draftC){const C=CV.content();draftC=JSON.parse(JSON.stringify({...C,bar:D.set.content?.bar?.length?C.bar:[]}))}
  const c=draftC;
  $('aBody').innerHTML=`<div class="panel"><h3>Nội dung chữ trên web khách</h3><p class="note">Viết tiếng Anh. Ô thay thế tự điền theo Cài đặt: <b>{eta}</b> thời gian giao · <b>{deposit}</b> % cọc · <b>{ship_flat}</b> giá ship đồng giá · <b>{fee}</b> % phí dịch vụ · <b>{shipping}</b> câu mô tả phí ship · <b>{first_free}</b> ", and your first order ships free" (nếu bật).</p></div>
- <div class="panel"><h3>Trang chủ</h3><p class="note">Clip động ở đầu trang chủ. Chưa có clip thì web tự trình chiếu ảnh bìa các brand. Clip nên là MP4 ngang, 10–20 giây, dưới 15MB, không cần tiếng (web luôn tắt tiếng).</p>
- <div class="mrow" style="align-items:center;margin:8px 0 12px">${D.set.hero_video?`<video src="/${esc(D.set.hero_video)}" muted autoplay loop playsinline style="width:220px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:#111"></video><button class="btn sm alt" data-herorm style="color:var(--bad)">Bỏ clip</button>`:''}
- <label class="btn alt" style="display:grid;place-items:center;font-weight:600;cursor:pointer">${D.set.hero_video?'Đổi clip':'Tải clip lên'}<input type="file" accept="video/mp4,video/webm,video/quicktime" id="heroVid" hidden></label></div>
+ <div class="panel"><h3>Trang chủ</h3><p class="note">Phần đầu trang chủ. Mỗi ảnh/clip chọn được hiện ở <b>điện thoại</b>, <b>máy tính</b> hay <b>cả hai</b>: ảnh/clip dọc hợp điện thoại, ngang hợp máy tính.</p>
+ <div class="mrow" style="margin:10px 0 4px;gap:18px;flex-wrap:wrap"><label style="display:flex;gap:6px;align-items:center;font-weight:600"><input type="radio" name="hmode" data-hmode="images"${D.set.hero_mode==='video'?'':' checked'}> Chiếu ảnh</label>
+  <label style="display:flex;gap:6px;align-items:center;font-weight:600"><input type="radio" name="hmode" data-hmode="video"${D.set.hero_mode==='video'?' checked':''}> Chạy clip</label>
+  <label class="note" style="display:flex;gap:6px;align-items:center">Mỗi ảnh hiện<input type="number" min="3" max="15" data-hero="hero_secs" value="${esc(D.set.hero_secs||5)}" style="width:64px;${inpS}">giây</label></div>
+ <p class="note" style="margin:0 0 12px">${D.set.hero_mode==='video'?'Đang chạy clip. Thiết bị nào không có clip thì tự chuyển sang chiếu ảnh.':'Đang chiếu ảnh. Chưa có ảnh nào cho thiết bị đó thì web dùng ảnh bìa các brand.'}</p>
+ <h4 style="margin:14px 0 4px">Ảnh trình chiếu</h4>${heroBox('imgs')}
+ <label class="btn alt" style="display:inline-grid;place-items:center;font-weight:600;cursor:pointer;margin:10px 0 14px">+ Thêm ảnh (chọn được nhiều ảnh)<input type="file" accept="image/*" id="heroImg" multiple hidden></label>
+ <h4 style="margin:14px 0 4px">Clip</h4>${heroBox('clips')}
+ <label class="btn alt" style="display:inline-grid;place-items:center;font-weight:600;cursor:pointer;margin:10px 0 14px">+ Thêm clip (chọn được nhiều clip)<input type="file" accept="video/mp4,video/webm,video/quicktime" id="heroVid" multiple hidden></label>
  <label style="display:grid;gap:4px;font-size:14px;font-weight:600">Tiêu đề lớn<input data-hero="hero_title" value="${esc(D.set.hero_title||'')}" placeholder="Vietnamese labels, delivered" style="${inpS}"></label>
  <label style="display:grid;gap:4px;font-size:14px;font-weight:600;margin-top:8px">Dòng nhỏ bên dưới<input data-hero="hero_sub" value="${esc(D.set.hero_sub||'')}" placeholder="Authentic pieces from independent Vietnamese brands, at your door in Australia in {eta}." style="${inpS}"></label>
  <label style="display:grid;gap:4px;font-size:14px;font-weight:600;margin-top:8px">Chữ trên nút<input data-hero="hero_cta" value="${esc(D.set.hero_cta||'')}" placeholder="Shop all" style="${inpS}"></label>
@@ -304,12 +311,22 @@ function editor(){
  </form></div>`;
 }
 function syncForm(){const f=$('artForm');if(!f)return;const a=editing;a.title=f.title.value;a.tag=f.tag.value;a.date=f.date.value;a.dek=f.dek.value;if(f.body)a.body=f.body.value;a.status=f.status.value;a.brands=[...f.querySelectorAll('[name=brands]:checked')].map(x=>x.value)}
-async function shrink(file){   // ảnh lớn thì thu nhỏ còn cạnh dài 1800px để web nhẹ
+async function shrink(file,max=1800){   // ảnh lớn thì thu nhỏ còn cạnh dài 1800px để web nhẹ
  const url=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(file)});
- if(file.size<1.2e6||file.type==='image/gif')return url;
- try{const img=await createImageBitmap(file),k=Math.min(1,1800/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.85)}catch(e){return url}
+ if((file.size<1.2e6&&max<=1800)||file.type==='image/gif')return url;
+ if(max>1800&&file.size<3e6)return url;   // ảnh trang chủ: file vừa phải thì giữ nguyên gốc cho nét
+ try{const img=await createImageBitmap(file),k=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c.toDataURL('image/jpeg',max>1800?.92:.85)}catch(e){return url}
 }
-async function upload(file){toast('Đang tải ảnh…');const r=await api('/api/upload',{data:await shrink(file)});if(!r.ok){toast(r.j.error||'Tải ảnh lỗi');return null}toast('Đã tải ảnh');return r.j.path}
+const HDEV=[['mobile','📱 Điện thoại'],['desktop','💻 Máy tính'],['both','Cả hai']];
+const hdevOf=c=>c.device||(c.w&&c.h?(c.h>=c.w*.95?'mobile':'desktop'):'both');
+function heroList(k){const S=D.set;if(k==='imgs')return (S.hero_imgs||[]).map(c=>({...c}));if(Array.isArray(S.hero_clips))return S.hero_clips.map(c=>({...c}));return S.hero_video?[{src:S.hero_video,credit:S.hero_credit||''}]:[]}
+async function saveHero(k,L,quiet){const s={...D.set,[k==='imgs'?'hero_imgs':'hero_clips']:L};if(k!=='imgs'){s.hero_video='';s.hero_credit=''}if(await saveFile('settings.json',s)){D.set=s;if(quiet)toast('Đã lưu');else render()}}
+function heroBox(k){const L=heroList(k);if(!L.length)return `<p class="note">${k==='imgs'?'Chưa có ảnh nào.':'Chưa có clip nào.'}</p>`;
+ return `<div class="hclips">${L.map((c,i)=>`<div class="hclip">${k==='imgs'?`<img src="/${esc(c.src)}" alt="">`:`<video src="/${esc(c.src)}" muted autoplay loop playsinline></video>`}
+  <div style="display:grid;gap:6px;align-content:start"><select data-hdev="${k},${i}" style="${inpS}">${HDEV.map(([v,l])=>`<option value="${v}"${hdevOf(c)===v?' selected':''}>${l}</option>`).join('')}</select>
+  <label class="note">Nguồn (Instagram)<input data-hcred="${k},${i}" value="${esc(c.credit||'')}" placeholder="vd: lider.closet · trống = của bạn" style="${inpS}"></label>
+  <div class="mrow"><button class="btn sm alt" data-hmv="${k},${i},-1"${i?'':' disabled'}>↑</button><button class="btn sm alt" data-hmv="${k},${i},1"${i<L.length-1?'':' disabled'}>↓</button><button class="btn sm alt" data-hrm="${k},${i}" style="color:var(--bad)">Bỏ</button></div></div></div>`).join('')}</div>`}
+async function upload(file,max){toast('Đang tải ảnh…');const r=await api('/api/upload',{data:await shrink(file,max)});if(!r.ok){toast(r.j.error||'Tải ảnh lỗi');return null}toast('Đã tải ảnh');return r.j.path}
 function insert(before,after='',ph=''){const t=$('body');if(!t)return;const s=t.selectionStart,e=t.selectionEnd,sel=t.value.slice(s,e)||ph;t.setRangeText(before+sel+after,s,e,'end');t.focus();editing.body=t.value}
 /* --- moodboard --- */
 function tClip(){
@@ -759,7 +776,8 @@ document.addEventListener('click',async e=>{
  else if(d.fdel!==undefined){draftC.faq.splice(+d.fdel,1);render()}
  else if(d.fup!==undefined||d.fdown!==undefined){const i=+(d.fup??d.fdown),j=d.fup!==undefined?i-1:i+1,f=draftC.faq;[f[i],f[j]]=[f[j],f[i]];render()}
  else if(d.bcoverrm){const r=rec(d.bcoverrm);delete r.cover;D.badm[d.bcoverrm]=r;if(await saveFile('brands_admin.json',D.badm))render()}
- else if(d.herorm!==undefined){if(!confirm('Bỏ clip trang chủ?'))return;const s={...D.set,hero_video:''};if(await saveFile('settings.json',s)){D.set=s;render()}}
+ else if(d.hrm!==undefined){const [k,i]=d.hrm.split(',');if(!confirm('Bỏ khỏi trang chủ?'))return;await saveHero(k,heroList(k).filter((_,j)=>j!==+i))}
+ else if(d.hmv){const [k,a,b]=d.hmv.split(','),i=+a,L=heroList(k),j=i+(+b);[L[i],L[j]]=[L[j],L[i]];await saveHero(k,L)}
  else if(d.csave!==undefined){const c=draftC,s={...D.set,content:{bar:c.bar.filter(Boolean),lead:c.lead,steps:c.steps,faq:c.faq.filter(([q])=>q.trim()),about:c.about}};if(await saveFile('settings.json',s)){D.set=s;draftC=null;render()}}
  else if(d.creset2!==undefined){if(t.dataset.sure!=='1'){t.dataset.sure='1';t.textContent='Bấm lần nữa để khôi phục';return}const s={...D.set};delete s.content;if(await saveFile('settings.json',s)){D.set=s;draftC=null;render()}}
  else if(d.cup!==undefined||d.cdown!==undefined){const r=catRows(),i=+(d.cup??d.cdown),j=d.cup!==undefined?i-1:i+1;[r[i],r[j]]=[r[j],r[i]];await saveCats(r)}
@@ -868,9 +886,21 @@ document.addEventListener('change',async e=>{const t=e.target,d=t.dataset;
  else if(d.bname!==undefined){const l=brandsCfg.map((c,k)=>k===+d.bname?{...c,name:t.value.trim()||c.name}:c);if(await saveBrands(l))toast('Đã lưu tên. Tên mới hiện sau lần đồng bộ tới.')}
  else if(d.bplat!==undefined){const l=brandsCfg.map((c,k)=>k===+d.bplat?{...c,platform:t.value}:c);if(await saveBrands(l))toast('Đã lưu')}
  else if(d.hero){const s={...D.set,[d.hero]:t.value.trim()};if(await saveFile('settings.json',s))D.set=s}
- else if(t.id==='heroVid'&&t.files[0]){const fl=t.files[0];if(fl.size>40e6)return toast('Clip quá nặng (trên 40MB). Nên nén dưới 15MB cho web nhẹ.',6000);toast('Đang tải clip…',60000);
-  const r=await fetch('/api/upload-video',{method:'POST',headers:{'X-Admin-Password':pw,'Content-Type':fl.type||'video/mp4'},body:fl}).then(x=>x.json().then(j=>({ok:x.ok,j}))).catch(()=>({ok:false,j:{}}));
-  if(!r.ok)return toast(r.j.error||'Tải clip lỗi');const s={...D.set,hero_video:r.j.path};if(await saveFile('settings.json',s)){D.set=s;render();if(fl.size>15e6)toast('Đã lưu. Clip hơi nặng, khách mạng yếu sẽ chờ lâu: nên nén dưới 15MB.',7000)}}
+ else if(d.hcred!==undefined){const [k,i]=d.hcred.split(','),L=heroList(k);L[+i].credit=t.value.trim().replace(/^@/,'');await saveHero(k,L,true)}
+ else if(d.hdev!==undefined){const [k,i]=d.hdev.split(','),L=heroList(k);L[+i].device=t.value;await saveHero(k,L,true)}
+ else if(d.hmode){const s={...D.set,hero_mode:d.hmode};if(await saveFile('settings.json',s)){D.set=s;render()}}
+ else if(t.id==='heroImg'&&t.files.length){const L=heroList('imgs');for(const fl of [...t.files]){const dim=await new Promise(ok=>{const im=new Image(),u=URL.createObjectURL(fl);im.onload=()=>{ok({w:im.naturalWidth,h:im.naturalHeight});URL.revokeObjectURL(u)};im.onerror=()=>{ok({});URL.revokeObjectURL(u)};im.src=u});
+   const p=await upload(fl,2600);if(p){const m=fl.name.match(/^@?([A-Za-z0-9._]+)-\d+\.[a-z0-9]+$/i);L.push({src:p,credit:m&&/[._]/.test(m[1])?m[1]:'',...dim})}}
+  await saveHero('imgs',L)}
+ else if(t.id==='heroVid'&&t.files.length){const L=heroList('clips'),fs=[...t.files];let n=0;
+  for(const fl of fs){if(fl.size>40e6){toast(`${fl.name}: quá 40MB, bỏ qua. Nén dưới 15MB rồi tải lại nhé.`,6000);continue}
+   toast(`Đang tải clip ${++n}/${fs.length}…`,60000);
+   const dim=await new Promise(ok=>{const v=document.createElement('video'),u=URL.createObjectURL(fl);v.preload='metadata';v.onloadedmetadata=()=>{ok({w:v.videoWidth,h:v.videoHeight});URL.revokeObjectURL(u)};v.onerror=()=>{ok({});URL.revokeObjectURL(u)};v.src=u});
+   const r=await fetch('/api/upload-video',{method:'POST',headers:{'X-Admin-Password':pw,'Content-Type':fl.type||'video/mp4'},body:fl}).then(x=>x.json().then(j=>({ok:x.ok,j}))).catch(()=>({ok:false,j:{}}));
+   if(!r.ok){toast(`${fl.name}: ${r.j.error||'tải lỗi'}`,6000);continue}
+   const m=fl.name.match(/^@?([A-Za-z0-9._]+)-\d+\.[a-z0-9]+$/i);   // tên file kiểu "lider.closet-1.mp4" → tự điền nguồn
+   L.push({src:r.j.path,credit:m&&/[._]/.test(m[1])?m[1]:'',...dim})}
+  await saveHero('clips',L);toast('Đã thêm clip. Nhớ ghi nguồn cho clip của brand nhé.',5000)}
  else if(d.bcover&&t.files[0]){const p=await upload(t.files[0]);if(p){const r=rec(d.bcover);r.cover=p;D.badm[d.bcover]=r;if(await saveFile('brands_admin.json',D.badm))render()}}
  else if(d.ig){const r=rec(d.ig);r.instagram=t.value.trim().replace(/^@/,'');D.badm[d.ig]=r;await saveFile('brands_admin.json',D.badm)}
  else if(d.clipimg!==undefined&&t.files[0]){const p=await upload(t.files[0]);if(p){const cl=D.clips.map((x,i)=>i===+d.clipimg?{...x,thumb:p}:x);if(await saveFile('clips.json',cl)){D.clips=cl;render()}}}

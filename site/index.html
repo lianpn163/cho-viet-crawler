@@ -256,12 +256,15 @@ footer{background:var(--soft);margin-top:32px;scroll-margin-top:80px}
 .subsel{border-color:#111}.opt.on{border-color:#111}
 /* ===== trang chủ ===== */
 .hero{position:relative;height:min(86vh,820px);min-height:420px;background:#111;overflow:hidden;color:#fff}
+.hero .hv{opacity:0;transition:opacity 1.2s ease}.hero .hv.on{opacity:1}
 .hero video,.hero .sl{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .hero .sl{opacity:0;transition:opacity 1.4s ease}.hero .sl.on{opacity:1}.hero .sl img{width:100%;height:100%;object-fit:cover;animation:kb 9s ease-out both}
 @keyframes kb{from{transform:scale(1.08)}to{transform:scale(1)}}
-.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05) 40%,rgba(0,0,0,.55))}
-.hero .hc{position:absolute;z-index:2;left:0;right:0;bottom:clamp(36px,8vh,80px);text-align:center;padding:0 20px}
-.hero h1{font-size:clamp(34px,6vw,72px);line-height:1;letter-spacing:-.01em;text-transform:uppercase;margin:0 0 10px;font-weight:800;color:#fff}
+.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(0,0,0,.28))}
+.hero .hc{position:absolute;z-index:2;left:50%;bottom:clamp(28px,7vh,72px);transform:translateX(-50%);width:min(680px,calc(100% - 32px));text-align:center;padding:clamp(22px,3.5vw,36px) clamp(18px,4vw,44px);background:rgba(15,15,15,.32);-webkit-backdrop-filter:blur(10px) saturate(1.1);backdrop-filter:blur(10px) saturate(1.1);border:1px solid rgba(255,255,255,.22)}
+.hero .cred{position:absolute;z-index:2;right:14px;bottom:10px;font-size:11px;letter-spacing:.06em;color:rgba(255,255,255,.85);text-decoration:none;text-shadow:0 1px 3px rgba(0,0,0,.5)}.hero .cred:hover{text-decoration:underline}
+@media(max-width:600px){.hero .cred{right:auto;left:50%;transform:translateX(-50%);bottom:6px}}
+.hero h1{font-size:clamp(30px,4.6vw,56px);line-height:1;letter-spacing:-.01em;text-transform:uppercase;margin:0 0 10px;font-weight:800;color:#fff}
 .hero p{margin:0 0 22px;font-size:clamp(14px,1.6vw,17px);opacity:.92}
 .hero .hbtn{display:inline-block;background:#fff;color:#111;font-weight:700;text-transform:uppercase;letter-spacing:.14em;font-size:13px;padding:15px 34px;text-decoration:none}
 .hero .hbtn:hover{background:#111;color:#fff}
@@ -691,17 +694,38 @@ function route(){
  if(v==='journal'){h.startsWith('journal/')?renderArticle(h.slice(8)):renderJournalList();scrollTo(0,0)}
 }
 /* ===== TRANG CHỦ ===== */
-let heroT=null;
+let heroT=null,heroDev=null;addEventListener('resize',()=>{const d=isPhone();if(heroDev!==null&&d!==heroDev&&document.body.classList.contains('home'))renderHome();heroDev=d});
+// danh sách clip trang chủ; điện thoại ưu tiên clip dọc, máy tính ưu tiên clip ngang (thiếu thì dùng hết)
+const isPhone=()=>matchMedia('(max-width:820px)').matches||innerHeight>innerWidth*1.15;
+// thiết bị của 1 ảnh/clip: 'mobile' | 'desktop' | 'both' (chưa chọn thì đoán theo chiều: dọc = điện thoại, ngang = máy tính)
+const devOf=c=>c.device||(c.w&&c.h?(c.h>=c.w*.95?'mobile':'desktop'):'both');
+const forDev=L=>{const d=isPhone()?'mobile':'desktop';return L.filter(c=>c&&c.src&&(devOf(c)==='both'||devOf(c)===d))};
+function heroClips(){const S=D.set;let L=Array.isArray(S.hero_clips)?S.hero_clips:[];if(!L.length&&S.hero_video)L=[{src:S.hero_video,credit:S.hero_credit,device:'both'}];return forDev(L)}
+function heroImgs(){const S=D.set;return forDev(Array.isArray(S.hero_imgs)?S.hero_imgs:[])}
 function brandImg(id){const r=rec(id);if(r.cover)return safeUrl(r.cover);const ps=D.products.filter(p=>p.brand===id&&p.images[0]);const p=ps.find(x=>x.in_stock)||ps[0];return p?p.images[0]:''}
 function renderHome(){
  const S=D.set,C=CV.content(),F=CV.fill,live=D.status.filter(b=>isLive(b.id));
- // clip động: có video (Cài đặt) thì phát video, chưa có thì trình chiếu ảnh bìa các brand
- const imgs=live.map(b=>brandImg(b.id)).filter(Boolean);
- clearInterval(heroT);
- $('hero').innerHTML=(S.hero_video?`<video src="${esc(safeUrl(S.hero_video))}" ${S.hero_poster?`poster="${esc(safeUrl(S.hero_poster))}"`:''} autoplay muted loop playsinline preload="metadata"></video>`
-  :imgs.map((u,i)=>`<div class="sl${i?'':' on'}"><img src="${esc(u)}" alt="" referrerpolicy="no-referrer"${i?' loading="lazy"':''}></div>`).join(''))
-  +`<div class="hc"><h1>${esc(S.hero_title||'Vietnamese labels, delivered')}</h1><p>${esc(F(S.hero_sub||'Authentic pieces from independent Vietnamese brands, at your door in Australia in {eta}.'))}</p><a class="hbtn" href="#shop">${esc(S.hero_cta||'Shop all')}</a></div>`;
- if(!S.hero_video&&imgs.length>1&&!matchMedia('(prefers-reduced-motion: reduce)').matches){let i=0;heroT=setInterval(()=>{const sl=$('hero').querySelectorAll('.sl');if(!sl.length)return;sl[i%sl.length].classList.remove('on');i++;const n=sl[i%sl.length];n.classList.add('on');const im=n.querySelector('img');im.style.animation='none';im.offsetWidth;im.style.animation=''},5000)}
+ // clip động: nhiều clip thì chạy lần lượt (mờ dần sang clip sau); chưa có clip thì trình chiếu ảnh bìa các brand
+ // chế độ: 'images' (trình chiếu ảnh, mặc định) hoặc 'video'. Không có clip cho thiết bị này thì tự quay về chiếu ảnh.
+ const mode=S.hero_mode==='video'?'video':'images';
+ const own=heroImgs(),imgs=own.length?own.map(x=>({u:safeUrl(x.src),credit:x.credit})):live.map(b=>({u:brandImg(b.id),credit:''})).filter(x=>x.u);
+ clearInterval(heroT);clearTimeout(heroT);
+ const clips=mode==='video'?heroClips():[],cred=(h,lb='Video')=>{h=String(h||'').replace(/^@/,'').replace(/[^A-Za-z0-9._]/g,'');return h?`<a class="cred" href="https://www.instagram.com/${h}/" target="_blank" rel="noopener">${lb}: @${esc(h)}</a>`:''};
+ $('hero').innerHTML=(clips.length?`<video class="hv on" muted playsinline preload="auto"></video><video class="hv" muted playsinline preload="none"></video>`
+  :imgs.map((x,i)=>`<div class="sl${i?'':' on'}" data-cred="${esc(x.credit||'')}"><img src="${esc(x.u)}" alt="" referrerpolicy="no-referrer"${i?' loading="lazy"':''}></div>`).join(''))
+  +`<div class="hc"><h1>${esc(S.hero_title||'Vietnamese labels, delivered')}</h1><p>${esc(F(S.hero_sub||'Authentic pieces from independent Vietnamese brands, at your door in Australia in {eta}.'))}</p><a class="hbtn" href="#shop">${esc(S.hero_cta||'Shop all')}</a></div><span id="heroCred"></span>`;
+ if(clips.length){
+  const vs=[...$('hero').querySelectorAll('video.hv')],MAX=12000;let k=0,cur=0;
+  const load=(v,c)=>{v.src=safeUrl(c.src);if(c.poster)v.poster=safeUrl(c.poster)};
+  const play=()=>{const v=vs[cur],c=clips[k%clips.length];$('heroCred').innerHTML=cred(c.credit);
+   v.currentTime=0;const pr=v.play();if(pr)pr.catch(()=>{});
+   if(clips.length<2){v.loop=true;return}
+   const nx=vs[1-cur];load(nx,clips[(k+1)%clips.length]);nx.preload='auto';
+   const next=()=>{v.onended=null;clearTimeout(heroT);k++;cur=1-cur;vs[cur].classList.add('on');v.classList.remove('on');setTimeout(()=>v.pause(),1200);play()};
+   v.onended=next;heroT=setTimeout(next,MAX)};   // mỗi clip tối đa 12 giây rồi chuyển
+  load(vs[0],clips[0]);play();
+ }
+ if(!clips.length){$('heroCred').innerHTML=cred(imgs[0]?.credit,'Photo');if(imgs.length>1&&!matchMedia('(prefers-reduced-motion: reduce)').matches){let i=0;heroT=setInterval(()=>{const sl=$('hero').querySelectorAll('.sl');if(!sl.length)return;sl[i%sl.length].classList.remove('on');i++;const n=sl[i%sl.length];n.classList.add('on');$('heroCred').innerHTML=cred(n.dataset.cred,'Photo');const im=n.querySelector('img');im.style.animation='none';im.offsetWidth;im.style.animation=''},Math.max(3,+S.hero_secs||5)*1000)}}
  $('bgrid').innerHTML=live.map(b=>{const u=brandImg(b.id);return `<a class="btile" href="#brand/${encodeURIComponent(b.id)}">${u?`<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:''}<span class="bl"><span class="bn">${esc(b.name)}</span><span class="bs">Shop brand →</span></span></a>`}).join('')||'<p class="empty">Brands are coming soon.</p>';
  $('hLead').textContent=F(C.lead);
  $('hSteps').innerHTML=C.steps.map(([t,d])=>`<li><b>${esc(F(t))}</b><span>${esc(F(d))}</span></li>`).join('');
