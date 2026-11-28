@@ -21,5 +21,55 @@
  "dep2": "Keep an eye on your inbox for our confirmation email, and pay your deposit as soon as possible to secure your pieces.",
  "dep3": "The remaining balance of {balance} is due before your parcel ships to Australia.",
  "slogan": "Exploring local brands from Vietnam - Emerging Fashion Capital",
- "contact": ""
+ "contact": "",
+ "hero_video": "data/admin/media/hero-20261128-1ba968.mp4",
+ "content": {
+  "bar": [],
+  "lead": "No payment until we confirm your items are in stock. Most orders arrive in {eta}.",
+  "steps": [
+   [
+    "Pick your pieces",
+    "Shop authentic Vietnamese labels, priced in AUD with every fee shown in your bag."
+   ],
+   [
+    "Confirmed within 24 hours",
+    "We email you to confirm stock, the final price and delivery date. Pay a {deposit}% deposit to lock it in."
+   ],
+   [
+    "Consolidated in Vietnam",
+    "We buy from the brand, check every item and send you real photos before it flies."
+   ],
+   [
+    "Delivered to your door",
+    "Pay the balance before dispatch. Your parcel arrives anywhere in Australia in {eta}."
+   ]
+  ],
+  "faq": [
+   [
+    "How long does delivery take?",
+    "Usually {eta} from your deposit, depending on how quickly the brand dispatches. Your confirmation email includes an estimated delivery date."
+   ],
+   [
+    "How do I pay?",
+    "Send an order request, no payment needed yet. Within 24 hours we email you to confirm stock, the final price and delivery date. You then pay a {deposit}% deposit by bank transfer; the balance is due once your items are consolidated and photographed, before they ship to Australia."
+   ],
+   [
+    "What does shipping cost?",
+    "Shipping is {shipping}{first_free}. There is a {fee}% service fee on the item total. Every cost is shown in your bag before you order."
+   ],
+   [
+    "Are the products authentic?",
+    "We only list verified brands: official website, official Instagram and registered business details. Every item is bought directly from the brand’s own store."
+   ],
+   [
+    "What if I pick the wrong size?",
+    "You can change sizes or cancel for free until we place the order with the brand. After that the brand’s exchange policy applies, and return postage is agreed case by case."
+   ],
+   [
+    "The item I want is sold out?",
+    "Tap \"Notify me\" and we’ll let you know as soon as the brand restocks."
+   ]
+  ],
+  "about": "We buy authentic pieces from independent Vietnamese fashion labels on your behalf, consolidate them in Vietnam and deliver to your door in Australia. Prices are converted at an indicative exchange rate; product images and details belong to each brand."
+ }
 }
