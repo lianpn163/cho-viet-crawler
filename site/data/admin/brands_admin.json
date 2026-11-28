@@ -8,7 +8,8 @@
    "web": 1,
    "ig": 1,
    "biz": 1
-  }
+  },
+  "cover": "data/admin/media/20261128-44972a56.jpg"
  },
  "dico": {
   "status": "live",
@@ -20,7 +21,7 @@
    "ig": 1,
    "biz": 1
   },
-  "cover": "data/admin/media/20261128-6a80c1c7.webp"
+  "cover": "data/admin/media/20261128-f3dc16c3.jpg"
  },
  "goldie": {
   "status": "live",
@@ -31,7 +32,8 @@
    "web": 1,
    "ig": 1,
    "biz": 1
-  }
+  },
+  "cover": "data/admin/media/20261128-674b9993.jpg"
  },
  "whenever": {
   "status": "live",
@@ -42,7 +44,8 @@
    "web": 1,
    "ig": 1,
    "biz": 1
-  }
+  },
+  "cover": "data/admin/media/20261128-22795f68.jpg"
  },
  "stressmama": {
   "status": "hidden",
@@ -58,19 +61,25 @@
  "lider": {
   "status": "live",
   "instagram": "lider.closet",
+  "translate": false,
+  "verified_at": "",
   "ver": {
    "web": 1,
    "ig": 1,
    "biz": 1
-  }
+  },
+  "cover": "data/admin/media/20261128-cef63fd6.webp"
  },
  "gamble": {
   "status": "live",
   "instagram": "gamble.worldwide",
+  "translate": false,
+  "verified_at": "",
   "ver": {
    "web": 1,
    "ig": 1,
    "biz": 1
-  }
+  },
+  "cover": "data/admin/media/20261128-c133bedb.webp"
  }
 }
