@@ -108,16 +108,22 @@
    "h": 2048
   },
   {
+   "src": "data/admin/media/20261128-4cdf33d3.jpg",
+   "credit": "DICO",
+   "w": 1080,
+   "h": 1351
+  },
+  {
    "src": "data/admin/media/20261128-4f065d67.jpg",
    "credit": "gamble.worldwide",
    "w": 1638,
    "h": 2048
   },
   {
-   "src": "data/admin/media/20261128-b49a3e6d.jpg",
+   "src": "data/admin/media/20261128-43d39774.jpg",
    "credit": "DICO",
-   "w": 526,
-   "h": 700
+   "w": 1638,
+   "h": 2048
   },
   {
    "src": "data/admin/media/20261128-1dafaf03.webp",
@@ -144,6 +150,12 @@
    "h": 600
   },
   {
+   "src": "data/admin/media/20261128-6276bed6.jpg",
+   "credit": "DICO",
+   "w": 1639,
+   "h": 2048
+  },
+  {
    "src": "data/admin/media/20261128-2e81cb0c.webp",
    "credit": "lider.closet",
    "w": 480,
@@ -153,36 +165,6 @@
    "src": "data/admin/media/20261128-c82954c1.webp",
    "credit": "lider.closet",
    "w": 480,
-   "h": 600
-  },
-  {
-   "src": "data/admin/media/20261128-8020f55d.jpg",
-   "credit": "DICO",
-   "w": 526,
-   "h": 700
-  },
-  {
-   "src": "data/admin/media/20261128-36a9c22b.jpg",
-   "credit": "DICO",
-   "w": 526,
-   "h": 700
-  },
-  {
-   "src": "data/admin/media/20261128-0a371537.webp",
-   "credit": "DICO",
-   "w": 451,
-   "h": 600
-  },
-  {
-   "src": "data/admin/media/20261128-ea4a75ce.webp",
-   "credit": "DICO",
-   "w": 451,
-   "h": 600
-  },
-  {
-   "src": "data/admin/media/20261128-095c2f02.webp",
-   "credit": "DICO",
-   "w": 451,
    "h": 600
   },
   {
@@ -198,6 +180,18 @@
    "w": 1600,
    "h": 2000,
    "device": "mobile"
+  },
+  {
+   "src": "data/admin/media/20261128-1c9523e3.jpg",
+   "credit": "DICO",
+   "w": 1152,
+   "h": 1440
+  },
+  {
+   "src": "data/admin/media/20261128-18411ca7.jpg",
+   "credit": "DICO",
+   "w": 1152,
+   "h": 1440
   }
  ]
 }
