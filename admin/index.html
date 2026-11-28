@@ -79,6 +79,7 @@ pre.out{background:var(--soft);padding:10px;border-radius:8px;font-size:12px;whi
 .inqt{display:flex;gap:6px}.inqt img{width:84px;height:84px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
 @media(max-width:600px){.inqi{grid-template-columns:1fr}}
 .hclips{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin:10px 0 0}.hclip{display:grid;grid-template-columns:110px 1fr;gap:12px;padding:10px;border:1px solid var(--line);border-radius:8px}.hclip video,.hclip img{width:110px;height:140px;object-fit:cover;border-radius:6px;background:#111}
+.iglist{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;margin-top:16px}.igrow{display:grid;grid-template-columns:96px 1fr;gap:12px;padding:10px;border:1px solid var(--line);border-radius:8px}.igrow img{width:96px;height:120px;object-fit:cover;border-radius:6px}
 .qrgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:14px;margin-top:14px}.qrc{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:start;margin:0}.qri svg{display:block;border:1px solid var(--line);border-radius:6px}
 .qrs{display:flex;gap:18px;flex-wrap:wrap}.qrs span{font-size:12px;color:var(--mut,#787774);display:flex;flex-direction:column}.qrs b{font-size:18px;color:var(--ink)}
 @media(max-width:600px){.qrgrid{grid-template-columns:1fr}.qrc{grid-template-columns:110px 1fr}.qri svg{width:110px;height:110px}#qrForm{grid-template-columns:1fr!important}}
@@ -145,8 +146,12 @@ function render(){
  ({cats:tCats,content:tContent,warn:tWarn,cat:tCat,brand:tBrand,notify:tNotify,journal:tJournal,clip:tClip,qr:tQr,set:tSet})[tab]();
 }
 const ovOf=p=>D.ov[p.id]||{};
+const foldA=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');
+function boostKw(p){if(!p)return false;const kw=rec(p.brand).boost_kw;if(!kw)return false;const t=foldA(p.title+' '+(p.type||'')+' '+(ovOf(p).title||''));
+ return String(kw).split(',').map(w=>foldA(w).trim()).filter(Boolean).some(w=>new RegExp('(^|[^a-z0-9])'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'($|[^a-z0-9])').test(t))}
+const isBoostA=p=>{const o=ovOf(p);return o.boost?true:o.noboost?false:boostKw(p)};
 const pins=()=>D.products.filter(p=>ovOf(p).pin).sort((a,b)=>ovOf(a).pin-ovOf(b).pin);
-async function saveOv(mut){const ov=JSON.parse(JSON.stringify(D.ov));mut(ov);for(const k in ov){const m=ov[k];if(!m.title)delete m.title;if(!m.hidden)delete m.hidden;if(!m.pin)delete m.pin;if(!Object.keys(m).length)delete ov[k]}if(await saveFile('overrides.json',ov)){D.ov=ov;return true}return false}
+async function saveOv(mut){const ov=JSON.parse(JSON.stringify(D.ov));mut(ov);for(const k in ov){const m=ov[k];if(!m.title)delete m.title;if(!m.hidden)delete m.hidden;if(!m.pin)delete m.pin;if(!m.boost)delete m.boost;if(!m.noboost)delete m.noboost;if(!Object.keys(m).length)delete ov[k]}if(await saveFile('overrides.json',ov)){D.ov=ov;return true}return false}
 const renum=ov=>{Object.entries(ov).filter(([,m])=>m.pin).sort((a,b)=>a[1].pin-b[1].pin).forEach(([,m],i)=>m.pin=i+1)};
 const setPend=(id,k,v)=>{const p=D.byId[id],o=ovOf(p),cur={category:o.category??catOf(p),title:o.title??'',hidden:!!o.hidden};pend[id]={...(pend[id]||{}),[k]:v};if(Object.entries(pend[id]).every(([kk,vv])=>cur[kk]===vv))delete pend[id]};
 /* --- danh mục --- */
@@ -221,23 +226,24 @@ function tCat(){
   if(catFilter==='khac'&&!(c==='Khác'))return false;
   if(catFilter==='hidden'&&!o.hidden)return false;
   if(catFilter==='pinned'&&!o.pin)return false;
-  if(!['all','khac','hidden','pinned'].includes(catFilter)&&c!==catFilter)return false;
+  if(catFilter==='boost'&&!isBoostA(p))return false;
+  if(!['all','khac','hidden','pinned','boost'].includes(catFilter)&&c!==catFilter)return false;
   return !catQ||(p.title+' '+(o.title||'')).toLowerCase().includes(catQ)});
  const n=Object.keys(pend).length,pl=pins();
  const pinPanel=`<div class="panel" style="margin-top:14px"><h3>📌 Sản phẩm ghim</h3><p class="note">Hiện đầu trang Shop (ở chế độ "Featured"), theo đúng thứ tự dưới đây. Ghim bằng cách chọn sản phẩm bên dưới rồi bấm "Ghim".</p>
  ${pl.length?pl.map((p,i)=>`<div class="crow" style="grid-template-columns:40px 1fr auto"><img src="${esc(p.images[0]||'')}" alt="" referrerpolicy="no-referrer" style="width:40px;height:50px"><div style="font-size:14px"><b>${i+1}.</b> ${esc(ovOf(p).title||p.title)} <span class="note">· ${esc(st(p.brand).name)}</span></div>
  <div class="mrow"><button class="btn sm alt" data-pup="${esc(p.id)}" ${i?'':'disabled'} aria-label="Lên">↑</button><button class="btn sm alt" data-pdown="${esc(p.id)}" ${i<pl.length-1?'':'disabled'} aria-label="Xuống">↓</button><button class="btn sm alt" data-unpin="${esc(p.id)}" aria-label="Bỏ ghim">✕</button></div></div>`).join(''):'<p class="note">Chưa ghim món nào.</p>'}</div>`;
  const allSel=list.slice(0,limitP).length&&list.slice(0,limitP).every(p=>selP.has(p.id));
- const bulk=selP.size?`<div class="bulk"><b>Đã chọn ${selP.size}</b><button class="btn sm" data-bulk="pin">📌 Ghim</button><button class="btn sm alt" data-bulk="unpin">Bỏ ghim</button><button class="btn sm alt" data-bulk="hide">Ẩn</button><button class="btn sm alt" data-bulk="show">Hiện</button>
+ const bulk=selP.size?`<div class="bulk"><b>Đã chọn ${selP.size}</b><button class="btn sm" data-bulk="boost">⭐ Đẩy lên đầu brand</button><button class="btn sm alt" data-bulk="unboost">Bỏ đẩy</button><button class="btn sm alt" data-bulk="pin">📌 Ghim</button><button class="btn sm alt" data-bulk="unpin">Bỏ ghim</button><button class="btn sm alt" data-bulk="hide">Ẩn</button><button class="btn sm alt" data-bulk="show">Hiện</button>
  <select id="bulkCat" style="min-height:34px;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:0 6px"><option value="">Đổi danh mục…</option>${CATS.map(x=>`<option>${x}</option>`).join('')}</select><button class="btn sm alt" data-bulk="clear">Bỏ chọn</button></div>`:'';
  $('aBody').innerHTML=kwPanel+pinPanel+`<div class="panel" style="margin-top:14px"><h3>Sản phẩm trên sàn</h3><p class="note">Sửa tên hiển thị (để trống = tên tự dịch), đổi danh mục, hoặc ẩn món không muốn bán. Giá luôn lấy theo web brand nên không sửa ở đây. ${hid} món đang ẩn.</p>
  <div class="filters" style="margin-top:10px"><input id="catQ" type="search" placeholder="Tìm tên…" value="${esc(catQ)}">
  <select id="brandQ"><option value="">Mọi brand</option>${D.status.map(b=>`<option value="${esc(b.id)}"${brandQ===b.id?' selected':''}>${esc(b.name)}</option>`).join('')}</select>
- <select id="catFilter"><option value="all"${catFilter==='all'?' selected':''}>Mọi danh mục</option><option value="khac"${catFilter==='khac'?' selected':''}>Chưa xếp (${left})</option><option value="pinned"${catFilter==='pinned'?' selected':''}>Đang ghim (${pins().length})</option><option value="hidden"${catFilter==='hidden'?' selected':''}>Đang ẩn (${hid})</option>${CATS.filter(c=>c!=='Khác').map(c=>`<option${catFilter===c?' selected':''}>${c}</option>`).join('')}</select></div>
+ <select id="catFilter"><option value="all"${catFilter==='all'?' selected':''}>Mọi danh mục</option><option value="khac"${catFilter==='khac'?' selected':''}>Chưa xếp (${left})</option><option value="pinned"${catFilter==='pinned'?' selected':''}>Đang ghim (${pins().length})</option><option value="boost"${catFilter==='boost'?' selected':''}>⭐ Đang đẩy lên (${D.products.filter(isBoostA).length})</option><option value="hidden"${catFilter==='hidden'?' selected':''}>Đang ẩn (${hid})</option>${CATS.filter(c=>c!=='Khác').map(c=>`<option${catFilter===c?' selected':''}>${c}</option>`).join('')}</select></div>
  <p class="note" style="display:flex;gap:10px;align-items:center"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="selAll" ${allSel?'checked':''} style="width:18px;height:18px"> Chọn tất cả đang hiện</label> · ${list.length} sản phẩm</p>
  ${list.slice(0,limitP).map(p=>{const o=ovOf(p),pe=pend[p.id]||{},c=pe.category??o.category??catOf(p),h=pe.hidden??o.hidden??false,tt=pe.title??o.title??'';
   return `<div class="crow${pend[p.id]?' ch':''}" style="grid-template-columns:22px 56px 1fr;${h?'opacity:.55':''}"><input type="checkbox" data-psel="${esc(p.id)}" ${selP.has(p.id)?'checked':''} style="width:18px;height:18px" aria-label="Chọn"><img src="${esc(p.images[0]||'')}" alt="" referrerpolicy="no-referrer" loading="lazy"><div>
-  <div class="note" style="margin:0">${o.pin?'📌 ':''}${esc(st(p.brand).name)} · tên gốc: ${esc(p.title)} · <a href="${esc(p.url)}" target="_blank" rel="noopener">xem ↗</a></div>
+  <div class="note" style="margin:0">${o.pin?'📌 ':''}${isBoostA(p)?'⭐ ':''}${esc(st(p.brand).name)} · tên gốc: ${esc(p.title)} · <a href="${esc(p.url)}" target="_blank" rel="noopener">xem ↗</a></div>
   <div class="mrow" style="margin-top:6px;align-items:center"><input data-ptitle="${esc(p.id)}" value="${esc(tt)}" placeholder="Tên hiển thị (để trống = tự dịch)" style="flex:2 1 220px;min-height:38px;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:var(--card)">
   <select data-cat="${esc(p.id)}" style="flex:1 1 160px;margin:0">${CATS.map(x=>`<option${x===c?' selected':''}>${x}</option>`).join('')}</select>
   <label style="display:flex;gap:6px;align-items:center;font-size:14px;flex:0 0 auto"><input type="checkbox" data-phide="${esc(p.id)}" ${h?'checked':''} style="width:18px;height:18px"> Ẩn</label></div></div></div>`}).join('')||'<p class="empty">Không có sản phẩm nào.</p>'}
@@ -266,6 +272,7 @@ async function tBrand(){
   <label class="f" style="display:grid;gap:4px;font-size:14px;font-weight:600">Instagram<input data-ig="${esc(c.id)}" value="${esc(r.instagram||c.instagram||'')}" placeholder="tenbrand"></label>
   <label class="f" style="display:grid;gap:4px;font-size:14px;font-weight:600">Nền tảng<select data-bplat="${i}">${PLAT.map(([v,l])=>`<option value="${v}"${(c.platform||'')===v?' selected':''}>${l}</option>`).join('')}</select></label></div>
   <div class="mrow" style="align-items:center;margin-top:10px"><b style="font-size:14px">Ảnh bìa trang chủ</b>${r.cover?`<img src="/${esc(r.cover)}" alt="" style="width:56px;height:70px;object-fit:cover;border-radius:4px;border:1px solid var(--line)">`:'<span class="note">chưa có, đang dùng ảnh sản phẩm</span>'}<label class="btn sm alt" style="display:grid;place-items:center;font-weight:600;cursor:pointer">${r.cover?'Đổi ảnh':'Tải ảnh'}<input type="file" accept="image/*" data-bcover="${esc(c.id)}" hidden></label>${r.cover?`<button class="btn sm alt" data-bcoverrm="${esc(c.id)}">Bỏ ảnh</button>`:''}</div>
+  <label style="display:grid;gap:4px;margin-top:10px;font-size:14px;font-weight:600">⭐ Đẩy lên đầu các món có chữ (cách nhau dấu phẩy)<input data-bkw="${esc(c.id)}" value="${esc(r.boost_kw||'')}" placeholder="vd: blouse, váy, crop, bikini" style="min-height:38px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-weight:400"><span class="note" style="font-weight:400">${(()=>{const n=D.products.filter(p=>p.brand===c.id&&isBoostA(p)).length;return n?`${n} món đang được đẩy lên. Xem và chọn thêm bằng tay ở tab Sản phẩm → lọc "⭐ Đang đẩy lên".`:'Không phân biệt hoa thường, có dấu hay không. Chọn tay từng món ở tab Sản phẩm → tick → "⭐ Đẩy lên đầu brand".'})()}</span></label>
   <div class="chk">${VER.map(([k,l])=>`<label><input type="checkbox" data-ver="${esc(c.id)}:${k}" ${r.ver[k]?'checked':''}><span>${l}</span></label>`).join('')}
   <label><input type="checkbox" data-tr="${esc(c.id)}" ${r.translate?'checked':''}><span>Web chỉ có tiếng Việt: link sản phẩm mở qua Google Dịch sang tiếng Anh</span></label></div>
   <div class="mrow">${r.status!=='live'?`<button class="btn" data-bact="approve" data-id="${esc(c.id)}" ${ok?'':'disabled'}>Duyệt & đưa lên chợ</button>`:`<button class="btn alt" data-bact="hide" data-id="${esc(c.id)}">Tạm ẩn khỏi chợ</button>`}
@@ -311,11 +318,12 @@ function editor(){
  </form></div>`;
 }
 function syncForm(){const f=$('artForm');if(!f)return;const a=editing;a.title=f.title.value;a.tag=f.tag.value;a.date=f.date.value;a.dek=f.dek.value;if(f.body)a.body=f.body.value;a.status=f.status.value;a.brands=[...f.querySelectorAll('[name=brands]:checked')].map(x=>x.value)}
-async function shrink(file,max=1800){   // ảnh lớn thì thu nhỏ còn cạnh dài 1800px để web nhẹ
+async function shrink(file,max=2400){   // giữ ảnh gốc nếu dưới 4MB (nét nhất); ảnh quá nặng mới thu nhỏ, có làm mịn để không bị răng cưa
  const url=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(file)});
- if((file.size<1.2e6&&max<=1800)||file.type==='image/gif')return url;
- if(max>1800&&file.size<3e6)return url;   // ảnh trang chủ: file vừa phải thì giữ nguyên gốc cho nét
- try{const img=await createImageBitmap(file),k=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c.toDataURL('image/jpeg',max>1800?.92:.85)}catch(e){return url}
+ if(file.size<4e6||file.type==='image/gif')return url;
+ try{const img=await createImageBitmap(file);let src=img,w=img.width,h=img.height;const k=Math.min(1,max/Math.max(w,h)),W=Math.round(w*k),H=Math.round(h*k);
+  while(w/2>W){const c=document.createElement('canvas');c.width=w=Math.round(w/2);c.height=h=Math.round(h/2);const x=c.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(src,0,0,w,h);src=c}   // thu nhỏ từng nấc một nửa
+  const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(src,0,0,W,H);return c.toDataURL('image/jpeg',.92)}catch(e){return url}
 }
 const HDEV=[['mobile','📱 Điện thoại'],['desktop','💻 Máy tính'],['both','Cả hai']];
 const hdevOf=c=>c.device||(c.w&&c.h?(c.h>=c.w*.95?'mobile':'desktop'):'both');
@@ -331,7 +339,16 @@ function insert(before,after='',ph=''){const t=$('body');if(!t)return;const s=t.
 /* --- moodboard --- */
 function tClip(){
  const opts=D.status.map(b=>`<option value="${esc(b.id)}">${esc(b.name)}</option>`).join('');
- $('aBody').innerHTML=`<div class="panel"><h3>Thêm clip TikTok</h3><form class="f" id="clipForm" style="margin-top:10px"><label>Link clip<input name="url" required placeholder="https://www.tiktok.com/@ten/video/123…"></label>
+ const ig=D.insta||[],live=D.status.filter(b=>rec(b.id).status==='live');
+ $('aBody').innerHTML=`<div class="panel"><h3>Bài Instagram</h3><p class="note">Dán link bài Instagram và tải ảnh của bài đó lên (chụp màn hình hoặc ảnh tải về). Ảnh lưu trên web nên không bao giờ mất; khách bấm vào ảnh sẽ mở bài gốc, bấm tên brand ở góc sẽ ra trang brand trên VieBuy.</p>
+ <form class="f" id="igForm" style="margin-top:10px"><label>Link bài Instagram<input name="url" required placeholder="https://www.instagram.com/p/…"></label>
+ <div class="two"><label>Brand<select name="brand"><option value="">Không gắn brand</option>${live.map(b=>`<option value="${esc(b.id)}">${esc(b.name)}</option>`).join('')}</select></label><label>Mô tả ngắn (không bắt buộc)<input name="cap" maxlength="120" placeholder="cho người dùng trình đọc màn hình"></label></div>
+ <label>Ảnh của bài<input type="file" name="img" accept="image/*" required></label><button class="btn">+ Thêm vào moodboard</button></form>
+ <div class="iglist">${ig.map((x,i)=>`<div class="igrow"><img src="/${esc(x.img)}" alt=""><div style="display:grid;gap:6px;align-content:start">
+  <a class="note" href="${esc(x.url)}" target="_blank" rel="noopener" style="word-break:break-all">${esc(x.url)}</a>
+  <select data-igbrand="${i}" style="${inpS}"><option value="">Không gắn brand</option>${live.map(b=>`<option value="${esc(b.id)}"${x.brand===b.id?' selected':''}>${esc(b.name)}</option>`).join('')}</select>
+  <div class="mrow"><button class="btn sm alt" data-igmv="${i},-1"${i?'':' disabled'}>↑</button><button class="btn sm alt" data-igmv="${i},1"${i<ig.length-1?'':' disabled'}>↓</button><label class="btn sm alt" style="display:grid;place-items:center;font-weight:600;cursor:pointer">Đổi ảnh<input type="file" accept="image/*" data-igimg="${i}" hidden></label><button class="btn sm alt" data-igdel="${i}" style="color:var(--bad)">Xoá</button></div></div></div>`).join('')||'<p class="note">Chưa có bài nào.</p>'}</div></div>
+ <div class="panel"><h3>Thêm clip TikTok</h3><form class="f" id="clipForm" style="margin-top:10px"><label>Link clip<input name="url" required placeholder="https://www.tiktok.com/@ten/video/123…"></label>
  <div class="two"><label>Gắn với brand<select name="brand"><option value="">Không gắn</option>${opts}</select></label><label>Creator đến từ<input name="country" placeholder="Úc, Mỹ, Hàn…"></label></div>
  <label>Mô tả ngắn<input name="cap" maxlength="140"></label><button class="btn" id="clipBtn">Lấy thumbnail & thêm</button></form></div>
  <div class="panel">${D.clips.map((c,i)=>`<div class="crow"><img src="${esc(c.thumb||'')}" alt="" referrerpolicy="no-referrer"><div><b>@${esc(c.handle)}</b> <span class="note">${esc(c.brand?st(c.brand).name:'')} ${esc(c.country||'')}</span><div class="note" style="margin:0">${esc(c.cap||c.title||'')}</div>
@@ -784,7 +801,7 @@ document.addEventListener('click',async e=>{
  else if(d.cdel){if(t.dataset.sure!=='1'){t.dataset.sure='1';t.textContent='Bấm lần nữa';return}const n=D.products.filter(p=>catOf(p)===d.cdel).length;await saveCats(catRows().filter(c=>c.key!==d.cdel));if(n)toast(`${n} sản phẩm của danh mục này sẽ về "Khác"`)}
  else if(d.bulk){const ids=[...selP];if(d.bulk==='clear'){selP.clear();return render()}
   if(await saveOv(ov=>{let mx=Math.max(0,...Object.values(ov).map(m=>m.pin||0));for(const id of ids){const m=ov[id]=ov[id]||{};
-   if(d.bulk==='pin'&&!m.pin)m.pin=++mx;if(d.bulk==='unpin')delete m.pin;if(d.bulk==='hide')m.hidden=true;if(d.bulk==='show')delete m.hidden}renum(ov)})){toast(`Đã cập nhật ${ids.length} sản phẩm`);selP.clear();render()}}
+   if(d.bulk==='boost'){m.boost=true;delete m.noboost}if(d.bulk==='unboost'){delete m.boost;if(boostKw(ids.length?D.products.find(x=>x.id===id):null))m.noboost=true}if(d.bulk==='pin'&&!m.pin)m.pin=++mx;if(d.bulk==='unpin')delete m.pin;if(d.bulk==='hide')m.hidden=true;if(d.bulk==='show')delete m.hidden}renum(ov)})){toast(`Đã cập nhật ${ids.length} sản phẩm`);selP.clear();render()}}
  else if(d.pup||d.pdown){const id=d.pup||d.pdown,l=pins().map(p=>p.id),i=l.indexOf(id),j=d.pup?i-1:i+1;[l[i],l[j]]=[l[j],l[i]];if(await saveOv(ov=>l.forEach((x,k)=>{ov[x]={...(ov[x]||{}),pin:k+1}})))render()}
  else if(d.unpin){if(await saveOv(ov=>{delete ov[d.unpin].pin;renum(ov)}))render()}
  else if(t.id==='moreP'){limitP+=60;render()}
@@ -846,6 +863,8 @@ document.addEventListener('click',async e=>{
  else if(d.delart){const a=D.articles.find(x=>x.id===d.delart);if(!a)return;if(t.dataset.sure!=='1'){t.dataset.sure='1';t.textContent='Bấm lần nữa để xoá';return}const list=D.articles.filter(x=>x.id!==d.delart);if(await saveFile('articles.json',list)){D.articles=list;render()}}
  else if(d.preview!==undefined){syncForm();preview=!preview;render()}
  else if(d.ins){if(preview)return;({h:()=>insert('\n\n## ','\n\n','Tiêu đề phụ'),b:()=>insert('**','**','chữ đậm'),i:()=>insert('*','*','chữ nghiêng'),q:()=>insert('\n\n> ','\n\n','Câu trích dẫn đáng nhớ'),l:()=>insert('\n\n- ','\n- \n- \n\n','Ý thứ nhất'),a:()=>insert('[','](https://)','chữ hiện ra')})[d.ins]()}
+ else if(d.igmv){const [i,dir]=d.igmv.split(',').map(Number),L=[...(D.insta||[])],j=i+dir;[L[i],L[j]]=[L[j],L[i]];if(await saveFile('insta.json',L)){D.insta=L;render()}}
+ else if(d.igdel!==undefined){if(!confirm('Xoá bài này khỏi moodboard?'))return;const L=(D.insta||[]).filter((_,i)=>i!==+d.igdel);if(await saveFile('insta.json',L)){D.insta=L;render()}}
  else if(d.refetch){t.disabled=true;t.textContent='Đang lấy…';const c=D.clips[+d.refetch],r=await api('/api/clip',{url:c.url});if(!r.ok){toast(r.j.error||'Không lấy được');render();return}
   if(!r.j.thumb)r.j.thumb=await browserThumb(r.j.url||c.url);
   const cl=D.clips.map((x,i)=>i===+d.refetch?{...x,...r.j,brand:x.brand,country:x.country,cap:x.cap}:x);if(await saveFile('clips.json',cl)){D.clips=cl;render();toast(r.j.thumb?'Đã có thumbnail':'Vẫn chưa lấy được. Dùng nút "Tự tải ảnh lên" nhé')}}
@@ -890,7 +909,7 @@ document.addEventListener('change',async e=>{const t=e.target,d=t.dataset;
  else if(d.hdev!==undefined){const [k,i]=d.hdev.split(','),L=heroList(k);L[+i].device=t.value;await saveHero(k,L,true)}
  else if(d.hmode){const s={...D.set,hero_mode:d.hmode};if(await saveFile('settings.json',s)){D.set=s;render()}}
  else if(t.id==='heroImg'&&t.files.length){const L=heroList('imgs');for(const fl of [...t.files]){const dim=await new Promise(ok=>{const im=new Image(),u=URL.createObjectURL(fl);im.onload=()=>{ok({w:im.naturalWidth,h:im.naturalHeight});URL.revokeObjectURL(u)};im.onerror=()=>{ok({});URL.revokeObjectURL(u)};im.src=u});
-   const p=await upload(fl,2600);if(p){const m=fl.name.match(/^@?([A-Za-z0-9._]+)-\d+\.[a-z0-9]+$/i);L.push({src:p,credit:m&&/[._]/.test(m[1])?m[1]:'',...dim})}}
+   const p=await upload(fl,2800);if(p){const m=fl.name.match(/^@?([A-Za-z0-9._]+)-\d+\.[a-z0-9]+$/i);L.push({src:p,credit:m&&/[._]/.test(m[1])?m[1]:'',...dim})}}
   await saveHero('imgs',L)}
  else if(t.id==='heroVid'&&t.files.length){const L=heroList('clips'),fs=[...t.files];let n=0;
   for(const fl of fs){if(fl.size>40e6){toast(`${fl.name}: quá 40MB, bỏ qua. Nén dưới 15MB rồi tải lại nhé.`,6000);continue}
@@ -902,7 +921,10 @@ document.addEventListener('change',async e=>{const t=e.target,d=t.dataset;
    L.push({src:r.j.path,credit:m&&/[._]/.test(m[1])?m[1]:'',...dim})}
   await saveHero('clips',L);toast('Đã thêm clip. Nhớ ghi nguồn cho clip của brand nhé.',5000)}
  else if(d.bcover&&t.files[0]){const p=await upload(t.files[0]);if(p){const r=rec(d.bcover);r.cover=p;D.badm[d.bcover]=r;if(await saveFile('brands_admin.json',D.badm))render()}}
+ else if(d.bkw){const r=rec(d.bkw);r.boost_kw=t.value.split(',').map(x=>x.trim()).filter(Boolean).join(', ');D.badm[d.bkw]=r;if(await saveFile('brands_admin.json',D.badm)){toast('Đã lưu');render()}}
  else if(d.ig){const r=rec(d.ig);r.instagram=t.value.trim().replace(/^@/,'');D.badm[d.ig]=r;await saveFile('brands_admin.json',D.badm)}
+ else if(d.igbrand!==undefined){const L=(D.insta||[]).map((x,i)=>i===+d.igbrand?{...x,brand:t.value}:x);if(await saveFile('insta.json',L)){D.insta=L;toast('Đã lưu')}}
+ else if(d.igimg!==undefined&&t.files[0]){const p=await upload(t.files[0]);if(p){const L=(D.insta||[]).map((x,i)=>i===+d.igimg?{...x,img:p}:x);if(await saveFile('insta.json',L)){D.insta=L;render()}}}
  else if(d.clipimg!==undefined&&t.files[0]){const p=await upload(t.files[0]);if(p){const cl=D.clips.map((x,i)=>i===+d.clipimg?{...x,thumb:p}:x);if(await saveFile('clips.json',cl)){D.clips=cl;render()}}}
  else if(t.id==='coverFile'&&t.files[0]){syncForm();const p=await upload(t.files[0]);if(p){editing.cover=p;render()}}
  else if(t.id==='imgFile'&&t.files[0]){const p=await upload(t.files[0]);if(p){insert('\n\n![','](' + p + ')\n\n','Chú thích ảnh')}t.value=''}
@@ -934,6 +956,10 @@ document.addEventListener('submit',async e=>{e.preventDefault();const f=e.target
  if(f.id==='setForm'){const n=(k,dv)=>{const v=parseFloat(f[k].value);return isNaN(v)?dv:v};
   const s={...D.set,site_name:f.site_name.value.trim()||'VieBuy',typekit:f.typekit.value.trim().toLowerCase(),slogan:f.slogan.value.trim(),contact:f.contact.value.trim(),eta:f.eta.value.trim(),ship_mode:f.ship_mode.value,ship_flat:n('ship_flat',15),ship:n('ship',14),ship_off:Math.min(100,Math.max(0,n('ship_off',0))),free_over:Math.max(0,n('free_over',0)),free_first:f.free_first.checked,gst:f.gst.checked,acc_cap:Math.max(0,n('acc_cap',20)),soldout_days:Math.max(0,Math.round(n('soldout_days',180))),rate:n('rate',18400),rate_mode:f.rate_mode.value,rate_margin:Math.min(10,Math.max(0,n('rate_margin',0))),fee:n('fee',10),deposit:Math.min(100,Math.max(0,n('deposit',70))),stale_hours:Math.max(1,n('stale_hours',6))};
   const {rate_manual,...clean}=s;if(await saveFile('settings.json',clean)){await CV.load('/');render()}}
+ if(f.id==='igForm'){const u=f.url.value.trim().split('?')[0];if(!/^https:\/\/(www\.)?instagram\.com\/(p|reel|reels|tv)\/[A-Za-z0-9_-]+\/?$/.test(u))return toast('Link chưa đúng: cần link bài viết dạng instagram.com/p/… hoặc /reel/…',6000);
+  if((D.insta||[]).some(x=>x.url===u))return toast('Bài này đã có trong moodboard');const fl=f.img.files[0];if(!fl)return toast('Chọn ảnh của bài nhé');
+  const p=await upload(fl);if(!p)return;const L=[{url:u,img:p,brand:f.brand.value,cap:f.cap.value.trim(),added:new Date().toISOString().slice(0,10)},...(D.insta||[])];
+  if(await saveFile('insta.json',L)){D.insta=L;toast('Đã thêm vào moodboard');render()}return}
  if(f.id==='clipForm'){const b=$('clipBtn');b.disabled=true;b.textContent='Đang lấy thông tin clip…';
   const r=await api('/api/clip',{url:f.url.value.trim()});b.disabled=false;b.textContent='Lấy thumbnail & thêm';
   if(!r.ok)return toast(r.j.error||'Không thêm được');

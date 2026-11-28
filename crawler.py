@@ -290,25 +290,51 @@ def detect_scale(raw_products):
     return 100 if median > 5_000_000 and all(x % 100 == 0 for x in prices) else 1
 
 
-def crawl_haravan_bulk(brand, domain):
-    """Cách nhanh: /collections/all/products.json (đọc theo lô, không cần từng sản phẩm)."""
-    raw, seen, page = [], set(), 1
-    while len(raw) < MAX_PRODUCTS and page <= 100:
-        r = get(f"https://{domain}/collections/all/products.json?limit=250&page={page}&sort_by=best-selling")
+COLL_RE = re.compile(r'href="(?:https?://[^/"]+)?/collections/([a-z0-9][a-z0-9\-]*)/?"')
+
+
+def _read_collection(domain, coll, raw, seen, max_pages=100):
+    """Đọc 1 danh mục của web brand theo từng trang, thêm món chưa có vào raw. Trả về số món mới."""
+    added, page = 0, 1
+    while len(raw) < MAX_PRODUCTS and page <= max_pages:
+        r = get(f"https://{domain}/collections/{coll}/products.json?limit=250&page={page}" + ("&sort_by=best-selling" if coll == "all" else ""))
         if r is None or r.status_code != 200:
             break
         try:
             items = r.json().get("products", [])
         except ValueError:
             break
-        new = [p for p in items if p.get("handle") and p["handle"] not in seen]
-        if not new:            # hết trang, hoặc web trả lại trang cũ
+        if not items:
             break
+        new = [p for p in items if p.get("handle") and p["handle"] not in seen]
         for p in new:
             seen.add(p["handle"])
         raw += new
-        page += 1
+        added += len(new)
         pause()
+        if not new and page > 1:   # trang này toàn món đã có: coi như hết
+            break
+        if not new and coll != "all":   # danh mục phụ mà trang đầu không có gì mới thì thôi, khỏi đọc tiếp
+            break
+        page += 1
+    return added
+
+
+def crawl_haravan_bulk(brand, domain):
+    """Cách nhanh: /collections/all/products.json (đọc theo lô, không cần từng sản phẩm).
+    Có brand để một số món (bộ sưu tập riêng, collab) ngoài "all", nên đọc thêm các danh mục trên menu trang chủ."""
+    raw, seen = [], set()
+    _read_collection(domain, "all", raw, seen)
+    if raw:
+        home = get(f"https://{domain}/")
+        colls = list(dict.fromkeys(COLL_RE.findall(home.text))) if home is not None and home.status_code == 200 else []
+        extra = 0
+        for c in colls[:80]:
+            if c in ("all", "frontpage") or len(raw) >= MAX_PRODUCTS:
+                continue
+            extra += _read_collection(domain, c, raw, seen, max_pages=10)
+        if extra:
+            print(f"  + {brand}: thêm {extra} món chỉ có trong danh mục riêng (ngoài trang 'all')")
     raw = raw[:MAX_PRODUCTS]
     scale = detect_scale(raw)
     out = [make_product(

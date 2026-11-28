@@ -304,3 +304,22 @@ def test_rate_uses_openexchangerates_hourly(monkeypatch, tmp_path):
     n = len([c for c in calls if "openexchangerates" in c])
     crawler.run()                                   # chạy lại trong cùng giờ: không gọi thêm
     assert len([c for c in calls if "openexchangerates" in c]) == n
+
+
+def test_haravan_reads_extra_collections(monkeypatch, tmp_path):
+    """Món chỉ nằm trong danh mục riêng (vd DICO All Star) cũng phải được đọc."""
+    setup(monkeypatch, tmp_path, [{"id": "dico", "name": "DICO", "domain": "dico.vn", "platform": "haravan"}])
+    base = dict(DICO_BULK["products"][0])
+    star = dict(base, handle="ao-thun-dico-silver-logo", title="Áo Thun DICO Silver Logo")
+    routes = {
+        "https://dico.vn/collections/all/products.json?limit=250&page=1&sort_by=best-selling": Resp(200, {"products": [base]}),
+        "https://dico.vn/collections/all/products.json?limit=250&page=2&sort_by=best-selling": Resp(200, {"products": []}),
+        "https://dico.vn/": Resp(200, '<a href="/collections/dico-all-star">All star</a><a href="https://dico.vn/collections/tops">Tops</a>'),
+        "https://dico.vn/collections/dico-all-star/products.json?limit=250&page=1": Resp(200, {"products": [star]}),
+        "https://dico.vn/collections/dico-all-star/products.json?limit=250&page=2": Resp(200, {"products": []}),
+        "https://dico.vn/collections/tops/products.json?limit=250&page=1": Resp(200, {"products": [base]}),
+    }
+    monkeypatch.setattr(crawler, "get", lambda url: routes.get(url, Resp(404, "")))
+    products, status, review = crawler.run()
+    titles = sorted(p["title"] for p in products)
+    assert len(titles) == 2 and any("Silver Logo" in x for x in titles)

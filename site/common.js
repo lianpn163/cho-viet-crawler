@@ -51,10 +51,10 @@ const CV = (() => {
     return D.set.rate !== before;
   }
   async function load(base = '') {
-    const files = ['data/products.json', 'data/status.json', 'data/admin/overrides.json', 'data/admin/clips.json', 'data/admin/brands_admin.json', 'data/admin/settings.json', 'data/admin/articles.json', 'data/admin/keywords.json', 'data/rate.json'];
-    const [pd, sd, ov, cl, ba, se, ar, kw, rt] = await Promise.all(files.map(f => jget(base + f)));
+    const files = ['data/products.json', 'data/status.json', 'data/admin/overrides.json', 'data/admin/clips.json', 'data/admin/brands_admin.json', 'data/admin/settings.json', 'data/admin/articles.json', 'data/admin/keywords.json', 'data/rate.json', 'data/admin/insta.json'];
+    const [pd, sd, ov, cl, ba, se, ar, kw, rt, ig] = await Promise.all(files.map(f => jget(base + f)));
     D.products = pd?.products || []; D.gen = pd?.generated_at || ''; D.status = sd?.brands || [];
-    D.ov = ov || {}; D.clips = cl || []; D.badm = ba || {}; D.set = { ...D.set, ...(se || {}) };
+    D.ov = ov || {}; D.clips = cl || []; D.insta = Array.isArray(ig) ? ig : []; D.badm = ba || {}; D.set = { ...D.set, ...(se || {}) };
     if (D.set.site_name === 'Viefs') D.set.site_name = 'VieBuy';
     if (D.set.eta === '5–7 days') D.set.eta = '10–12 days';   // thời gian giao mới
     if (D.set.soldout_days === 60) D.set.soldout_days = 180;   // hết hàng: nay giữ 6 tháng mới gỡ
