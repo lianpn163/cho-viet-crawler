@@ -352,7 +352,7 @@ body.home #process .proc{display:none}
 
  <section class="view" id="v-moodboard" style="padding-top:clamp(28px,5vw,56px)">
   <h2 class="htl" style="margin-bottom:8px">Moodboard</h2>
-  <p class="lead">Straight from the brands’ Instagram. Tap a post to see it on Instagram, or tap the brand to shop the look.</p>
+  <p class="lead">Straight from the brands’ socials. Tap a post to see the original, or tap the brand to shop the look.</p>
   <div class="igrid" id="igrid"></div>
   <div class="igfollow" id="igfollow"></div>
   <div id="ttSec"><h3 class="htl" style="font-size:clamp(18px,2vw,24px);margin-top:48px">On TikTok</h3><div class="tags" id="tags"></div><div class="clips" id="clips"></div></div>
@@ -657,11 +657,13 @@ function openD(id){$('veil').classList.add('on');$(id).classList.add('on')}
 function closeD(){$('veil').classList.remove('on');document.querySelectorAll('.drawer').forEach(d=>d.classList.remove('on'));$('cartTitle').textContent='Your bag'}
 
 /* ===== MOODBOARD ===== */
+const FB_SVG='<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.9.3-1.5 1.5-1.5h1.5V4.4c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v2.4H8v3h2.6V21z"/></svg>';
+const isFB=u=>/^https:\/\/((www|m|web)\.)?(facebook\.com|fb\.watch|fb\.com)\//.test(u||'');
 const IG_SVG='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>';
 function igBrand(x){return x.brand&&isLive(x.brand)?st(x.brand):null}
 function renderIG(){   // lưới bài Instagram: ảnh lưu trên web (không bao giờ mất), bấm ảnh mở bài gốc, bấm tên brand ra trang brand
- const L=(D.insta||[]).filter(x=>x&&x.img&&/^https:\/\/(www\.)?instagram\.com\//.test(x.url||''));
- $('igrid').innerHTML=L.length?L.map(x=>{const b=igBrand(x);return `<div class="igt"><a class="igi" href="${esc(x.url)}" target="_blank" rel="noopener" aria-label="View on Instagram${b?' – '+esc(b.name):''}"><img src="${esc(safeUrl(x.img))}" alt="${esc(x.cap||(b?b.name+' on Instagram':'Instagram post'))}" loading="lazy"><span class="igic">${IG_SVG}</span></a>${b?`<a class="igb" href="#brand/${encodeURIComponent(b.id)}">${esc(b.name)}</a>`:''}</div>`}).join(''):'<p class="empty">Posts coming soon.</p>';
+ const L=(D.insta||[]).filter(x=>x&&x.img&&(/^https:\/\/(www\.)?instagram\.com\//.test(x.url||'')||isFB(x.url)));
+ $('igrid').innerHTML=L.length?L.map(x=>{const b=igBrand(x);return `<div class="igt"><a class="igi" href="${esc(x.url)}" target="_blank" rel="noopener" aria-label="View on ${isFB(x.url)?'Facebook':'Instagram'}${b?' – '+esc(b.name):''}"><img src="${esc(safeUrl(x.img))}" alt="${esc(x.cap||(b?b.name+' post':'Brand post'))}" loading="lazy"><span class="igic">${isFB(x.url)?FB_SVG:IG_SVG}</span></a>${b?`<a class="igb" href="#brand/${encodeURIComponent(b.id)}">${esc(b.name)}</a>`:''}</div>`}).join(''):'<p class="empty">Posts coming soon.</p>';
  const hs=[...new Set(L.map(x=>{const b=igBrand(x);return b?(rec(b.id).instagram||'').replace(/^@/,''):''}).filter(Boolean))];
  $('igfollow').innerHTML=hs.map(h=>`<a href="https://www.instagram.com/${esc(h)}/" target="_blank" rel="noopener">Follow @${esc(h)} →</a>`).join('');
 }
