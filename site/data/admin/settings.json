@@ -72,21 +72,82 @@
   ],
   "about": "We buy authentic pieces from independent Vietnamese fashion labels on your behalf, consolidate them in Vietnam and deliver to your door in Australia. Prices are converted at an indicative exchange rate; product images and details belong to each brand."
  },
- "hero_clips": [
-  {
-   "src": "data/admin/media/hero-20261128-e09d7f.mov",
-   "credit": "",
-   "w": 720,
-   "h": 1280
-  }
- ],
+ "hero_clips": [],
  "hero_credit": "",
  "hero_imgs": [
   {
    "src": "data/admin/media/20261128-612fd317.jpg",
-   "credit": "",
+   "credit": "rvb_official",
    "w": 2400,
    "h": 1920
+  },
+  {
+   "src": "data/admin/media/20261128-a107d984.jpg",
+   "credit": "rvb_official",
+   "w": 2400,
+   "h": 1350
+  },
+  {
+   "src": "data/admin/media/20261128-ecadcf48.jpg",
+   "credit": "rvb_official",
+   "w": 1600,
+   "h": 2000,
+   "device": "desktop"
+  },
+  {
+   "src": "data/admin/media/20261128-a986f3ff.jpg",
+   "credit": "rvb_official",
+   "w": 1600,
+   "h": 2000,
+   "device": "desktop"
+  },
+  {
+   "src": "data/admin/media/20261128-9e0fcab1.jpg",
+   "credit": "gamble.worldwide",
+   "w": 1638,
+   "h": 2048
+  },
+  {
+   "src": "data/admin/media/20261128-4f065d67.jpg",
+   "credit": "gamble.worldwide",
+   "w": 1638,
+   "h": 2048
+  },
+  {
+   "src": "data/admin/media/20261128-1dafaf03.webp",
+   "credit": "gamble.worldwide",
+   "w": 1634,
+   "h": 2048
+  },
+  {
+   "src": "data/admin/media/20261128-ed37727f.jpg",
+   "credit": "gamble.worldwide",
+   "w": 1638,
+   "h": 2048
+  },
+  {
+   "src": "data/admin/media/20261128-0980b317.jpg",
+   "credit": "gamble.worldwide",
+   "w": 1638,
+   "h": 2048
+  },
+  {
+   "src": "data/admin/media/20261128-c82954c1.webp",
+   "credit": "lider.closet",
+   "w": 480,
+   "h": 600
+  },
+  {
+   "src": "data/admin/media/20261128-2e81cb0c.webp",
+   "credit": "lider.closet",
+   "w": 480,
+   "h": 600
+  },
+  {
+   "src": "data/admin/media/20261128-eaaab3af.webp",
+   "credit": "lider.closet",
+   "w": 480,
+   "h": 600
   }
  ]
 }
